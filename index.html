@@ -480,78 +480,277 @@
       color: #FAFAFA;
     }
 
-    .bento-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+    .section-desc {
+      font-size: 14.5px;
+      color: #A1A1AA;
+      line-height: 1.6;
+      max-width: 680px;
+      margin-top: 8px;
     }
 
-    .bento-card {
+    /* ─── Deep Feature Showcase ─────────────────────────────────────────── */
+    .feature-showcase {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .showcase-card {
       background: #111114;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 28px 24px;
+      border-radius: 14px;
+      padding: 32px 28px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: all 0.2s ease;
+      position: relative;
     }
 
-    .bento-card:hover {
-      border-color: rgba(255, 255, 255, 0.16);
+    .showcase-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
       transform: translateY(-2px);
     }
 
-    .bento-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: #16161B;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
+    .showcase-badge {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      color: #E4E4E7;
-      margin-bottom: 20px;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #10B981;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
     }
 
-    .bento-title {
-      font-size: 18px;
+    .showcase-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+
+    .showcase-title {
+      font-size: 21px;
       font-weight: 600;
       letter-spacing: -0.01em;
       color: #FAFAFA;
-      margin-bottom: 4px;
-    }
-
-    .bento-sub {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: #71717A;
       margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      line-height: 1.35;
     }
 
-    .bento-desc {
+    .showcase-desc {
       font-size: 13.5px;
-      line-height: 1.55;
+      line-height: 1.6;
       color: #A1A1AA;
       margin-bottom: 24px;
     }
 
-    .bento-foot {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: #71717A;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    .showcase-desc strong {
+      color: #FAFAFA;
+      font-weight: 600;
+    }
+
+    .showcase-mockup {
+      background: #15151B;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: auto;
+    }
+
+    .mock-chat {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mock-msg {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      line-height: 1.45;
+      max-width: 90%;
+    }
+
+    .mock-msg.user {
+      align-self: flex-end;
+      background: #E4E4E7;
+      color: #09090B;
+      font-weight: 500;
+    }
+
+    .mock-msg.bot {
+      align-self: flex-start;
+      background: #1C1C24;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #FAFAFA;
+    }
+
+    .mock-pill-bar {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: #10B981;
     }
 
-    .bento-foot span {
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+    }
+
+    .mock-table th {
+      text-align: left;
+      color: #71717A;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .mock-table td {
+      color: #D4D4D8;
+      padding: 7px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      white-space: nowrap;
+    }
+
+    .tech-pill-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tech-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: #191922;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #D4D4D8;
+    }
+
+    .speed-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .speed-metric-item {
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 8px;
+      border-radius: 8px;
+    }
+
+    .speed-metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: #FAFAFA;
+    }
+
+    .speed-metric-lbl {
+      font-size: 10px;
+      color: #71717A;
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── ROI & Math Container ───────────────────────────────────────────── */
+    .roi-container {
+      background: #121217;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 36px 32px;
+      margin: 40px 0 60px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+    }
+
+    .roi-head {
+      margin-bottom: 24px;
+    }
+
+    .roi-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #FAFAFA;
+      margin-top: 4px;
+    }
+
+    .roi-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr 1fr;
+      gap: 24px;
+      align-items: center;
+      margin: 28px 0;
+      padding: 24px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .roi-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .roi-metric {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #FAFAFA;
+      letter-spacing: -0.02em;
+    }
+
+    .roi-metric.highlight {
+      color: #E4E4E7;
+    }
+
+    .roi-metric.green {
+      color: #10B981;
+    }
+
+    .roi-label {
+      font-size: 12.5px;
       color: #A1A1AA;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    .roi-divider {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #71717A;
+      font-weight: 600;
+    }
+
+    .roi-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      font-size: 13px;
+      color: #A1A1AA;
+    }
+
+    .roi-footer strong {
+      color: #FAFAFA;
     }
 
     /* ─── Pricing Section ────────────────────────────────────────────────── */
@@ -826,8 +1025,19 @@
         grid-template-columns: 1fr;
         gap: 40px;
       }
-      .bento-grid {
+      .feature-showcase {
         grid-template-columns: 1fr;
+      }
+      .roi-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .roi-divider {
+        display: none;
+      }
+      .roi-footer {
+        flex-direction: column;
+        align-items: flex-start;
       }
       .pricing-grid {
         grid-template-columns: 1fr;
@@ -872,19 +1082,20 @@
         <span class="logo-badge">PROD v2.0</span>
       </a>
       <div class="header-nav">
-        <a href="#features" class="nav-link">Возможности</a>
-        <a href="#pricing" class="nav-link">Форматы и стоимость</a>
+        <a href="#features" class="nav-link">Что делает ИИ</a>
+        <a href="#roi" class="nav-link">Окупаемость</a>
+        <a href="#pricing" class="nav-link">Тарифы</a>
       </div>
       <div class="header-actions">
-        <a href="https://t.me/ecm_systems_demo_bot" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono">
+        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono" title="Написать основателю в Telegram">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/>
             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
-          Тест в Telegram
+          @godblessed77
         </a>
         <button onclick="window.openEcmWidget()" class="btn btn-primary mono">
-          Открыть чат на сайте
+          Открыть демо-чат
         </button>
       </div>
     </div>
@@ -1029,105 +1240,200 @@
       </div>
     </section>
 
-    <!-- ─── Bento Grid Section (Ключевые преимущества) ─────────────── -->
+    <!-- ─── What the AI Actually Does (Ключевые преимущества) ────────── -->
     <section class="bento-section" id="features">
       <div class="container">
         
         <div class="section-head">
-          <div class="section-tag">Архитектурные преимущества</div>
-          <h2 class="section-title">Единый процесс. Ноль накладок. Рост выручки.</h2>
+          <div class="section-tag">Экономика и возможности продукта</div>
+          <h2 class="section-title">Автоматический отдел продаж, который окупается с первого клиента</h2>
+          <p class="section-desc">
+            Обычные чат-боты просто висят на сайте для галочки. ECM Systems закрывает 4 главные боли бизнеса: забирает ночной трафик, сам допродает дорогие услуги на +35% к чеку, адаптируется под брендбук и автоматически ведет учет в Google CRM.
+          </p>
         </div>
 
-        <div class="bento-grid">
+        <div class="feature-showcase">
           
-          <!-- Card 1: Интеграция под брендбук -->
-          <div class="bento-card">
+          <!-- Card 1: Умный допродажник -->
+          <div class="showcase-card">
             <div>
-              <div class="bento-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 20h9"/>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                </svg>
+              <div class="showcase-badge">
+                <span class="showcase-badge-dot"></span>
+                +35% К СРЕДНЕМУ ЧЕКУ // UPSELL ENGINE
               </div>
-              <h3 class="bento-title">Дизайн под ваш брендбук</h3>
-              <div class="bento-sub">Brandbook Integration</div>
-              <p class="bento-desc">
-                Адаптируем цветовую гамму, типографику, скругления и стилистику виджета индивидуально под фирменный стиль сайта заказчика (Tilda, WordPress, 1C-Битрикс, Webflow, React или самопис). Виджет выглядит как естественная родная часть вашего интерфейса.
+              <h3 class="showcase-title">Сам предлагает допуслуги и увеличивает чек с каждого клиента</h3>
+              <p class="showcase-desc">
+                Администраторы часто забывают или стесняются предлагать дорогие допы. ИИ в <strong>100% диалогов</strong> нативно выявляет потребность и допродает комплекс: к полировке кузова предлагает керамику 9H (+25 000 ₽) и антидождь по акции в подарок.
+                Чек вырастает с <strong>18 000 ₽ до 43 000 ₽</strong> на автопилоте. Всего 1–2 такие допродажи полностью окупают установку системы.
               </p>
             </div>
-            <div class="bento-foot">
-              <span>CUSTOM BRANDBOOK</span>
-              <span>TILDA / WP / BITRIX</span>
+
+            <div class="showcase-mockup">
+              <div class="mock-chat">
+                <div class="mock-msg user">Сколько стоит полировка на BMW F10?</div>
+                <div class="mock-msg bot">
+                  Комплексная восстановительная полировка кузова для BMW F10 (седан) составляет ровно <strong>18 000 ₽</strong>.<br><br>
+                  Рекомендуем сразу закрепить результат 2 слоями керамики 9H (<strong>+25 000 ₽</strong>) — это защитит зеркальный глянец на 2 года, а гидрофобный антидождь по акции идет в подарок!
+                </div>
+              </div>
+              <div class="mock-pill-bar">
+                <span>СРЕДНИЙ ЧЕК: 18 000 ₽ ➔ 43 000 ₽</span>
+                <span>КОНВЕРСИЯ UPSELL: 38%</span>
+              </div>
             </div>
           </div>
 
-          <!-- Card 2: CRM-таблица Google Sheets -->
-          <div class="bento-card">
+          <!-- Card 2: Кастомный дизайн под брендбук -->
+          <div class="showcase-card">
             <div>
-              <div class="bento-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="3" y1="9" x2="21" y2="9"/>
-                  <line x1="3" y1="15" x2="21" y2="15"/>
-                  <line x1="9" y1="3" x2="9" y2="21"/>
-                  <line x1="15" y1="3" x2="15" y2="21"/>
-                </svg>
+              <div class="showcase-badge">
+                <span class="showcase-badge-dot"></span>
+                ПРЕМИАЛЬНЫЙ ВИД // NATIVE DESIGN
               </div>
-              <h3 class="bento-title">Автоматическая CRM-таблица</h3>
-              <div class="bento-sub">Google Sheets & Instant Sync</div>
-              <p class="bento-desc">
-                Каждая заявка, марка авто, предварительный расчёт сметы и контакт клиента моментально фиксируются в структурированной Google Таблице со статусами (Новая, В работе, Подтверждена, Завершена) + дублируются владельцу в Telegram с кнопками подтверждения.
+              <h3 class="showcase-title">Выглядит как дорогая заказная разработка за 200 000 ₽</h3>
+              <p class="showcase-desc">
+                Дешёвые шаблонные виджеты из конструкторов отпугивают клиентов премиальных автостудий. Мы вручную адаптируем палитру (Dark/Light), шрифты, скругления и стилистику под брендбук вашего сайта.
+                Виджет работает в изолированном <strong>Shadow DOM</strong>: не ломает верстку, не конфликтует со стилями сайта и открывается за доли секунды.
               </p>
             </div>
-            <div class="bento-foot">
-              <span>GOOGLE SHEETS CRM</span>
-              <span>INSTANT TG NOTIFY</span>
+
+            <div class="showcase-mockup">
+              <div style="font-size: 11px; color: #71717A; font-family: 'JetBrains Mono', monospace; margin-bottom: 8px;">
+                СОВМЕСТИМОСТЬ В 1 СТРОЧКУ КОДА:
+              </div>
+              <div class="tech-pill-grid">
+                <span class="tech-pill">Tilda Publishing</span>
+                <span class="tech-pill">WordPress</span>
+                <span class="tech-pill">1C-Битрикс</span>
+                <span class="tech-pill">Webflow</span>
+                <span class="tech-pill">React / Next.js</span>
+                <span class="tech-pill">Shadow DOM Isolation</span>
+              </div>
+              <div class="mock-pill-bar" style="margin-top: 14px;">
+                <span>100% NATIVE LOOK &amp; FEEL</span>
+                <span>ZERO CSS CONFLICTS</span>
+              </div>
             </div>
           </div>
 
-          <!-- Card 3: Единое расписание и бронь -->
-          <div class="bento-card">
+          <!-- Card 3: Автоматическая CRM Google Sheets -->
+          <div class="showcase-card">
             <div>
-              <div class="bento-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
+              <div class="showcase-badge">
+                <span class="showcase-badge-dot"></span>
+                БЕЗ ПЛАТНЫХ CRM // GOOGLE SHEETS &amp; TG
               </div>
-              <h3 class="bento-title">Единое расписание и бронь</h3>
-              <div class="bento-sub">Single Source of Truth</div>
-              <p class="bento-desc">
-                Сайт и Telegram работают с единой базой слотов на SQLite WAL. Система сама следит за занятыми часами, исключает накладки и удерживает выбранное время за клиентом (15-минутный защитный hold) до подтверждения мастером. Овербукинг исключён на 100%.
+              <h3 class="showcase-title">Все заявки со статусами в таблице и в Telegram владельца</h3>
+              <p class="showcase-desc">
+                Вам не нужно внедрять сложные CRM за 50 000 ₽ и платить абонплату за каждого сотрудника.
+                Бот автоматически заносит каждого клиента в удобную <strong>Google Таблицу</strong>: имя, телефон, модель авто, услуги, сумму и статус. Параллельно в Telegram владельца падает карточка с кнопками подтверждения брони в 1 клик.
               </p>
             </div>
-            <div class="bento-foot">
-              <span>ZERO OVERBOOKING</span>
-              <span>15-MIN HOLD SHIELD</span>
+
+            <div class="showcase-mockup">
+              <table class="mock-table">
+                <thead>
+                  <tr>
+                    <th>Клиент</th>
+                    <th>Авто</th>
+                    <th>Услуга</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Алексей</td>
+                    <td>BMW X5</td>
+                    <td>Полировка + Керамика</td>
+                    <td>56 000 ₽</td>
+                    <td><span style="color: #10B981; font-weight: 600;">CONFIRMED</span></td>
+                  </tr>
+                  <tr>
+                    <td>Максим</td>
+                    <td>BMW F10</td>
+                    <td>Восстанов. полировка</td>
+                    <td>18 000 ₽</td>
+                    <td><span style="color: #F59E0B; font-weight: 600;">PENDING 15m</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="mock-pill-bar">
+                <span>МГНОВЕННЫЙ ПУШ В ТЕЛЕГРАМ</span>
+                <span>АВТОСИНХРОНИЗАЦИЯ СЛОТОВ</span>
+              </div>
             </div>
           </div>
 
-          <!-- Card 4: Гибкие форматы запуска -->
-          <div class="bento-card">
+          <!-- Card 4: 24/7 Ночной трафик и защита от овербукинга -->
+          <div class="showcase-card">
             <div>
-              <div class="bento-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                  <polyline points="2 17 12 22 22 17"/>
-                  <polyline points="2 12 12 17 22 12"/>
-                </svg>
+              <div class="showcase-badge">
+                <span class="showcase-badge-dot"></span>
+                НОЛЬ ПОТЕРЯННЫХ ЛИДОВ // 24/7/365
               </div>
-              <h3 class="bento-title">Гибкие форматы запуска</h3>
-              <div class="bento-sub">Modular Architecture</div>
-              <p class="bento-desc">
-                Подключите только Telegram-бота, только адаптивный виджет на сайт с CRM-таблицей или полноценный комплекс «Сайт + Telegram». Выбирайте модель: доступный старт с ежемесячным сопровождением или разовый выкуп «под ключ» без абонентской платы.
+              <h3 class="showcase-title">Забирает клиентов ночью, пока конкуренты не отвечают</h3>
+              <p class="showcase-desc">
+                Более <strong>40% автовладельцев</strong> ищут детейлинг вечером и ночью (с 21:00 до 02:00). В это время администраторы спят, и клиент уходит дальше.
+                Наш ИИ отвечает за <strong>2 секунды в 3 часа ночи</strong>: называет точную стоимость по кузову, бронирует окно, фиксирует телефон и ставит 15-минутный защитный hold. Утром мастер видит готовую запись.
               </p>
             </div>
-            <div class="bento-foot">
-              <span>MODULAR SUITE</span>
-              <span>WITH SUPPORT OR NO SUB</span>
+
+            <div class="showcase-mockup">
+              <div class="speed-metric-grid">
+                <div class="speed-metric-item">
+                  <div class="speed-metric-val">2.4 сек</div>
+                  <div class="speed-metric-lbl">Скорость ответа</div>
+                </div>
+                <div class="speed-metric-item">
+                  <div class="speed-metric-val">24/7/365</div>
+                  <div class="speed-metric-lbl">Без выходных</div>
+                </div>
+                <div class="speed-metric-item">
+                  <div class="speed-metric-val">0</div>
+                  <div class="speed-metric-lbl">Овербукинг</div>
+                </div>
+              </div>
+              <div class="mock-pill-bar" style="margin-top: 12px;">
+                <span>15-MIN EXPIRING HOLD</span>
+                <span>ЕДИНАЯ БАЗА СЛОТОВ</span>
+              </div>
             </div>
           </div>
 
+        </div>
+
+        <!-- ─── ROI Container (Математика окупаемости) ────────────────── -->
+        <div class="roi-container" id="roi">
+          <div class="roi-head">
+            <div class="section-tag">МАТЕМАТИКА ОКУПАЕМОСТИ ДЛЯ БИЗНЕСА</div>
+            <h3 class="roi-title">Почему 10 900 – 14 900 ₽ окупаются с первого же клиента</h3>
+          </div>
+
+          <div class="roi-grid">
+            <div class="roi-col">
+              <div class="roi-metric">35 000 – 60 000 ₽</div>
+              <div class="roi-label">Средний чек на комплексную полировку с керамикой или оклейку зон риска в студии</div>
+            </div>
+            <div class="roi-divider">VS</div>
+            <div class="roi-col">
+              <div class="roi-metric highlight">от 6 900 ₽</div>
+              <div class="roi-label">Стоимость внедрения всей системы ECM Systems (разовый доступный старт)</div>
+            </div>
+            <div class="roi-col">
+              <div class="roi-metric green">1 закрытый лид</div>
+              <div class="roi-label">Окупает внедрение полностью. Все последующие заявки — ваша чистая прибыль</div>
+            </div>
+          </div>
+
+          <div class="roi-footer">
+            <div>
+              <strong>Условие тестового пилота:</strong> бесплатный тест на 5–7 дней на ваших услугах без предоплаты. Оплата только после первой реальной заявки.
+            </div>
+            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary mono" style="white-space: nowrap;">
+              Написать основателю (@godblessed77)
+            </a>
+          </div>
         </div>
 
       </div>
@@ -1154,13 +1460,13 @@
                 Бесплатный тест на 5–7 дней на ваших реальных услугах
               </div>
               <div class="pilot-desc">
-                Подключаем и настраиваем систему под ваш прайс и сайт без предоплаты. Оплата внедрения происходит только после первой реальной заявки от клиента.
+                Подключаем и настраиваем систему под ваш прайс и сайт без предоплаты. Оплата внедрения происходит только после первой реальной заявки от клиента. Напишите лично основателю в Telegram: <strong>@godblessed77</strong>.
               </div>
             </div>
           </div>
-          <button onclick="window.openEcmWidget()" class="btn btn-primary mono">
-            Запросить пилот
-          </button>
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary mono">
+            Запросить у @godblessed77
+          </a>
         </div>
 
         <!-- Section Head -->
@@ -1226,9 +1532,9 @@
               </ul>
             </div>
 
-            <button onclick="window.openEcmWidget()" class="btn btn-secondary pricing-btn mono">
-              Подключить Telegram-бота
-            </button>
+            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary pricing-btn mono">
+              Подключить через @godblessed77
+            </a>
           </div>
 
           <!-- Plan 2: Web Widget + CRM -->
@@ -1273,9 +1579,9 @@
               </ul>
             </div>
 
-            <button onclick="window.openEcmWidget()" class="btn btn-secondary pricing-btn mono">
-              Выбрать виджет на сайт
-            </button>
+            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary pricing-btn mono">
+              Выбрать через @godblessed77
+            </a>
           </div>
 
           <!-- Plan 3: Full Suite (Featured) -->
@@ -1321,9 +1627,9 @@
               </ul>
             </div>
 
-            <button onclick="window.openEcmWidget()" class="btn btn-primary pricing-btn mono">
-              Подключить комплекс
-            </button>
+            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary pricing-btn mono">
+              Запустить через @godblessed77
+            </a>
           </div>
 
         </div>
