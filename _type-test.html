@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECM Systems — Шрифтовой образец (Type Test)</title>
+
+  <!-- Preload главных начертаний -->
+  <link rel="preload" href="./fonts/fira-sans-extra-condensed-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/golos-text-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/unbounded-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/onest-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/geologica-700-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/geologica-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    /* ─── LOCAL @FONT-FACE (WOFF2) ──────────────────────────────────── */
+
+    /* Fira Sans Extra Condensed 600 */
+    @font-face {
+      font-family: 'Fira Sans Extra Condensed';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/fira-sans-extra-condensed-600-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Fira Sans Extra Condensed';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/fira-sans-extra-condensed-600-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Golos Text 400 */
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/golos-text-400-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/golos-text-400-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Golos Text 500 */
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/golos-text-500-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/golos-text-500-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Unbounded 600 */
+    @font-face {
+      font-family: 'Unbounded';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/unbounded-600-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Unbounded';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/unbounded-600-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Onest 400 */
+    @font-face {
+      font-family: 'Onest';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/onest-400-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Onest';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/onest-400-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Onest 500 */
+    @font-face {
+      font-family: 'Onest';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/onest-500-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Onest';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/onest-500-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Geologica 400 */
+    @font-face {
+      font-family: 'Geologica';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/geologica-400-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Geologica';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/geologica-400-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* Geologica 700 */
+    @font-face {
+      font-family: 'Geologica';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('./fonts/geologica-700-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Geologica';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('./fonts/geologica-700-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* ─── TOKENS & RESET ────────────────────────────────────────────── */
+    :root {
+      --floor: #E7E9EA;
+      --panel: #F6F7F7;
+      --ink: #1A1D21;
+      --steel: #5E666D;
+      --rule: #C5CACE;
+      --pad: #F5C518;
+      --ok: #1B6E44;
+      --r-btn: 6px;
+      --r-card: 4px;
+      --r-win: 14px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--floor);
+      color: var(--ink);
+      padding: 48px 24px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header-bar {
+      margin-bottom: 36px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+
+    .header-meta {
+      font-size: 13px;
+      color: var(--steel);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ok);
+      background: #EAF4EE;
+      border: 1px solid #B8DCBF;
+      padding: 3px 8px;
+      border-radius: var(--r-btn);
+    }
+
+    /* Grid of 3 Options */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .option-card {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 32px 36px;
+      position: relative;
+    }
+
+    .option-tag-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .option-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--pad);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--r-btn);
+    }
+
+    .option-fonts-label {
+      font-size: 13px;
+      color: var(--steel);
+    }
+
+    /* Typography showcase elements */
+    .showcase-h1 {
+      font-size: 38px;
+      line-height: 1.18;
+      color: var(--ink);
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .showcase-tag {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--steel);
+      text-transform: lowercase;
+      background: #EAECEE;
+      border: 1px solid var(--rule);
+      padding: 2px 10px;
+      border-radius: var(--r-btn);
+      margin-bottom: 16px;
+    }
+
+    .showcase-body {
+      font-size: 17px;
+      line-height: 1.6;
+      letter-spacing: 0;
+      max-width: 68ch;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+
+    /* Workshop Order Receipt Box */
+    .order-box {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 18px 22px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .order-item-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .order-price {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .order-price .val {
+      font-weight: 700;
+    }
+
+    .order-price .ruble {
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    /* Character & Glyphs strip */
+    .glyphs-strip {
+      background: #EAECEE;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-variant-numeric: tabular-nums;
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .glyph-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .glyph-label {
+      font-size: 11px;
+      color: var(--steel);
+      text-transform: uppercase;
+    }
+
+    .glyph-char {
+      font-size: 18px;
+      font-weight: 600;
+      background: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: var(--r-btn);
+      border: 1px solid var(--rule);
+    }
+
+    /* ─── PAIR A STYLES ────────────────────────────────────────────── */
+    .pair-a .showcase-h1 {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+    }
+    .pair-a .showcase-tag {
+      font-family: 'Golos Text', sans-serif;
+      font-weight: 500;
+    }
+    .pair-a .showcase-body {
+      font-family: 'Golos Text', sans-serif;
+      font-weight: 400;
+    }
+    .pair-a .showcase-body strong {
+      font-family: 'Golos Text', sans-serif;
+      font-weight: 500;
+    }
+    .pair-a .order-item-title {
+      font-family: 'Golos Text', sans-serif;
+      font-weight: 500;
+    }
+    .pair-a .order-price {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+    .pair-a .glyphs-strip {
+      font-family: 'Golos Text', sans-serif;
+    }
+
+    /* ─── PAIR B STYLES ────────────────────────────────────────────── */
+    .pair-b .showcase-h1 {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 600;
+      font-size: 32px;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+    }
+    .pair-b .showcase-tag {
+      font-family: 'Onest', sans-serif;
+      font-weight: 500;
+    }
+    .pair-b .showcase-body {
+      font-family: 'Onest', sans-serif;
+      font-weight: 400;
+    }
+    .pair-b .showcase-body strong {
+      font-family: 'Onest', sans-serif;
+      font-weight: 500;
+    }
+    .pair-b .order-item-title {
+      font-family: 'Onest', sans-serif;
+      font-weight: 500;
+    }
+    .pair-b .order-price {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 600;
+      font-size: 20px;
+    }
+    .pair-b .glyphs-strip {
+      font-family: 'Onest', sans-serif;
+    }
+
+    /* ─── PAIR C STYLES ────────────────────────────────────────────── */
+    .pair-c .showcase-h1 {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 700;
+      font-size: 36px;
+      letter-spacing: -0.01em;
+    }
+    .pair-c .showcase-tag {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 500;
+    }
+    .pair-c .showcase-body {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 400;
+    }
+    .pair-c .showcase-body strong {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 700;
+    }
+    .pair-c .order-item-title {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 500;
+    }
+    .pair-c .order-price {
+      font-family: 'Geologica', sans-serif;
+      font-weight: 700;
+    }
+    .pair-c .glyphs-strip {
+      font-family: 'Geologica', sans-serif;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px 16px;
+      }
+      .option-card {
+        padding: 24px 20px;
+      }
+      .showcase-h1 {
+        font-size: 28px;
+      }
+      .pair-b .showcase-h1 {
+        font-size: 24px;
+      }
+      .pair-c .showcase-h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <header class="header-bar">
+      <div>
+        <h1 class="header-title">ECM Systems • Сравнительный шрифтовой образец</h1>
+        <p class="header-meta">Концепция «Заказ-наряд мастерской» • Локальные шрифты /fonts/ • Проверка кириллицы и знака ₽</p>
+      </div>
+      <div class="badge-check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Все глифы нарисованы шрифтами нативно (без Fallback)
+      </div>
+    </header>
+
+    <div class="options-grid">
+
+      <!-- ─── OPTION A ─────────────────────────────────────────────── -->
+      <section class="option-card pair-a" id="option-a">
+        <div class="option-tag-row">
+          <span class="option-badge">ВАРИАНТ A • РАБОЧИЙ ПЛОТНЫЙ</span>
+          <span class="option-fonts-label">Заголовки: <strong>Fira Sans Extra Condensed 600</strong> • Текст: <strong>Golos Text 400/500</strong></span>
+        </div>
+
+        <div class="showcase-tag">автодопродажи</div>
+
+        <h2 class="showcase-h1">Пока вы в боксе, бот считает смету</h2>
+
+        <p class="showcase-body">
+          Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и присылает вам заявку с кнопкой «Подтвердить». Система сама рассчитывает смету под класс кузова и удерживает выбранное время за клиентом 15&nbsp;минут.
+        </p>
+
+        <div class="order-box">
+          <div class="order-item-title">Заказ-наряд №&nbsp;104 • Сколько стоит полировка BMW F10?</div>
+          <div class="order-price">
+            <span class="val">43&nbsp;000</span>
+            <span class="ruble">₽</span>
+          </div>
+        </div>
+
+        <div class="glyphs-strip">
+          <div class="glyph-item">
+            <span class="glyph-label">Цифры tabular:</span>
+            <span class="glyph-char">0 1 2 3 4 5 6 7 8 9</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Рубль:</span>
+            <span class="glyph-char">₽</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Номер:</span>
+            <span class="glyph-char">№</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Кавычки:</span>
+            <span class="glyph-char">«ёлочки»</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── OPTION B ─────────────────────────────────────────────── -->
+      <section class="option-card pair-b" id="option-b">
+        <div class="option-tag-row">
+          <span class="option-badge">ВАРИАНТ B • АВТОМОБИЛЬНЫЙ ХАРАКТЕРНЫЙ</span>
+          <span class="option-fonts-label">H1 и цифры: <strong>Unbounded 600</strong> • Текст: <strong>Onest 400/500</strong></span>
+        </div>
+
+        <div class="showcase-tag">автодопродажи</div>
+
+        <h2 class="showcase-h1">Пока вы в боксе, бот считает смету</h2>
+
+        <p class="showcase-body">
+          Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и присылает вам заявку с кнопкой «Подтвердить». Система сама рассчитывает смету под класс кузова и удерживает выбранное время за клиентом 15&nbsp;минут.
+        </p>
+
+        <div class="order-box">
+          <div class="order-item-title">Заказ-наряд №&nbsp;104 • Сколько стоит полировка BMW F10?</div>
+          <div class="order-price">
+            <span class="val">43&nbsp;000</span>
+            <span class="ruble">₽</span>
+          </div>
+        </div>
+
+        <div class="glyphs-strip">
+          <div class="glyph-item">
+            <span class="glyph-label">Цифры tabular:</span>
+            <span class="glyph-char">0 1 2 3 4 5 6 7 8 9</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Рубль:</span>
+            <span class="glyph-char">₽</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Номер:</span>
+            <span class="glyph-char">№</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Кавычки:</span>
+            <span class="glyph-char">«ёлочки»</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── OPTION C ─────────────────────────────────────────────── -->
+      <section class="option-card pair-c" id="option-c">
+        <div class="option-tag-row">
+          <span class="option-badge">ВАРИАНТ C • ИНЖЕНЕРНЫЙ МОНОЛИТНЫЙ</span>
+          <span class="option-fonts-label">Заголовки: <strong>Geologica 700</strong> • Текст: <strong>Geologica 400</strong></span>
+        </div>
+
+        <div class="showcase-tag">автодопродажи</div>
+
+        <h2 class="showcase-h1">Пока вы в боксе, бот считает смету</h2>
+
+        <p class="showcase-body">
+          Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и присылает вам заявку с кнопкой «Подтвердить». Система сама рассчитывает смету под класс кузова и удерживает выбранное время за клиентом 15&nbsp;минут.
+        </p>
+
+        <div class="order-box">
+          <div class="order-item-title">Заказ-наряд №&nbsp;104 • Сколько стоит полировка BMW F10?</div>
+          <div class="order-price">
+            <span class="val">43&nbsp;000</span>
+            <span class="ruble">₽</span>
+          </div>
+        </div>
+
+        <div class="glyphs-strip">
+          <div class="glyph-item">
+            <span class="glyph-label">Цифры tabular:</span>
+            <span class="glyph-char">0 1 2 3 4 5 6 7 8 9</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Рубль:</span>
+            <span class="glyph-char">₽</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Номер:</span>
+            <span class="glyph-char">№</span>
+          </div>
+          <div class="glyph-item">
+            <span class="glyph-label">Кавычки:</span>
+            <span class="glyph-char">«ёлочки»</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
