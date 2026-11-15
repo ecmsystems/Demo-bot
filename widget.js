@@ -355,18 +355,6 @@ ${STUDIO_CONFIG.promo}
       display: block;
     }
 
-    .ecm-launcher-img {
-      width: 26px;
-      height: auto;
-      max-height: 20px;
-      object-fit: contain;
-      display: block;
-      transition: transform 0.2s ease;
-    }
-
-    .ecm-launcher:hover .ecm-launcher-img {
-      transform: scale(1.08);
-    }
 
     .ecm-header-info {
       display: flex;
@@ -749,7 +737,7 @@ ${STUDIO_CONFIG.promo}
     <!-- Launcher Button -->
     <div class="ecm-launcher" id="ecmLauncher" title="Открыть диалог с ИИ-администратором">
       <div class="ecm-launcher-icon" id="ecmLauncherIcon">
-        <img src="${ECM_AVATAR_LOGO}" alt="ECM" class="ecm-launcher-img">
+        ${SVG_CHAT}
       </div>
       <div class="ecm-launcher-dot" id="ecmLauncherDot"></div>
     </div>
@@ -1368,7 +1356,7 @@ ${STUDIO_CONFIG.promo}
     } else {
       windowEl.classList.remove('open');
       launcher.classList.remove('open');
-      launcherIcon.innerHTML = `<img src="${ECM_AVATAR_LOGO}" alt="ECM" class="ecm-launcher-img">`;
+      launcherIcon.innerHTML = SVG_CHAT;
     }
   }
 
