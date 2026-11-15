@@ -3,45 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ECM Systems — ИИ-администратор для детейлинга и автостудий | Рост среднего чека на +35%</title>
-  <meta name="description" content="ИИ-виджет на сайт и Telegram-бот для автостудий и детейлинга. Автодопродажи, перехват клиентов 24/7, Google CRM и тест-драйв 24 часа без предоплаты.">
+  <title>ECM Systems — ИИ-администратор для детейлинга</title>
+  <meta name="description" content="Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и записывает клиента на свободное окно. Тест-драйв 24 часа без предоплаты.">
+  
+  <!-- Open Graph / Telegram / WhatsApp -->
+  <meta property="og:title" content="ECM Systems — ИИ-администратор для детейлинга">
+  <meta property="og:description" content="Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и записывает клиента на свободное окно. Тест-драйв 24 часа без предоплаты.">
+  <meta property="og:image" content="./og-image.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Preload ключевых шрифтов (Вариант A) -->
+  <link rel="preload" href="./fonts/fira-sans-extra-condensed-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/golos-text-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/golos-text-500-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+
   <style>
-    /* ─── RESET & DESIGN SYSTEM: AUTOMOTIVE CARBON & TITANIUM ──────── */
+    /* ─── ШРИФТЫ ЛОКАЛЬНО /FONTS/ (ВАРИАНТ A) ────────────────────────── */
+    @font-face {
+      font-family: 'Fira Sans Extra Condensed';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/fira-sans-extra-condensed-600-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Fira Sans Extra Condensed';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/fira-sans-extra-condensed-600-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/golos-text-400-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/golos-text-400-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/golos-text-500-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/golos-text-500-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+
+    /* ─── ТОКЕНЫ: «ЗАКАЗ-НАРЯД МАСТЕРСКОЙ» ───────────────────────────── */
+    :root {
+      --floor: #E7E9EA;
+      --panel: #F6F7F7;
+      --ink: #1A1D21;
+      --steel: #5E666D;
+      --rule: #C5CACE;
+      --pad: #F5C518;
+      --ok: #1B6E44;
+      --r-btn: 6px;
+      --r-card: 4px;
+      --r-win: 14px;
+    }
+
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    body {
-      background-color: #08080A;
-      color: #FAFAFA;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      -webkit-font-smoothing: antialiased;
+    html {
       overflow-x: hidden;
+      width: 100%;
     }
 
-    .mono {
-      font-family: 'JetBrains Mono', monospace;
+    body {
+      background-color: var(--floor);
+      color: var(--ink);
+      font-family: 'Golos Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+      letter-spacing: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     .container {
-      max-width: 1180px;
+      max-width: 1160px;
       margin: 0 auto;
       padding: 0 24px;
       width: 100%;
+      box-sizing: border-box;
+    }
+
+    .hero-grid > * {
+      min-width: 0;
     }
 
     a {
@@ -49,62 +129,64 @@
       text-decoration: none;
     }
 
-    /* ─── BUTTONS ───────────────────────────────────────────────────────── */
+    /* Табличные цифры везде */
+    .tabular, .price, .val, .metric-num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── КНОПКИ (АКЦЕНТ --PAD НЕ БОЛЕЕ 3 МЕСТ) ──────────────────────── */
     .btn {
-      font-family: 'Inter', sans-serif;
-      font-size: 13.5px;
+      font-family: 'Golos Text', sans-serif;
+      font-size: 14.5px;
       font-weight: 500;
-      border-radius: 8px;
+      border-radius: var(--r-btn);
       padding: 10px 18px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      transition: all 0.16s ease;
-      white-space: nowrap;
       text-decoration: none;
       user-select: none;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
     }
 
-    .btn-primary {
-      background: #FAFAFA;
-      color: #09090B;
-      border: 1px solid #FAFAFA;
+    .btn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    /* 1-е главное место акцента --pad: CTA */
+    .btn-pad {
+      background-color: var(--pad);
+      color: var(--ink);
+      border: 1px solid #DDB010;
       font-weight: 600;
     }
-
-    .btn-primary:hover {
-      background: #FFFFFF;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+    .btn-pad:hover {
+      background-color: #E6B715;
     }
 
     .btn-secondary {
-      background: #141418;
-      color: #FAFAFA;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      background-color: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--rule);
     }
-
     .btn-secondary:hover {
-      background: #1A1A22;
-      border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-1px);
+      background-color: #ECEEEF;
+      border-color: #B0B6BA;
     }
 
     .btn-sm {
       padding: 7px 14px;
-      font-size: 12.5px;
-      border-radius: 7px;
+      font-size: 13.5px;
     }
 
-    /* ─── HEADER ────────────────────────────────────────────────────────── */
+    /* ─── ШАПКА САЙТА ─────────────────────────────────────────────────── */
     header {
-      background: rgba(8, 8, 10, 0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background-color: var(--floor);
+      border-bottom: 1px solid var(--rule);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -118,1077 +200,970 @@
     }
 
     .logo {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #FAFAFA;
       display: flex;
       align-items: center;
       gap: 10px;
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      color: var(--ink);
     }
 
-    .logo-emblem {
+    .logo-img {
       height: 22px;
       width: auto;
       object-fit: contain;
       display: block;
-    }
-
-    .logo-badge {
-      font-family: 'Inter', sans-serif;
-      font-size: 10.5px;
-      font-weight: 500;
-      color: #A1A1AA;
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      padding: 2px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.02em;
+      filter: invert(0.9);
     }
 
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 28px;
     }
 
     .nav-link {
-      font-size: 13px;
-      font-weight: 500;
-      color: #8E8E93;
+      font-size: 14.5px;
+      color: var(--steel);
       transition: color 0.15s ease;
     }
-
     .nav-link:hover {
-      color: #FAFAFA;
+      color: var(--ink);
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    /* ─── HERO SECTION ──────────────────────────────────────────────────── */
+    /* ─── ЗАГОЛОВКИ СЕКЦИЙ (СТРОГО ПО ЛЕВОМУ КРАЮ) ─────────────────────── */
+    .section-header {
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .section-title {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 38px;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--steel);
+      max-width: 68ch;
+      line-height: 1.55;
+    }
+
+    /* ─── 1. HERO СЕКЦИЯ ──────────────────────────────────────────────── */
     .hero {
-      padding: 72px 0 60px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      background: linear-gradient(180deg, rgba(20, 20, 24, 0.3) 0%, rgba(8, 8, 10, 0) 100%);
+      padding: 56px 0 64px 0;
+      border-bottom: 1px solid var(--rule);
     }
 
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.12fr 0.88fr;
+      grid-template-columns: 1.05fr 0.95fr;
       gap: 48px;
-      align-items: center;
+      align-items: start;
     }
 
-    .hero-pill {
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      color: #D4D4D8;
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.16);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      margin-bottom: 22px;
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #34D399;
-      flex-shrink: 0;
-    }
-
-    .hero-title {
-      font-size: 46px;
-      font-weight: 700;
-      line-height: 1.14;
-      letter-spacing: -0.03em;
-      color: #A1A1AA;
-      margin-bottom: 20px;
-    }
-
-    .hero-title strong {
-      color: #FAFAFA;
-      font-weight: 700;
-    }
-
-    .hero-desc {
-      font-size: 16.5px;
-      line-height: 1.58;
-      color: #8E8E93;
-      margin-bottom: 32px;
-      max-width: 560px;
-    }
-
-    .hero-desc strong {
-      color: #FAFAFA;
+    .hero-h1 {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 52px;
       font-weight: 600;
+      line-height: 1.08;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      text-align: left;
     }
 
-    .hero-ctas {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
+    .hero-lead {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--steel);
+      max-width: 60ch;
     }
 
-    .hero-guarantee {
+    .hero-action-group {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       gap: 8px;
-      font-size: 12.5px;
-      color: #71717A;
+      margin-top: 8px;
     }
 
-    .hero-guarantee svg {
-      color: #8E8E93;
-      flex-shrink: 0;
-    }
-
-    /* ─── HERO MOCKUP CARD (SYNCHRONIZED WITH WIDGET.JS) ────────────────── */
-    .hero-mockup-card {
-      background: #111114;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 16px;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .mockup-header {
-      background: #141418;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 13px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .mockup-header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .mockup-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: #1A1A22;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #E4E4E7;
-      flex-shrink: 0;
-    }
-
-    .mockup-header-info {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .mockup-studio-name {
-      color: #FAFAFA;
-      font-size: 13.5px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-
-    .mockup-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 10.5px;
-      font-family: 'JetBrains Mono', monospace;
-      color: #71717A;
-      letter-spacing: 0.02em;
-    }
-
-    .mockup-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #71717A;
-    }
-
-    .mockup-chat {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #111114;
-    }
-
-    .mockup-msg {
-      max-width: 88%;
-      padding: 10px 14px;
+    .cta-subnote {
       font-size: 13px;
-      line-height: 1.5;
-      word-wrap: break-word;
+      color: var(--steel);
     }
 
-    .mockup-msg.user {
-      align-self: flex-end;
-      background: #E4E4E7;
-      color: #09090B;
-      font-weight: 500;
-      border-radius: 12px 12px 3px 12px;
-    }
-
-    .mockup-msg.bot {
-      align-self: flex-start;
-      background: #16161B;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      color: #FAFAFA;
-      border-radius: 12px 12px 12px 3px;
-    }
-
-    .mockup-msg.bot strong {
-      color: #FFFFFF;
-      font-weight: 600;
-    }
-
-    /* Solid Sleek Order Summary Bar */
-    .mockup-summary-bar {
-      margin: 4px 16px 12px 16px;
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 10px;
-      padding: 11px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .summary-left {
+    /* Контейнер Hero-виджета справа */
+    .hero-widget-wrap {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 12px;
     }
 
-    .summary-label {
-      font-size: 11px;
-      color: #71717A;
-    }
-
-    .summary-val {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      font-weight: 700;
-      color: #FAFAFA;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .summary-old {
-      font-size: 12px;
-      color: #71717A;
-      text-decoration: line-through;
-      font-weight: 500;
-    }
-
-    .summary-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      color: #34D399;
-      background: rgba(52, 211, 153, 0.08);
-      border: 1px solid rgba(52, 211, 153, 0.18);
-      padding: 3px 8px;
-      border-radius: 5px;
-    }
-
-    /* Mock Chat Input Footer */
-    .mockup-footer {
-      background: #141418;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 10px 14px 10px 14px;
+    /* Блок живого виджета в Hero (Заказ-наряд стиль) */
+    .hero-live-widget {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-win);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      min-height: 520px;
     }
 
-    .mockup-input-box {
+    .widget-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--rule);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .widget-bar-left {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: #181820;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 7px 10px 7px 12px;
-      cursor: pointer;
-      transition: border-color 0.15s ease;
+      gap: 10px;
     }
 
-    .mockup-input-box:hover {
-      border-color: rgba(255, 255, 255, 0.22);
-    }
-
-    .mockup-placeholder {
-      font-size: 12.5px;
-      color: #71717A;
-      user-select: none;
-    }
-
-    .mockup-send-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      background: #E4E4E7;
-      border: none;
-      color: #09090B;
+    .widget-badge-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--r-btn);
+      background: var(--ink);
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
     }
 
-    /* ─── 4 NUMBERS HORIZONTAL STRIP ────────────────────────────────────── */
-    .metrics-section {
-      padding: 36px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    .widget-badge-avatar img {
+      height: 10px;
+      width: auto;
+      object-fit: contain;
     }
 
-    .metrics-bar {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      overflow: hidden;
+    .widget-title-text {
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--ink);
     }
 
-    .metric-cell {
-      padding: 24px 28px;
-      border-right: 1px solid rgba(255, 255, 255, 0.07);
+    .widget-status-text {
+      font-size: 12px;
+      color: var(--steel);
+    }
+
+    .widget-chat-body {
+      padding: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: var(--panel);
+    }
+
+    /* Строки сообщений заказ-наряда */
+    .chat-row {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      max-width: 92%;
     }
 
-    .metric-cell:last-child {
-      border-right: none;
+    .chat-row.user {
+      align-self: flex-end;
     }
 
-    .metric-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #FAFAFA;
-      margin-bottom: 4px;
+    .chat-row.bot {
+      align-self: flex-start;
+      width: 100%;
     }
 
-    .metric-num.mint {
-      color: #34D399;
+    .msg-user-bubble {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-btn);
+      padding: 10px 14px;
+      font-size: 14.5px;
+      color: var(--ink);
     }
 
-    .metric-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: #FAFAFA;
-    }
-
-    .metric-sub {
-      font-size: 12px;
-      color: #71717A;
-      line-height: 1.45;
-    }
-
-    /* ─── BEFORE / AFTER COMPARISON SECTION ─────────────────────────────── */
-    .comparison-section {
-      padding: 76px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    .section-head-center {
-      text-align: center;
-      max-width: 680px;
-      margin: 0 auto 48px auto;
-    }
-
-    .section-tag {
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #8E8E93;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .section-title {
-      font-size: 34px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: #FAFAFA;
-      margin-bottom: 12px;
-      line-height: 1.22;
-    }
-
-    .section-subtitle {
-      font-size: 15px;
-      color: #8E8E93;
-      line-height: 1.55;
-    }
-
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    .compare-card {
-      border-radius: 14px;
-      padding: 32px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-    }
-
-    .compare-card.before {
-      background: #0B0B0E;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .compare-card.after {
-      background: #111116;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-top: 1px solid rgba(255, 255, 255, 0.22);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    .compare-title {
-      font-size: 18px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      letter-spacing: -0.01em;
-    }
-
-    .compare-card.before .compare-title {
-      color: #A1A1AA;
-    }
-
-    .compare-card.after .compare-title {
-      color: #FAFAFA;
-    }
-
-    .compare-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .compare-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      font-size: 13.5px;
-      line-height: 1.5;
-    }
-
-    .compare-item svg {
-      flex-shrink: 0;
-      margin-top: 3px;
-    }
-
-    .compare-item.bad svg {
-      color: #71717A;
-    }
-
-    .compare-item.good svg {
-      color: #34D399;
-    }
-
-    .compare-card.before .compare-item span {
-      color: #71717A;
-    }
-
-    .compare-card.before .compare-item strong {
-      color: #A1A1AA;
-    }
-
-    .compare-card.after .compare-item span {
-      color: #D4D4D8;
-    }
-
-    .compare-card.after .compare-item strong {
-      color: #FFFFFF;
-    }
-
-    /* ─── 4 MAIN ADVANTAGES (ASYMMETRIC BENTO GRID) ─────────────────────── */
-    .features-section {
-      padding: 76px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    .bento-asymmetric {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 20px;
-    }
-
-    .bento-box {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
-      padding: 30px 28px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: border-color 0.2s ease;
-    }
-
-    .bento-box:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-    }
-
-    .bento-col-7 {
-      grid-column: span 7;
-    }
-
-    .bento-col-5 {
-      grid-column: span 5;
-    }
-
-    .bento-tag-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .bento-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 600;
-      color: #71717A;
-    }
-
-    .bento-badge {
-      font-family: 'Inter', sans-serif;
-      font-size: 11px;
-      font-weight: 500;
-      color: #A1A1AA;
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 3px 8px;
-      border-radius: 5px;
-    }
-
-    .bento-title {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: #FAFAFA;
-      margin-bottom: 10px;
-      line-height: 1.32;
-    }
-
-    .bento-desc {
-      font-size: 13.5px;
-      line-height: 1.55;
-      color: #8E8E93;
-      margin-bottom: 24px;
-    }
-
-    .bento-desc strong {
-      color: #FAFAFA;
-      font-weight: 600;
-    }
-
-    /* Realistic Mini-UI Components */
-    .mini-window {
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 10px;
+    /* Карточка-наряд сметы */
+    .estimate-order-card {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
       overflow: hidden;
-      margin-top: auto;
     }
 
-    .mini-window-bar {
-      background: #181820;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #71717A;
-    }
-
-    .mini-dots {
-      display: flex;
-      gap: 5px;
-    }
-
-    .mini-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #2C2C32;
-    }
-
-    .order-breakdown {
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .order-row {
+    .estimate-header {
+      padding: 10px 14px;
+      background: #EAECEE;
+      border-bottom: 1px solid var(--rule);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--steel);
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      color: #A1A1AA;
     }
 
-    .order-row.total {
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 13px;
-      font-weight: 600;
-      color: #FAFAFA;
-    }
-
-    .order-row.total .price {
-      font-family: 'JetBrains Mono', monospace;
-      color: #FAFAFA;
-      font-weight: 700;
-    }
-
-    .night-event-box {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .event-line {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #A1A1AA;
-    }
-
-    .event-time {
-      font-family: 'JetBrains Mono', monospace;
-      color: #71717A;
-      font-size: 11px;
-    }
-
-    .event-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      color: #34D399;
-      background: rgba(52, 211, 153, 0.08);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .platform-tags {
-      padding: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .p-tag {
-      font-size: 11.5px;
-      color: #D4D4D8;
-      background: #181820;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 4px 9px;
-      border-radius: 5px;
-    }
-
-    .mini-table {
+    .estimate-table {
       width: 100%;
       border-collapse: collapse;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
+      font-size: 14px;
     }
 
-    .mini-table th {
-      text-align: left;
-      color: #71717A;
-      padding: 6px 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 9.5px;
-      font-weight: 500;
-    }
-
-    .mini-table td {
-      padding: 7px 10px;
-      color: #D4D4D8;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .badge-status {
-      font-size: 9.5px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .badge-status.confirmed {
-      color: #34D399;
-      background: rgba(52, 211, 153, 0.08);
-    }
-
-    .badge-status.pending {
-      color: #FBBF24;
-      background: rgba(251, 191, 36, 0.08);
-    }
-
-    /* ─── ROI & FINANCIAL DASHBOARD ─────────────────────────────────────── */
-    .roi-section {
-      padding: 76px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    .roi-dashboard {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
-      padding: 40px 36px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 36px;
-      align-items: center;
-    }
-
-    .roi-inputs {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .roi-h2 {
-      font-size: 26px;
-      font-weight: 700;
-      color: #FAFAFA;
-      letter-spacing: -0.02em;
-      line-height: 1.3;
-    }
-
-    .roi-data-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 6px;
-    }
-
-    .data-row {
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 8px;
+    .estimate-table td {
       padding: 10px 14px;
+      border-bottom: 1px solid #ECEEEF;
+      color: var(--ink);
+    }
+
+    .estimate-table td.col-price {
+      text-align: right;
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .estimate-table tr.highlight-upsell {
+      background-color: #FFFDEB;
+    }
+
+    .upsell-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8C6A00;
+      background: var(--pad);
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+
+    .estimate-table tr.row-total {
+      background: #F9FAFA;
+      font-weight: 600;
+      border-top: 2px solid var(--rule);
+    }
+
+    .estimate-table tr.row-total td {
+      border-bottom: none;
+      padding: 12px 14px;
+    }
+
+    .estimate-table tr.row-total .col-price {
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .hold-timer-bar {
+      padding: 8px 14px;
+      background: #EAF4EE;
+      border-top: 1px solid #B8DCBF;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--ok);
+      font-weight: 500;
+    }
+
+    /* Быстрые чипы над полем ввода */
+    .widget-chips-strip {
+      padding: 0 16px 10px 16px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .widget-chips-strip::-webkit-scrollbar { display: none; }
+
+    .widget-chip-btn {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-btn);
+      padding: 5px 10px;
+      font-size: 12.5px;
+      color: var(--ink);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.15s ease;
+    }
+    .widget-chip-btn:hover {
+      background-color: #ECEEEF;
+    }
+
+    /* Поле ввода виджета (2-е место акцента --pad: кнопка отправки) */
+    .widget-input-footer {
+      padding: 12px 16px;
+      background: #FFFFFF;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .widget-input-field {
+      flex: 1;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-btn);
+      padding: 9px 12px;
+      font-family: 'Golos Text', sans-serif;
+      font-size: 14.5px;
+      color: var(--ink);
+      background: #FAFAFA;
+      outline: none;
+    }
+    .widget-input-field:focus {
+      border-color: var(--ink);
+    }
+
+    .widget-send-btn {
+      background: var(--pad);
+      color: var(--ink);
+      border: 1px solid #DDB010;
+      border-radius: var(--r-btn);
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease;
+    }
+    .widget-send-btn:hover {
+      background-color: #E6B715;
+    }
+
+    /* Переключатель стилей студии под виджетом */
+    .theme-switcher-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
       font-size: 13px;
+      color: var(--steel);
     }
 
-    .data-label {
-      color: #8E8E93;
+    .theme-btns-group {
+      display: flex;
+      gap: 4px;
     }
 
-    .data-value {
-      font-family: 'JetBrains Mono', monospace;
-      color: #FAFAFA;
+    /* 3-е место акцента --pad: активная плашка стиля */
+    .theme-btn {
+      font-family: 'Golos Text', sans-serif;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: var(--r-btn);
+      border: 1px solid var(--rule);
+      background: #F0F2F3;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .theme-btn.active {
+      background: var(--pad);
+      border-color: #DDB010;
       font-weight: 600;
     }
 
-    .roi-result-card {
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 14px;
-      padding: 28px 24px;
+    /* ─── 2. СЕКЦИЯ: ЧТО ВЫ ПОЛУЧАЕТЕ УТРОМ (4 ШАГА) ─────────────────── */
+    .steps-section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .step-card {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 22px 20px;
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
 
-    .roi-result-tag {
-      font-size: 11px;
+    .step-num-bar {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 28px;
       font-weight: 600;
-      color: #71717A;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .roi-big-stat {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 38px;
-      font-weight: 700;
-      color: #FAFAFA;
-      letter-spacing: -0.02em;
+      color: var(--steel);
       line-height: 1;
     }
 
-    .roi-result-text {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #8E8E93;
+    .step-title {
+      font-size: 16.5px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.35;
     }
 
-    /* ─── PRICING ───────────────────────────────────────────────────────── */
+    .step-desc {
+      font-size: 14px;
+      color: var(--steel);
+      line-height: 1.5;
+    }
+
+    /* Размеченные плейсхолдеры со штриховкой */
+    .media-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: repeating-linear-gradient(
+        -45deg,
+        #F0F2F3,
+        #F0F2F3 8px,
+        #E6E8E9 8px,
+        #E6E8E9 16px
+      );
+      border: 1px dashed var(--rule);
+      border-radius: var(--r-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      text-align: center;
+      color: var(--steel);
+      font-size: 12px;
+      line-height: 1.35;
+      margin-top: auto;
+    }
+
+    .placeholder-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-bottom: 6px;
+    }
+
+    /* ─── 3. СЕКЦИЯ: ОДНА НОЧЬ БЕЗ БОТА И С БОТОМ ─────────────────────── */
+    .timeline-section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .timeline-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .timeline-card {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .timeline-card.success-side {
+      background: #FFFFFF;
+      border: 2px solid var(--ink);
+    }
+
+    .timeline-card-header {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 12px;
+    }
+
+    .timeline-events-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .timeline-event-item {
+      display: flex;
+      gap: 14px;
+      font-size: 14.5px;
+      line-height: 1.45;
+    }
+
+    .event-timestamp {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--steel);
+      width: 50px;
+      flex-shrink: 0;
+    }
+
+    .event-body {
+      color: var(--ink);
+    }
+    .event-body .dim {
+      color: var(--steel);
+    }
+
+    .timeline-result-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 14px;
+      color: var(--steel);
+    }
+
+    .timeline-result-footer .result-sum {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .timeline-card.success-side .result-sum {
+      color: var(--ok);
+    }
+
+    /* ─── 4. СЕКЦИЯ: ПОСЧИТАЙТЕ, СКОЛЬКО УХОДИТ (КАЛЬКУЛЯТОР) ──────────── */
+    .calculator-section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .calc-box {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 36px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .calc-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .calc-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .calc-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14.5px;
+      color: var(--ink);
+    }
+
+    .calc-val-display {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .calc-range {
+      width: 100%;
+      height: 6px;
+      background: var(--floor);
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .calc-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--ink);
+      cursor: pointer;
+    }
+
+    .calc-summary-panel {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .calc-metric-title {
+      font-size: 13.5px;
+      color: var(--steel);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .calc-big-loss {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 48px;
+      font-weight: 600;
+      color: #B91C1C;
+      line-height: 1;
+    }
+
+    .calc-compare-note {
+      font-size: 14px;
+      color: var(--steel);
+      line-height: 1.5;
+    }
+
+    .calc-compare-note strong {
+      color: var(--ink);
+    }
+
+    .calc-fineprint {
+      font-size: 12px;
+      color: var(--steel);
+      font-style: italic;
+    }
+
+    /* ─── 5. СЕКЦИЯ: ТАРИФЫ (ЕДИНАЯ ТАБЛИЦА-НАРЯД) ─────────────────────── */
     .pricing-section {
-      padding: 76px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
     }
 
     .pricing-toggle-wrap {
       display: flex;
-      justify-content: center;
-      margin-bottom: 40px;
+      justify-content: flex-start;
+      margin-bottom: 28px;
     }
 
-    .pricing-toggle {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      padding: 4px;
-      border-radius: 10px;
+    .pricing-toggle-box {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-btn);
+      padding: 3px;
       display: inline-flex;
       gap: 4px;
     }
 
-    .toggle-btn {
-      font-family: 'Inter', sans-serif;
-      font-size: 12.5px;
-      font-weight: 500;
-      background: transparent;
+    .pricing-toggle-btn {
+      font-family: 'Golos Text', sans-serif;
+      font-size: 13.5px;
       border: none;
-      color: #8E8E93;
-      padding: 7px 18px;
-      border-radius: 7px;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 4px;
       cursor: pointer;
+      color: var(--steel);
       transition: all 0.15s ease;
     }
 
-    .toggle-btn.active {
-      background: #FAFAFA;
-      color: #09090B;
-      font-weight: 600;
-    }
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .price-card {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
-      padding: 30px 24px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      transition: border-color 0.2s ease;
-    }
-
-    .price-card:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-    }
-
-    .price-card.featured {
-      background: #111116;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-top: 1px solid rgba(255, 255, 255, 0.24);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    .featured-badge {
-      position: absolute;
-      top: -11px;
-      left: 24px;
-      background: #1E1E26;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #FAFAFA;
-      font-family: 'Inter', sans-serif;
-      font-size: 10.5px;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 4px;
-      letter-spacing: 0.02em;
-    }
-
-    .plan-name {
-      font-size: 18px;
-      font-weight: 600;
-      color: #FAFAFA;
-      margin-bottom: 6px;
-      letter-spacing: -0.01em;
-    }
-
-    .plan-desc {
-      font-size: 13px;
-      color: #71717A;
-      margin-bottom: 20px;
-      min-height: 38px;
-      line-height: 1.45;
-    }
-
-    .plan-price-row {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .plan-price {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 32px;
-      font-weight: 700;
-      color: #FAFAFA;
-      letter-spacing: -0.02em;
-    }
-
-    .plan-period {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12.5px;
-      color: #A1A1AA;
+    .pricing-toggle-btn.active {
+      background: var(--ink);
+      color: #FFFFFF;
       font-weight: 500;
     }
 
-    .plan-note {
-      font-size: 11.5px;
-      color: #71717A;
-      margin-bottom: 24px;
+    .pricing-table-wrap {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      overflow-x: auto;
     }
 
-    .plan-features {
-      list-style: none;
+    .pricing-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14.5px;
+    }
+
+    .pricing-table th, .pricing-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--rule);
+      border-right: 1px solid var(--rule);
+    }
+    .pricing-table th:last-child, .pricing-table td:last-child {
+      border-right: none;
+    }
+
+    .pricing-table th {
+      background: var(--panel);
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.005em;
+    }
+
+    .pricing-table th.col-feature {
+      font-family: 'Golos Text', sans-serif;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--steel);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      width: 32%;
+    }
+
+    /* Выделение рекомендуемого тарифа усиленной инструментальной линией */
+    .pricing-table .col-featured {
+      background: #FAFBFB;
+      border-left: 2px solid var(--ink);
+      border-right: 2px solid var(--ink);
+    }
+
+    .pricing-table th.col-featured {
+      border-top: 3px solid var(--ink);
+    }
+
+    .price-num-main {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .price-period-sub {
+      font-size: 13px;
+      color: var(--steel);
+      margin-top: 4px;
+    }
+
+    /* ─── 6. СЕКЦИЯ: СТАНДАРТЫ В БОКСЕ (4 ФОТОСЛОТА) ──────────────────── */
+    .photos-section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .photo-slot-card {
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 28px;
-      flex: 1;
     }
 
-    .plan-feature-item {
+    .photo-viewbox {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: repeating-linear-gradient(
+        -45deg,
+        #F0F2F3,
+        #F0F2F3 10px,
+        #E3E6E8 10px,
+        #E3E6E8 20px
+      );
+      border-bottom: 1px solid var(--rule);
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 13px;
-      color: #A1A1AA;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      gap: 6px;
+    }
+
+    .photo-meta-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      padding: 2px 7px;
+      border-radius: 3px;
+      color: var(--steel);
+    }
+
+    .photo-desc-box {
+      padding: 14px 16px;
+      font-size: 13.5px;
+      color: var(--ink);
       line-height: 1.45;
     }
 
-    .plan-feature-item svg {
-      color: #FAFAFA;
-      flex-shrink: 0;
-      margin-top: 3px;
-    }
-
-    .plan-feature-item strong {
-      color: #FAFAFA;
-    }
-
-    /* ─── FOUNDER PERSONAL GUARANTEE (CLEAN SIGNATURE) ─────────────────── */
+    /* ─── 7. СЕКЦИЯ: ЛИЧНАЯ ГАРАНТИЯ ОСНОВАТЕЛЯ ──────────────────────── */
     .founder-section {
-      padding: 64px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
     }
 
-    .founder-box {
-      background: #0F0F12;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
+    .founder-layout {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
       padding: 36px;
+      display: grid;
+      grid-template-columns: 240px 1fr 200px;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .founder-photo-slot {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: repeating-linear-gradient(
+        -45deg,
+        #F0F2F3,
+        #F0F2F3 8px,
+        #E6E8E9 8px,
+        #E6E8E9 16px
+      );
+      border: 1px dashed var(--rule);
+      border-radius: var(--r-card);
       display: flex;
       flex-direction: column;
-      gap: 24px;
-    }
-
-    .founder-quote {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #D4D4D8;
-    }
-
-    .founder-quote strong {
-      color: #FAFAFA;
-      font-weight: 600;
-    }
-
-    .founder-footer {
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .founder-person {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .founder-name {
-      font-size: 14.5px;
-      font-weight: 600;
-      color: #FAFAFA;
-    }
-
-    .founder-role {
-      font-size: 12.5px;
-      color: #71717A;
-    }
-
-    .founder-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
       font-size: 12px;
-      color: #8E8E93;
-      margin-top: 2px;
+      color: var(--steel);
     }
 
-    /* ─── FOOTER ────────────────────────────────────────────────────────── */
+    .founder-details {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .founder-name-title {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .founder-role-sub {
+      font-size: 14px;
+      color: var(--steel);
+    }
+
+    .founder-rules-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .founder-rules-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .founder-video-slot {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background: repeating-linear-gradient(
+        -45deg,
+        #F0F2F3,
+        #F0F2F3 8px,
+        #E6E8E9 8px,
+        #E6E8E9 16px
+      );
+      border: 1px dashed var(--rule);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--steel);
+    }
+
+    /* ─── 8. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ─────────────────────── */
+    .faq-section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .faq-item {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .faq-q {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .faq-a {
+      font-size: 14.5px;
+      color: var(--steel);
+      line-height: 1.55;
+    }
+
+    /* ─── 9. ФУТЕР ────────────────────────────────────────────────────── */
     footer {
-      background: #08080A;
-      padding: 36px 0;
+      background-color: var(--floor);
+      padding: 40px 0;
+      font-size: 13.5px;
+      color: var(--steel);
     }
 
     .footer-inner {
@@ -1199,213 +1174,217 @@
       gap: 16px;
     }
 
-    .footer-copy {
-      font-size: 12px;
-      color: #71717A;
-    }
-
     .footer-links {
       display: flex;
-      gap: 20px;
-      font-size: 12.5px;
-      color: #8E8E93;
+      gap: 24px;
     }
-
     .footer-links a:hover {
-      color: #FAFAFA;
+      color: var(--ink);
     }
 
-    /* ─── RESPONSIVE ────────────────────────────────────────────────────── */
+    /* ─── АДАПТИВНОСТЬ (< 960PX, < 640PX) ────────────────────────────── */
     @media (max-width: 960px) {
       .hero-grid {
         grid-template-columns: 1fr;
         gap: 36px;
       }
-      .metrics-bar {
+      .steps-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      .metric-cell:nth-child(2) {
-        border-right: none;
-      }
-      .metric-cell:nth-child(1), .metric-cell:nth-child(2) {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      }
-      .bento-col-7, .bento-col-5 {
-        grid-column: span 12;
-      }
-      .compare-grid {
+      .timeline-columns {
         grid-template-columns: 1fr;
       }
-      .roi-dashboard {
+      .calc-box {
         grid-template-columns: 1fr;
       }
-      .pricing-grid {
+      .photos-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .founder-layout {
+        grid-template-columns: 1fr;
+      }
+      .faq-grid {
         grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 640px) {
-      .hero-title {
-        font-size: 34px;
+      .container {
+        padding: 0 16px;
+      }
+      body {
+        font-size: 15.5px;
+      }
+      .hero-h1 {
+        font-size: 38px;
+      }
+      .section-title {
+        font-size: 30px;
       }
       .header-nav {
         display: none;
       }
-      .metrics-bar {
+      .steps-grid {
         grid-template-columns: 1fr;
       }
-      .metric-cell {
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      .photos-grid {
+        grid-template-columns: 1fr;
       }
-      .metric-cell:last-child {
-        border-bottom: none;
+      .calc-box {
+        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- ─── HEADER ──────────────────────────────────────────────────────── -->
+  <!-- ─── ШАПКА САЙТА ─────────────────────────────────────────────────── -->
   <header>
     <div class="container header-inner">
       <a href="./" class="logo">
-        <img src="./logo.png" alt="ECM" class="logo-emblem">
+        <img src="./logo.png" alt="ECM" class="logo-img">
         <span>ECM SYSTEMS</span>
-        <span class="logo-badge">AI SALES CORE</span>
       </a>
 
       <nav class="header-nav">
-        <a href="#advantages" class="nav-link">Что дает ИИ</a>
-        <a href="#comparison" class="nav-link">Было / Стало</a>
-        <a href="#roi" class="nav-link">Окупаемость</a>
+        <a href="#how-it-works" class="nav-link">Как работает</a>
         <a href="#pricing" class="nav-link">Тарифы</a>
+        <a href="#faq" class="nav-link">Вопросы</a>
       </nav>
 
       <div class="header-actions">
         <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Написать основателю в Telegram">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-          @godblessed77
+          Написать в Telegram
         </a>
-        <button onclick="window.openEcmWidget()" class="btn btn-primary btn-sm">
-          Тест демо-чата
-        </button>
       </div>
     </div>
   </header>
 
-  <!-- ─── HERO SECTION ────────────────────────────────────────────────── -->
+  <!-- ─── 1. HERO СЕКЦИЯ ──────────────────────────────────────────────── -->
   <section class="hero">
     <div class="container hero-grid">
       
-      <!-- Left: Austere Copy & Actions -->
-      <div>
-        <div class="hero-pill">
-          <span class="status-dot"></span>
-          Тест-драйв 24 часа без предоплаты после установки
-        </div>
-
-        <h1 class="hero-title">
-          ИИ-администратор, который окупается с <strong>первого клиента</strong>
+      <!-- Слева: Заголовок и запуск -->
+      <div class="hero-left">
+        <h1 class="hero-h1">
+          Пока вы в боксе, бот считает смету и записывает клиента
         </h1>
 
-        <p class="hero-desc">
-          Увеличивает средний чек на <strong>+35%</strong> за счет автодопродаж, перехватывает клиентов <strong>24/7</strong> и встраивается в сайт в вашем фирменном стиле за 5 минут.
+        <p class="hero-lead">
+          Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и присылает вам заявку с кнопкой «Подтвердить».
         </p>
 
-        <div class="hero-ctas">
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-            Запустить бесплатный пилот
+        <div class="hero-action-group">
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-pad">
+            Запустить на 24 часа без предоплаты
           </a>
-          <button onclick="window.openEcmWidget()" class="btn btn-secondary">
-            Протестировать вживую
-          </button>
-        </div>
-
-        <div class="hero-guarantee">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          Без предоплаты. Вы платите только после проверки работы бота в боевых условиях.
+          <span class="cta-subnote">Платите, только если довольны</span>
         </div>
       </div>
 
-      <!-- Right: Hero Mockup Card (100% Synced with widget.js) -->
-      <div class="hero-mockup-card">
+      <!-- Справа: Настоящий виджет в режиме inline -->
+      <div class="hero-widget-wrap">
         
-        <!-- Header -->
-        <div class="mockup-header">
-          <div class="mockup-header-left">
-            <div class="mockup-avatar">
-              <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; object-fit: contain;">
+        <div class="hero-live-widget" id="ecm-demo">
+          
+          <div class="widget-bar">
+            <div class="widget-bar-left">
+              <div class="widget-badge-avatar">
+                <img src="./logo.png" alt="ECM">
+              </div>
+              <div>
+                <div class="widget-title-text" id="widgetStudioName">ECM Detailing Lab</div>
+                <div class="widget-status-text">Заказ-наряд • Онлайн</div>
+              </div>
             </div>
-            <div class="mockup-header-info">
-              <span class="mockup-studio-name">ECM Detailing Lab</span>
-              <span class="mockup-status">
-                <span class="status-dot"></span> ONLINE • GEMINI AI CORE
-              </span>
-            </div>
-          </div>
-          <div class="mockup-header-actions">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/>
-            </svg>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Chat Stream -->
-        <div class="mockup-chat">
-          <div class="mockup-msg user">
-            Сколько стоит полировка на BMW F10?
-          </div>
-          <div class="mockup-msg bot">
-            Комплексная восстановительная полировка для BMW F10 (седан) — ровно 18 000 ₽.<br><br>
-            Рекомендуем сразу закрепить результат 2 слоями нанокерамики 9H (<strong>+25 000 ₽</strong>) — это зафиксирует блеск на 2 года, а антидождь по акции в подарок!
-          </div>
-          <div class="mockup-msg user">
-            Давайте с керамикой! Когда можно приехать?
-          </div>
-          <div class="mockup-msg bot">
-            Отлично! Свободно окно на субботу в 14:00. Напишите ваш номер телефона — закреплю бронь за вами на 15 минут.
-          </div>
-        </div>
-
-        <!-- Sleek Order Summary Bar -->
-        <div class="mockup-summary-bar">
-          <div class="summary-left">
-            <span class="summary-label">Итоговая сумма заказа:</span>
-            <div class="summary-val">
-              43 000 ₽
-              <span class="summary-old">18 000 ₽</span>
+            <div>
+              <span style="font-size: 12px; color: var(--steel);">Демо</span>
             </div>
           </div>
-          <span class="summary-tag">+35% К ЧЕКУ</span>
-        </div>
 
-        <!-- Mock Chat Input (Clickable to open real widget) -->
-        <div class="mockup-footer">
-          <div class="mockup-input-box" onclick="window.openEcmWidget()" title="Нажмите, чтобы протестировать виджет">
-            <span class="mockup-placeholder">Напишите сообщение или проверьте бота...</span>
-            <button class="mockup-send-btn" type="button" aria-label="Отправить">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Поток сообщений сметы -->
+          <div class="widget-chat-body" id="widgetChatStream">
+            
+            <div class="chat-row user">
+              <div class="msg-user-bubble">
+                Сколько стоит полировка BMW F10?
+              </div>
+            </div>
+
+            <div class="chat-row bot" id="botResponseCard">
+              <div class="estimate-order-card">
+                <div class="estimate-header">
+                  <span>Предварительный заказ-наряд</span>
+                  <span class="tabular">BMW F10 • Седан</span>
+                </div>
+
+                <table class="estimate-table">
+                  <tbody>
+                    <tr>
+                      <td>Комплексная восстановительная полировка кузова</td>
+                      <td class="col-price">18&nbsp;000&nbsp;₽</td>
+                    </tr>
+                    <tr class="highlight-upsell">
+                      <td>
+                        Нанокерамика 9H (2 слоя)
+                        <span class="upsell-tag">+25&nbsp;000&nbsp;₽ к заказу</span>
+                      </td>
+                      <td class="col-price">+25&nbsp;000&nbsp;₽</td>
+                    </tr>
+                    <tr>
+                      <td>Гидрофобный антидождь передней полусферы</td>
+                      <td class="col-price" style="color: var(--ok); font-size: 14px;">0&nbsp;₽ (в подарок)</td>
+                    </tr>
+                    <tr class="row-total">
+                      <td>Итого с допродажей:</td>
+                      <td class="col-price">43&nbsp;000&nbsp;₽</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="hold-timer-bar">
+                  <span>Свободный слот: суббота 14:00</span>
+                  <span class="tabular">Окно брони: 15:00</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Быстрые чипы -->
+          <div class="widget-chips-strip">
+            <button class="widget-chip-btn" onclick="injectDemoMessage('Сколько стоит полировка BMW F10?')">
+              Сколько стоит полировка BMW F10?
+            </button>
+            <button class="widget-chip-btn" onclick="injectDemoMessage('Хочу PPF на Mercedes GLE')">
+              Хочу PPF на Mercedes GLE
+            </button>
+            <button class="widget-chip-btn" onclick="injectDemoMessage('Запишите на субботу')">
+              Запишите на субботу
+            </button>
+          </div>
+
+          <!-- Поле ввода виджета -->
+          <div class="widget-input-footer">
+            <input type="text" class="widget-input-field" id="widgetDemoInput" placeholder="Напишите вопрос или модель авто...">
+            <button class="widget-send-btn" id="widgetDemoSendBtn" title="Отправить" aria-label="Отправить">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="19" x2="12" y2="5"/>
                 <polyline points="5 12 12 5 19 12"/>
               </svg>
             </button>
           </div>
+
+        </div>
+
+        <!-- Переключатель тем студий под виджетом -->
+        <div class="theme-switcher-bar">
+          <span>Стиль виджета:</span>
+          <div class="theme-btns-group">
+            <button class="theme-btn active" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Эпоксид</button>
+            <button class="theme-btn" id="themeBtnCopper" onclick="switchDemoTheme('copper')">Графит и медь</button>
+            <button class="theme-btn" id="themeBtnSport" onclick="switchDemoTheme('sport')">Спорт</button>
+          </div>
         </div>
 
       </div>
@@ -1413,327 +1392,65 @@
     </div>
   </section>
 
-  <!-- ─── 4 NUMBERS HORIZONTAL STRIP ──────────────────────────────────── -->
-  <section class="metrics-section">
-    <div class="container">
-      <div class="metrics-bar">
-        
-        <div class="metric-cell">
-          <div class="metric-num mint">+35%</div>
-          <div class="metric-title">К среднему чеку</div>
-          <div class="metric-sub">Автодопродажа керамики 9H и брони к каждой полировке</div>
-        </div>
-
-        <div class="metric-cell">
-          <div class="metric-num">2.4 с</div>
-          <div class="metric-title">Скорость ответа 24/7</div>
-          <div class="metric-sub">Мгновенный перехват ночных клиентов без задержек</div>
-        </div>
-
-        <div class="metric-cell">
-          <div class="metric-num">0 ₽</div>
-          <div class="metric-title">Тест-драйв 24 часа</div>
-          <div class="metric-sub">Без предоплаты, оплата только после проверки в деле</div>
-        </div>
-
-        <div class="metric-cell">
-          <div class="metric-num">1 лид</div>
-          <div class="metric-title">Окупает внедрение</div>
-          <div class="metric-sub">При среднем чеке студии от 35 000 ₽ система окупается сразу</div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── BEFORE / AFTER COMPARISON SECTION ───────────────────────────── -->
-  <section class="comparison-section" id="comparison">
+  <!-- ─── 2. СЕКЦИЯ: ЧТО ВЫ ПОЛУЧАЕТЕ УТРОМ ────────────────────────────── -->
+  <section class="steps-section" id="how-it-works">
     <div class="container">
       
-      <div class="section-head-center">
-        <div class="section-tag">ПОЧЕМУ АВТОСТУДИИ ТЕРЯЮТ ДЕНЬГИ</div>
-        <h2 class="section-title">Обычный сайт vs Система ECM Systems</h2>
-        <p class="section-subtitle">
-          Пока администратор спит или занят автомобилем в боксе, клиенты уходят к конкурентам.
+      <div class="section-header">
+        <h2 class="section-title">Что вы получаете утром</h2>
+        <p class="section-desc">
+          Пока студия закрыта на ночь, система фиксирует заявку, рассчитывает стоимость по классу кузова и закрепляет бронь.
         </p>
       </div>
 
-      <div class="compare-grid">
+      <div class="steps-grid">
         
-        <!-- Before (Standard Studio) -->
-        <div class="compare-card before">
-          <div class="compare-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-            Обычный сайт и ручной администратор
-          </div>
-
-          <ul class="compare-list">
-            <li class="compare-item bad">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              <span><strong>Клиент пишет в 23:00</strong> — ответ только утром в 10:00. Клиент уже записался в другую студию.</span>
-            </li>
-            <li class="compare-item bad">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              <span><strong>Запрос «полировка 18 000 ₽»</strong> — администратор назвал цену и забыл предложить керамику. Минус 25 000 ₽ из кассы.</span>
-            </li>
-            <li class="compare-item bad">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              <span><strong>Хаос в заявках</strong> — контакты в WhatsApp, блокнотах и чатах. Часть лидов забывают обработать.</span>
-            </li>
-            <li class="compare-item bad">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              <span><strong>Дорогие CRM</strong> — от 50 000 ₽ за настройку + абонентская плата каждый месяц за каждого сотрудника.</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- After (With ECM Systems) -->
-        <div class="compare-card after">
-          <div class="compare-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            С системой ECM Systems
-          </div>
-
-          <ul class="compare-list">
-            <li class="compare-item good">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Ответ за 2.4 секунды 24/7</strong> — моментальный расчет по кузову и фиксация брони, пока клиент теплый.</span>
-            </li>
-            <li class="compare-item good">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Автодопродажи в 100% диалогов</strong> — ИИ нативно предлагает керамику 9H (+25 000 ₽) и антидождь по акции в подарок.</span>
-            </li>
-            <li class="compare-item good">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Бесплатная CRM в Google Sheets</strong> — каждая запись моментально падает в таблицу и пушем вам в Telegram.</span>
-            </li>
-            <li class="compare-item good">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Премиальный стиль под ваш сайт</strong> — адаптируем цвета, шрифты и логотипы. Встраивается в 1 строчку кода.</span>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── 4 MAIN ADVANTAGES (ASYMMETRIC BENTO GRID) ───────────────────── -->
-  <section class="features-section" id="advantages">
-    <div class="container">
-      
-      <div class="section-head-center">
-        <div class="section-tag">КЛЮЧЕВЫЕ ВОЗМОЖНОСТИ</div>
-        <h2 class="section-title">Что делает ИИ-администратор на практике</h2>
-        <p class="section-subtitle">
-          Четыре конкретные функции, которые приносят студии деньги каждый день.
-        </p>
-      </div>
-
-      <div class="bento-asymmetric">
-        
-        <!-- Card 1: Upsell Engine (Col 7 - Wide) -->
-        <div class="bento-box bento-col-7">
-          <div>
-            <div class="bento-tag-row">
-              <span class="bento-num">01</span>
-              <span class="bento-badge">Допродажи</span>
-            </div>
-            <h3 class="bento-title">Сам предлагает допуслуги и увеличивает средний чек</h3>
-            <p class="bento-desc">
-              ИИ никогда не стесняется и не забывает допродать: к полировке предлагает <strong>керамику 9H (+25 000 ₽)</strong>, к оклейке зон риска — керамику на остальной кузов, а по акции дарит антидождь. Чек растет на автомате без затрат на рекламу.
-            </p>
-          </div>
-
-          <div class="mini-window">
-            <div class="mini-window-bar">
-              <div class="mini-dots">
-                <span class="mini-dot"></span>
-                <span class="mini-dot"></span>
-                <span class="mini-dot"></span>
-              </div>
-              <span class="mono">КАЛЬКУЛЯЦИЯ ЗАКАЗА • BMW F10</span>
-            </div>
-            <div class="order-breakdown">
-              <div class="order-row">
-                <span>Восстановительная полировка кузова (седан)</span>
-                <span class="mono">18 000 ₽</span>
-              </div>
-              <div class="order-row">
-                <span>Нанокерамика 9H (2 слоя) • Автодопродажа ИИ</span>
-                <span class="mono">+25 000 ₽</span>
-              </div>
-              <div class="order-row">
-                <span>Гидрофобный антидождь передней полусферы</span>
-                <span class="mono">0 ₽ (подарок)</span>
-              </div>
-              <div class="order-row total">
-                <span>Итого к оплате клиентом:</span>
-                <span class="price">43 000 ₽ (+138%)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 2: 24/7 Night Traffic (Col 5 - Compact) -->
-        <div class="bento-box bento-col-5">
-          <div>
-            <div class="bento-tag-row">
-              <span class="bento-num">02</span>
-              <span class="bento-badge">Ночной трафик</span>
-            </div>
-            <h3 class="bento-title">Перехватывает клиентов 24/7, пока администратор спит</h3>
-            <p class="bento-desc">
-              До <strong>40% клиентов</strong> ищут детейлинг поздним вечером (с 20:00 до 02:00). Бот мгновенно рассчитывает стоимость по классу авто, бронирует окно и фиксирует номер.
-            </p>
-          </div>
-
-          <div class="mini-window">
-            <div class="mini-window-bar">
-              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
-              <span class="mono">ЛОГ СОБЫТИЙ</span>
-            </div>
-            <div class="night-event-box">
-              <div class="event-line">
-                <span class="event-time">02:14</span>
-                <span>Mercedes GLE • Полная оклейка PPF</span>
-              </div>
-              <div class="event-line">
-                <span class="event-time">02:15</span>
-                <span class="event-tag">СЛОТ СБ 14:00 ЗАБРОНИРОВАН</span>
-              </div>
-              <div class="event-line">
-                <span class="event-time">02:15</span>
-                <span>Контакт +7 (985) •••-••-12 сохранен</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3: Brandbook Design (Col 5 - Compact) -->
-        <div class="bento-box bento-col-5">
-          <div>
-            <div class="bento-tag-row">
-              <span class="bento-num">03</span>
-              <span class="bento-badge">Фирменный стиль</span>
-            </div>
-            <h3 class="bento-title">Выглядит как дорогая заказная разработка за 200 000 ₽</h3>
-            <p class="bento-desc">
-              Никаких дешевых шаблонов из конструкторов. Вручную адаптируем палитру, шрифты и скругления под брендбук вашего сайта. Изоляция в <strong>Shadow DOM</strong> исключает конфликты стилей.
-            </p>
-          </div>
-
-          <div class="mini-window">
-            <div class="mini-window-bar">
-              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
-              <span class="mono">СОВМЕСТИМОСТЬ</span>
-            </div>
-            <div class="platform-tags">
-              <span class="p-tag">Tilda</span>
-              <span class="p-tag">WordPress</span>
-              <span class="p-tag">1C-Битрикс</span>
-              <span class="p-tag">Webflow</span>
-              <span class="p-tag">React / Next.js</span>
-              <span class="p-tag">Самописные сайты</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 4: Google Sheets CRM (Col 7 - Wide) -->
-        <div class="bento-box bento-col-7">
-          <div>
-            <div class="bento-tag-row">
-              <span class="bento-num">04</span>
-              <span class="bento-badge">Авто-CRM</span>
-            </div>
-            <h3 class="bento-title">Все заявки со статусами в Google Таблице и в Telegram</h3>
-            <p class="bento-desc">
-              Вам не нужно покупать сложные CRM-системы за 50 000 ₽. ИИ автоматически заносит каждого клиента в структурированную <strong>Google Таблицу</strong> + отправляет карточку брони с кнопками подтверждения владельцу в Telegram.
-            </p>
-          </div>
-
-          <div class="mini-window">
-            <div class="mini-window-bar">
-              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
-              <span class="mono">GOOGLE SHEETS CRM SYNC</span>
-            </div>
-            <table class="mini-table">
-              <thead>
-                <tr>
-                  <th>Клиент</th>
-                  <th>Автомобиль</th>
-                  <th>Услуга</th>
-                  <th>Сумма</th>
-                  <th>Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Алексей</td>
-                  <td>BMW X5</td>
-                  <td>Полировка + Керамика</td>
-                  <td>56 000 ₽</td>
-                  <td><span class="badge-status confirmed">CONFIRMED</span></td>
-                </tr>
-                <tr>
-                  <td>Михаил</td>
-                  <td>Porsche Macan</td>
-                  <td>Оклейка зон риска PPF</td>
-                  <td>75 000 ₽</td>
-                  <td><span class="badge-status pending">PENDING</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── ROI & FINANCIAL DASHBOARD ────────────────────────────────────── -->
-  <section class="roi-section" id="roi">
-    <div class="container">
-      
-      <div class="roi-dashboard">
-        
-        <div class="roi-inputs">
-          <div>
-            <div class="section-tag">МАТЕМАТИКА ОКУПАЕМОСТИ</div>
-            <h3 class="roi-h2">Инвестиция, которая окупается с первого клиента</h3>
-          </div>
-
-          <div class="roi-data-rows">
-            <div class="data-row">
-              <span class="data-label">Средний чек детейлинга в студии:</span>
-              <span class="data-value">35 000 – 60 000 ₽</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Стоимость внедрения системы ECM:</span>
-              <span class="data-value">от 6 900 ₽</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Условие старта:</span>
-              <span class="data-value">24 часа без предоплаты</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="roi-result-card">
-          <div class="roi-result-tag">Срок окупаемости</div>
-          <div class="roi-big-stat">1 клиент</div>
-          <p class="roi-result-text">
-            Всего одна ночная заявка или допродажа керамики к полировке полностью окупает установку системы. Все последующие записи приносят чистую прибыль.
+        <div class="step-card">
+          <div class="step-num-bar">01</div>
+          <h3 class="step-title">Клиент спрашивает цену</h3>
+          <p class="step-desc">
+            Обращение поступает поздно вечером или ночью, когда администратор уже ушёл из бокса.
           </p>
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 6px;">
-            Обсудить запуск
-          </a>
+          <div class="media-placeholder">
+            <span class="placeholder-badge">Скриншот 01</span>
+            Сообщение клиента в 23:14 с вопросом о стоимости
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num-bar">02</div>
+          <h3 class="step-title">Бот считает смету и предлагает допуслугу</h3>
+          <p class="step-desc">
+            Определяет класс кузова (седан, кроссовер или внедорожник), называет цену по прайсу и предлагает керамику 9H.
+          </p>
+          <div class="media-placeholder">
+            <span class="placeholder-badge">Скриншот 02</span>
+            Расчёт сметы и автодопродажа керамики (+25&nbsp;000&nbsp;₽)
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num-bar">03</div>
+          <h3 class="step-title">Окно держится 15 минут</h3>
+          <p class="step-desc">
+            Система проверяет график студии, подбирает свободный слот и удерживает его за клиентом до подтверждения.
+          </p>
+          <div class="media-placeholder">
+            <span class="placeholder-badge">Скриншот 03</span>
+            Таймер закрепления окна записи на 15:00 минут
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num-bar">04</div>
+          <h3 class="step-title">Карточка в Telegram и строка в таблице</h3>
+          <p class="step-desc">
+            Утром вы открываете телефон: заявка уже оформлена, имя и номер сохранены, нужно только нажать «Подтвердить».
+          </p>
+          <div class="media-placeholder">
+            <span class="placeholder-badge">Скриншот 04</span>
+            Карточка в Telegram с кнопкой «Подтвердить» и Google Таблица
+          </div>
         </div>
 
       </div>
@@ -1741,136 +1458,321 @@
     </div>
   </section>
 
-  <!-- ─── PRICING ─────────────────────────────────────────────────────── -->
+  <!-- ─── 3. СЕКЦИЯ: ОДНА НОЧЬ БЕЗ БОТА И С БОТОМ ──────────────────────── -->
+  <section class="timeline-section">
+    <div class="container">
+      
+      <div class="section-header">
+        <h2 class="section-title">Одна ночь без бота и с ботом</h2>
+        <p class="section-desc">
+          Сравнение хронологии одной ночной заявки в детейлинг-студии.
+        </p>
+      </div>
+
+      <div class="timeline-columns">
+        
+        <!-- Колонка 1: Без бота -->
+        <div class="timeline-card">
+          <h3 class="timeline-card-header">Без бота</h3>
+
+          <ul class="timeline-events-list">
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:07</span>
+              <div class="event-body">
+                Клиент заходит на сайт с вопросом по полировке BMW F10 и оставляет сообщение.
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:15</span>
+              <div class="event-body">
+                <span class="dim">Ответа нет, бокс закрыт.</span> Клиент открывает карты и пишет в следующую студию.
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">01:30</span>
+              <div class="event-body">
+                <span class="dim">Заявка лежит без обработки всю ночь.</span>
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">10:00</span>
+              <div class="event-body">
+                Администратор приходит на работу и пишет: «Здравствуйте, вам ещё актуально?». Клиент отвечает: «Уже записался».
+              </div>
+            </li>
+          </ul>
+
+          <div class="timeline-result-footer">
+            <span>Итог ночи:</span>
+            <span class="result-sum">0&nbsp;₽ (клиент ушёл)</span>
+          </div>
+        </div>
+
+        <!-- Колонка 2: С ботом ECM -->
+        <div class="timeline-card success-side">
+          <h3 class="timeline-card-header">С ботом ECM Systems</h3>
+
+          <ul class="timeline-events-list">
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:07</span>
+              <div class="event-body">
+                Клиент пишет: «Сколько стоит полировка BMW F10?».
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:07</span>
+              <div class="event-body">
+                Бот называет точную цену (18&nbsp;000&nbsp;₽) и предлагает закрепить результат керамикой 9H (+25&nbsp;000&nbsp;₽).
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:09</span>
+              <div class="event-body">
+                Клиент соглашается на комплекс, выбирает субботу в 14:00 и оставляет номер телефона.
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">23:09</span>
+              <div class="event-body">
+                Слот удерживается на 15 минут, строка падает в Google Таблицу и дублируется пушем владельцу в Telegram.
+              </div>
+            </li>
+            <li class="timeline-event-item">
+              <span class="event-timestamp">10:00</span>
+              <div class="event-body">
+                Администратор нажимает одну кнопку «Подтвердить» в Telegram. Автомобиль уже в графике бокса.
+              </div>
+            </li>
+          </ul>
+
+          <div class="timeline-result-footer">
+            <span>Итог ночи:</span>
+            <span class="result-sum">+43&nbsp;000&nbsp;₽ в кассу</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── 4. СЕКЦИЯ: ПОСЧИТАЙТЕ, СКОЛЬКО УХОДИТ (КАЛЬКУЛЯТОР) ───────────── -->
+  <section class="calculator-section">
+    <div class="container">
+      
+      <div class="section-header">
+        <h2 class="section-title">Посчитайте, сколько уходит</h2>
+        <p class="section-desc">
+          Оцените объём упущенной выручки при задержке ответов в нерабочее время.
+        </p>
+      </div>
+
+      <div class="calc-box">
+        
+        <div class="calc-controls">
+          
+          <div class="calc-group">
+            <div class="calc-label-row">
+              <span>Вечерних и ночных обращений в месяц:</span>
+              <span class="calc-val-display" id="dispInquiries">15 обращений</span>
+            </div>
+            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1" oninput="calculateLoss()">
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label-row">
+              <span>Средний чек студии:</span>
+              <span class="calc-val-display" id="dispCheck">35&nbsp;000&nbsp;₽</span>
+            </div>
+            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000" oninput="calculateLoss()">
+          </div>
+
+          <div class="calc-group">
+            <div class="calc-label-row">
+              <span>Доля уходящих к конкурентам при задержке:</span>
+              <span class="calc-val-display" id="dispChurn">40%</span>
+            </div>
+            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5" oninput="calculateLoss()">
+          </div>
+
+        </div>
+
+        <div class="calc-summary-panel">
+          <div class="calc-metric-title">Упущенная выручка в месяц:</div>
+          <div class="calc-big-loss" id="calcLossResult">210&nbsp;000&nbsp;₽</div>
+          
+          <p class="calc-compare-note">
+            При разовой стоимости внедрения системы ECM от <strong>6&nbsp;900&nbsp;₽</strong> или <strong>10&nbsp;900&nbsp;₽</strong>, инструмент окупается с первого же сохранённого заказа.
+          </p>
+
+          <span class="calc-fineprint">Оценка по вашим данным</span>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── 5. СЕКЦИЯ: ТАРИФЫ (ЕДИНАЯ ТАБЛИЦА-НАРЯД) ──────────────────────── -->
   <section class="pricing-section" id="pricing">
     <div class="container">
       
-      <div class="section-head-center">
-        <div class="section-tag">ТАРИФЫ ВНЕДРЕНИЯ</div>
-        <h2 class="section-title">Прозрачные форматы без скрытых платежей</h2>
-        <p class="section-subtitle">
-          Выберите формат с ежемесячным сопровождением или выкупите систему разово «под ключ» навсегда без абонплат.
+      <div class="section-header">
+        <h2 class="section-title">Тарифы внедрения</h2>
+        <p class="section-desc">
+          Прозрачные форматы без скрытых платежей. Подключение на 24 часа без предоплаты.
         </p>
       </div>
 
-      <!-- Pricing Toggle -->
       <div class="pricing-toggle-wrap">
-        <div class="pricing-toggle">
-          <button class="toggle-btn active" id="btnModeMonthly" onclick="setPricingMode('monthly')">
+        <div class="pricing-toggle-box">
+          <button class="pricing-toggle-btn active" id="btnPricingMonthly" onclick="setPricingMode('monthly')">
             С сопровождением
           </button>
-          <button class="toggle-btn" id="btnModeLifetime" onclick="setPricingMode('lifetime')">
+          <button class="pricing-toggle-btn" id="btnPricingLifetime" onclick="setPricingMode('lifetime')">
             Выкуп навсегда (без подписок)
           </button>
         </div>
       </div>
 
-      <div class="pricing-grid">
+      <div class="pricing-table-wrap">
+        <table class="pricing-table">
+          <thead>
+            <tr>
+              <th class="col-feature">Возможности</th>
+              <th>Telegram-бот</th>
+              <th>Виджет на сайт + CRM</th>
+              <th class="col-featured">Сайт + Telegram</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Стоимость внедрения</td>
+              <td>
+                <div class="price-num-main" id="pPrice1">6&nbsp;900&nbsp;₽</div>
+                <div class="price-period-sub" id="pPeriod1">+ 1&nbsp;500&nbsp;₽/мес</div>
+              </td>
+              <td>
+                <div class="price-num-main" id="pPrice2">10&nbsp;900&nbsp;₽</div>
+                <div class="price-period-sub" id="pPeriod2">+ 2&nbsp;000&nbsp;₽/мес</div>
+              </td>
+              <td class="col-featured">
+                <div class="price-num-main" id="pPrice3">14&nbsp;900&nbsp;₽</div>
+                <div class="price-period-sub" id="pPeriod3">+ 2&nbsp;500&nbsp;₽/мес</div>
+              </td>
+            </tr>
+            <tr>
+              <td>Расчёт сметы по классам авто</td>
+              <td>Да (седан / кросс / джип)</td>
+              <td>Да (седан / кросс / джип)</td>
+              <td class="col-featured">Да (седан / кросс / джип)</td>
+            </tr>
+            <tr>
+              <td>Автодопродажа керамики и допов</td>
+              <td>Да</td>
+              <td>Да</td>
+              <td class="col-featured">Да</td>
+            </tr>
+            <tr>
+              <td>Кастомный стиль под сайт</td>
+              <td>—</td>
+              <td>Да (под брендбук)</td>
+              <td class="col-featured">Да (под брендбук)</td>
+            </tr>
+            <tr>
+              <td>Запись в Google Таблицу + TG</td>
+              <td>Да</td>
+              <td>Да</td>
+              <td class="col-featured">Да</td>
+            </tr>
+            <tr>
+              <td>Единая база окон (без накладок)</td>
+              <td>В рамках бота</td>
+              <td>В рамках виджета</td>
+              <td class="col-featured"><strong>Единое расписание для сайта и TG</strong></td>
+            </tr>
+            <tr>
+              <td>Тест-драйв 24 часа без предоплаты</td>
+              <td>Да</td>
+              <td>Да</td>
+              <td class="col-featured"><strong>Да</strong></td>
+            </tr>
+            <tr>
+              <td>Подключение</td>
+              <td>
+                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                  Подключить бота
+                </a>
+              </td>
+              <td>
+                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                  Подключить виджет
+                </a>
+              </td>
+              <td class="col-featured">
+                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-pad btn-sm">
+                  Выбрать комплекс
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── 6. СЕКЦИЯ: СТАНДАРТЫ В БОКСЕ (4 ФОТОСЛОТА) ────────────────────── -->
+  <section class="photos-section">
+    <div class="container">
+      
+      <div class="section-header">
+        <h2 class="section-title">Стандарты работы в боксе</h2>
+        <p class="section-desc">
+          Слоты под реальные фотографии технологического процесса вашей студии.
+        </p>
+      </div>
+
+      <div class="photos-grid">
         
-        <!-- Plan 1: Telegram Bot -->
-        <div class="price-card">
-          <div class="plan-name">Telegram-бот</div>
-          <div class="plan-desc">Умный ИИ-администратор в мессенджере Telegram с вашим прайсом и CRM</div>
-          
-          <div class="plan-price-row">
-            <span class="plan-price" id="priceVal1">6 900 ₽</span>
-            <span class="plan-period" id="pricePeriod1">+ 1 500 ₽/мес</span>
+        <div class="photo-slot-card">
+          <div class="photo-viewbox">
+            <span class="photo-meta-tag">Фото 01 • 16:10</span>
+            Снять 50/50 под инспекционной лампой: риска слева, чистый лак справа
           </div>
-          <div class="plan-note" id="priceNote1">Старт внедрения + ежемесячное сопровождение</div>
-
-          <ul class="plan-features">
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Полный расчет сметы по классам авто</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Автодопродажи керамики и брони</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Google CRM таблица + пуши в Telegram</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>15-минутный hold брони</span>
-            </li>
-          </ul>
-
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-            Подключить Telegram-бота
-          </a>
+          <div class="photo-desc-box">
+            Макро блика на капоте до и после восстановительной полировки
+          </div>
         </div>
 
-        <!-- Plan 2: Web Widget + CRM -->
-        <div class="price-card">
-          <div class="plan-name">Виджет на сайт + CRM</div>
-          <div class="plan-desc">Фирменный чат-виджет под брендбук вашего сайта с Google Таблицей</div>
-          
-          <div class="plan-price-row">
-            <span class="plan-price" id="priceVal2">10 900 ₽</span>
-            <span class="plan-period" id="pricePeriod2">+ 2 000 ₽/мес</span>
+        <div class="photo-slot-card">
+          <div class="photo-viewbox">
+            <span class="photo-meta-tag">Фото 02 • 16:10</span>
+            Снять процесс подворота края полиуретановой плёнки на детали
           </div>
-          <div class="plan-note" id="priceNote2">Старт внедрения + ежемесячное сопровождение</div>
-
-          <ul class="plan-features">
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Кастомный дизайн</strong> под брендбук сайта</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Встраивание в 1 строчку (Tilda, WP, Bitrix)</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Автодопродажи допов в каждом диалоге</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Google CRM + дублирование заявок в TG</span>
-            </li>
-          </ul>
-
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-            Выбрать виджет на сайт
-          </a>
+          <div class="photo-desc-box">
+            Оклейка зон риска самозатягивающейся плёнкой PPF толщиной 200 микрон
+          </div>
         </div>
 
-        <!-- Plan 3: Full Suite (Featured) -->
-        <div class="price-card featured">
-          <div class="featured-badge">ПОЛНЫЙ КОМПЛЕКС</div>
-          <div class="plan-name">Сайт + Telegram</div>
-          <div class="plan-desc">Единая экосистема: виджет на сайте, бот в Telegram и общая база окон</div>
-          
-          <div class="plan-price-row">
-            <span class="plan-price" id="priceVal3">14 900 ₽</span>
-            <span class="plan-period" id="pricePeriod3">+ 2 500 ₽/мес</span>
+        <div class="photo-slot-card">
+          <div class="photo-viewbox">
+            <span class="photo-meta-tag">Фото 03 • 16:10</span>
+            Снять выраженный гидрофобный угол капель на запечённой керамике
           </div>
-          <div class="plan-note" id="priceNote3">Старт внедрения + ежемесячное сопровождение</div>
+          <div class="photo-desc-box">
+            Гидрофобный эффект и защита ЛКП нанокерамикой 9H (2 слоя)
+          </div>
+        </div>
 
-          <ul class="plan-features">
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Единая база слотов</strong> (сайт и Telegram)</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Исключение накладок и овербукинга</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Кастомный дизайн под сайт + TG-бот</span>
-            </li>
-            <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>Авто-CRM Google Sheets + кнопки подтверждения</span>
-            </li>
-          </ul>
-
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-            Подключить комплекс
-          </a>
+        <div class="photo-slot-card">
+          <div class="photo-viewbox">
+            <span class="photo-meta-tag">Фото 04 • 16:10</span>
+            Снять чистый светлый бокс с автомобилем под рассеянным светом
+          </div>
+          <div class="photo-desc-box">
+            Общий план подготовленного бокса со специальным светом для детейлинга
+          </div>
         </div>
 
       </div>
@@ -1878,78 +1780,209 @@
     </div>
   </section>
 
-  <!-- ─── FOUNDER PERSONAL GUARANTEE (CLEAN SIGNATURE) ─────────────────── -->
+  <!-- ─── 7. СЕКЦИЯ: ЛИЧНАЯ ГАРАНТИЯ ОСНОВАТЕЛЯ ────────────────────────── -->
   <section class="founder-section">
     <div class="container">
-      <div class="founder-box">
-        <div class="founder-quote">
-          «Я лично отвечаю за адаптацию системы под ваш брендбук и прайс-лист. Мы подключаем бота на 24 часа без предоплаты: <strong>вы тестируете систему в деле целые сутки и оплачиваете только если довольны результатом</strong>. Напишите мне в Telegram — согласуем запуск за 1 день.»
+      
+      <div class="founder-layout">
+        
+        <!-- Слот под фото Максима -->
+        <div class="founder-photo-slot">
+          <span style="font-weight: 600; margin-bottom: 4px;">Фото основателя</span>
+          Максим, основатель ECM Systems
         </div>
-        <div class="founder-footer">
-          <div class="founder-person">
-            <span class="founder-name">Максим</span>
-            <span class="founder-role">Основатель ECM Systems</span>
-            <div class="founder-status">
-              <span class="status-dot"></span> Отвечаю лично в течение 10 минут
-            </div>
+
+        <!-- Детали и 3 строки гарантии -->
+        <div class="founder-details">
+          <div>
+            <h3 class="founder-name-title">Максим</h3>
+            <span class="founder-role-sub">Основатель ECM Systems</span>
           </div>
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
-            Написать в Telegram
-          </a>
+
+          <ul class="founder-rules-list">
+            <li>
+              <span>1.</span>
+              <span>Настраиваю прайс-лист, классы авто и расписание под вашу студию лично.</span>
+            </li>
+            <li>
+              <span>2.</span>
+              <span>Подключаем систему на 24 часа без предоплаты: вы проверяете бота на реальных клиентах.</span>
+            </li>
+            <li>
+              <span>3.</span>
+              <span>Оплачиваете внедрение только в том случае, если довольны работой и видите результат.</span>
+            </li>
+          </ul>
+
+          <div>
+            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+              Написать Максиму в Telegram
+            </a>
+          </div>
         </div>
+
+        <!-- Слот под видео-кружок -->
+        <div class="founder-video-slot">
+          <span style="font-weight: 600; margin-bottom: 2px;">Видео-кружок</span>
+          Демонстрация интерфейса в боксе
+        </div>
+
       </div>
+
     </div>
   </section>
 
-  <!-- ─── FOOTER ──────────────────────────────────────────────────────── -->
+  <!-- ─── 8. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ───────────────────────── -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      
+      <div class="section-header">
+        <h2 class="section-title">Частые вопросы</h2>
+        <p class="section-desc">
+          Ответы на ключевые вопросы по работе и интеграции системы.
+        </p>
+      </div>
+
+      <div class="faq-grid">
+        
+        <div class="faq-item">
+          <h3 class="faq-q">Что если бот ошибётся в цене услуги?</h3>
+          <p class="faq-a">
+            Бот обучается строго по вашему прайсу и фиксированной таблице классов авто (седан, кроссовер, внедорожник). Если клиент называет редкую модель или сложный случай, бот сохраняет контакт и передаёт заявку мастеру, не называя вымышленных сумм.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-q">Как виджет встраивается в сайт?</h3>
+          <p class="faq-a">
+            Одной строчкой кода перед закрывающим тегом body. Работает на любых платформах: Tilda, WordPress, 1C-Битрикс, Webflow, React или самописных сайтах. Изоляция в Shadow DOM полностью исключает конфликты стилей.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-q">Где хранятся заявки клиентов?</h3>
+          <p class="faq-a">
+            Каждое обращение моментально записывается в структурированную Google Таблицу на вашем диске (дата, время, авто, услуга, смета, статус) и параллельно дублируется интерактивной карточкой с кнопками вам в Telegram.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-q">Что если наш сайт сделан не на Tilda?</h3>
+          <p class="faq-a">
+            Платформа сайта не имеет значения. Виджет автономен. Если у студии пока вообще нет сайта, можно запустить автономного Telegram-бота и направлять клиентов прямо из карт (Яндекс, 2ГИС) и социальных сетей.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-q">Как проходят 24 часа без предоплаты?</h3>
+          <p class="faq-a">
+            Мы подключаем бота к вашему сайту или Telegram, вносим ваш прайс-лист и активируем систему. Вы в течение 24 часов тестируете бота на реальных клиентах. Оплата производится только после завершения тестовых суток при вашем согласии.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-q">Какие каналы связи поддерживаются?</h3>
+          <p class="faq-a">
+            Сейчас в боевом режиме работают виджет на сайте и бот в Telegram с синхронизацией в Google Таблицу. Подключение WhatsApp и группы ВКонтакте находится в стадии подготовки (TODO: интеграция с WhatsApp Business API).
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── 9. ФУТЕР ─────────────────────────────────────────────────────── -->
   <footer>
     <div class="container footer-inner">
-      <div class="footer-copy" style="display: flex; align-items: center; gap: 8px;">
-        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; opacity: 0.8;">
-        <span>© 2026 ECM SYSTEMS. ПРЕМИАЛЬНЫЕ ИИ-РЕШЕНИЯ ДЛЯ АВТОСТУДИЙ.</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; filter: invert(0.9);">
+        <span>© 2026 ECM Systems. Инструмент автоматизации для детейлинг-студий.</span>
       </div>
       <div class="footer-links">
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer">Связаться в Telegram</a>
+        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
         <a href="https://t.me/ecm_systems_demo_bot" target="_blank" rel="noopener noreferrer">Демо-бот в TG</a>
+        <a href="./privacy.html">Политика конфиденциальности</a>
       </div>
     </div>
   </footer>
 
-  <!-- ─── PRICING TOGGLE SCRIPT ───────────────────────────────────────── -->
+  <!-- ─── СКРИПТЫ: КАЛЬКУЛЯТОР, ТАРИФЫ, ДЕМО-ИНТЕРАКТИВ ────────────────── -->
   <script>
+    // Калькулятор потерь
+    function calculateLoss() {
+      const inq = parseInt(document.getElementById('inputInquiries').value, 10);
+      const chk = parseInt(document.getElementById('inputCheck').value, 10);
+      const chr = parseInt(document.getElementById('inputChurn').value, 10);
+
+      document.getElementById('dispInquiries').textContent = inq + ' обращений';
+      document.getElementById('dispCheck').textContent = chk.toLocaleString('ru-RU') + ' ₽';
+      document.getElementById('dispChurn').textContent = chr + '%';
+
+      const lostClients = Math.round(inq * (chr / 100));
+      const totalLoss = lostClients * chk;
+
+      document.getElementById('calcLossResult').textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
+    }
+
+    // Переключение тарифов
     function setPricingMode(mode) {
       const isMonthly = mode === 'monthly';
-      const btnM = document.getElementById('btnModeMonthly');
-      const btnL = document.getElementById('btnModeLifetime');
-      if (btnM && btnL) {
-        btnM.classList.toggle('active', isMonthly);
-        btnL.classList.toggle('active', !isMonthly);
+      document.getElementById('btnPricingMonthly').classList.toggle('active', isMonthly);
+      document.getElementById('btnPricingLifetime').classList.toggle('active', !isMonthly);
+
+      document.getElementById('pPrice1').innerHTML = isMonthly ? '6&nbsp;900&nbsp;₽' : '11&nbsp;900&nbsp;₽';
+      document.getElementById('pPeriod1').textContent = isMonthly ? '+ 1 500 ₽/мес' : 'разовый выкуп навсегда';
+
+      document.getElementById('pPrice2').innerHTML = isMonthly ? '10&nbsp;900&nbsp;₽' : '17&nbsp;900&nbsp;₽';
+      document.getElementById('pPeriod2').textContent = isMonthly ? '+ 2 000 ₽/мес' : 'разовый выкуп навсегда';
+
+      document.getElementById('pPrice3').innerHTML = isMonthly ? '14&nbsp;900&nbsp;₽' : '24&nbsp;900&nbsp;₽';
+      document.getElementById('pPeriod3').textContent = isMonthly ? '+ 2 500 ₽/мес' : 'разовый выкуп навсегда';
+    }
+
+    // Быстрый клик по чипам в демо Hero
+    function injectDemoMessage(text) {
+      const input = document.getElementById('widgetDemoInput');
+      if (input) {
+        input.value = text;
+        // Если виджет widget.js подключен, шлем в него
+        if (window.EcmWidget && typeof window.EcmWidget.sendMessage === 'function') {
+          window.EcmWidget.sendMessage(text);
+        }
+      }
+    }
+
+    // Переключение стилей студий в демо
+    function switchDemoTheme(theme) {
+      document.getElementById('themeBtnEpoxy').classList.toggle('active', theme === 'epoxy');
+      document.getElementById('themeBtnCopper').classList.toggle('active', theme === 'copper');
+      document.getElementById('themeBtnSport').classList.toggle('active', theme === 'sport');
+
+      const widgetEl = document.getElementById('ecm-demo');
+      if (!widgetEl) return;
+
+      if (theme === 'copper') {
+        widgetEl.style.backgroundColor = '#1F2327';
+        widgetEl.style.borderColor = '#2A3036';
+      } else if (theme === 'sport') {
+        widgetEl.style.backgroundColor = '#F3F3F3';
+        widgetEl.style.borderColor = '#C5CACE';
+      } else {
+        widgetEl.style.backgroundColor = 'var(--panel)';
+        widgetEl.style.borderColor = 'var(--rule)';
       }
 
-      const p1Val = document.getElementById('priceVal1');
-      const p1Per = document.getElementById('pricePeriod1');
-      const p1Note = document.getElementById('priceNote1');
-      if (p1Val) p1Val.textContent = isMonthly ? '6 900 ₽' : '11 900 ₽';
-      if (p1Per) p1Per.textContent = isMonthly ? '+ 1 500 ₽/мес' : 'разово';
-      if (p1Note) p1Note.textContent = isMonthly ? 'Старт внедрения + ежемесячное сопровождение' : 'Разовый выкуп «под ключ», навсегда без подписок';
-
-      const p2Val = document.getElementById('priceVal2');
-      const p2Per = document.getElementById('pricePeriod2');
-      const p2Note = document.getElementById('priceNote2');
-      if (p2Val) p2Val.textContent = isMonthly ? '10 900 ₽' : '17 900 ₽';
-      if (p2Per) p2Per.textContent = isMonthly ? '+ 2 000 ₽/мес' : 'разово';
-      if (p2Note) p2Note.textContent = isMonthly ? 'Старт внедрения + ежемесячное сопровождение' : 'Разовый выкуп «под ключ», навсегда без подписок';
-
-      const p3Val = document.getElementById('priceVal3');
-      const p3Per = document.getElementById('pricePeriod3');
-      const p3Note = document.getElementById('priceNote3');
-      if (p3Val) p3Val.textContent = isMonthly ? '14 900 ₽' : '24 900 ₽';
-      if (p3Per) p3Per.textContent = isMonthly ? '+ 2 500 ₽/мес' : 'разово';
-      if (p3Note) p3Note.textContent = isMonthly ? 'Старт внедрения + ежемесячное сопровождение' : 'Разовый выкуп «под ключ», навсегда без подписок';
+      if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
+        window.EcmWidget.setTheme(theme);
+      }
     }
+
+    // Инициализация при загрузке
+    calculateLoss();
   </script>
 
-  <!-- ─── CHAT WIDGET SCRIPT ──────────────────────────────────────────── -->
-  <script src="./widget.js?v=20261115_avatar_ecm_v4" data-studio="default"></script>
+  <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->
+  <script src="./widget.js?v=workshop_v1" data-studio="default"></script>
 </body>
 </html>

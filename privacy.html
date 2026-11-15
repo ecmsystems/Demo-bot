@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Политика конфиденциальности — ECM Systems</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png">
+
+  <!-- Preload главных начертаний -->
+  <link rel="preload" href="./fonts/fira-sans-extra-condensed-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/golos-text-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    @font-face {
+      font-family: 'Fira Sans Extra Condensed';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/fira-sans-extra-condensed-600-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/golos-text-400-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+    @font-face {
+      font-family: 'Golos Text';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/golos-text-500-cyrillic.woff2') format('woff2');
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+20BD, U+2116;
+    }
+
+    :root {
+      --floor: #E7E9EA;
+      --panel: #F6F7F7;
+      --ink: #1A1D21;
+      --steel: #5E666D;
+      --rule: #C5CACE;
+      --pad: #F5C518;
+      --r-btn: 6px;
+      --r-card: 4px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--floor);
+      color: var(--ink);
+      font-family: 'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 48px 24px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .policy-card {
+      background: #FFFFFF;
+      border: 1px solid var(--rule);
+      border-radius: var(--r-card);
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .policy-title {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 38px;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 16px;
+    }
+
+    h2 {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-top: 8px;
+    }
+
+    p {
+      color: var(--steel);
+    }
+
+    a {
+      color: var(--ink);
+      text-decoration: underline;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--steel);
+      margin-bottom: 20px;
+    }
+    .back-btn:hover {
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="./" class="back-btn">← Вернуться на главную</a>
+    
+    <div class="policy-card">
+      <h1 class="policy-title">Политика конфиденциальности</h1>
+      
+      <p>Настоящая политика регулирует порядок обработки и защиты персональной информации пользователей сервиса ECM Systems.</p>
+
+      <h2>1. Какие данные мы собираем</h2>
+      <p>При использовании виджета и демонстрационного бота могут обрабатываться: контактный номер телефона, указанный клиентом при бронировании, имя, марка и модель автомобиля, а также выбранные услуги студии.</p>
+
+      <h2>2. Цели обработки</h2>
+      <p>Данные используются исключительно для расчёта стоимости услуг по прайсу детейлинг-центра, фиксации слота записи в расписании и передачи заявки владельцу студии.</p>
+
+      <h2>3. Безопасность и хранение</h2>
+      <p>Данные заявок передаются по защищённым протоколам (HTTPS/TLS) и сохраняются в изолированной таблице клиента. Данные не передаются третьим лицам и не используются для рекламных рассылок.</p>
+
+      <h2>4. Контакты</h2>
+      <p>По всем вопросам обработки данных вы можете связаться с нами напрямую в Telegram: <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer">@godblessed77</a>.</p>
+    </div>
+  </div>
+</body>
+</html>
