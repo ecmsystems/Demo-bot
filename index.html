@@ -7,9 +7,9 @@
   <meta name="description" content="ИИ-виджет на сайт и Telegram-бот для автостудий и детейлинга. Автодопродажи, перехват клиентов 24/7, Google CRM и тест-драйв 24 часа без предоплаты.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ─── RESET & DESIGN SYSTEM (Linear / Vercel Ultra Dark) ────────── */
+    /* ─── RESET & DESIGN SYSTEM: AUTOMOTIVE CARBON & TITANIUM ──────── */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -17,7 +17,7 @@
     }
 
     body {
-      background-color: #09090B;
+      background-color: #08080A;
       color: #FAFAFA;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.5;
@@ -26,7 +26,6 @@
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
-      padding-bottom: 70px; /* space for sticky bar */
     }
 
     .mono {
@@ -36,7 +35,7 @@
     .container {
       max-width: 1180px;
       margin: 0 auto;
-      padding: 0 20px;
+      padding: 0 24px;
       width: 100%;
     }
 
@@ -47,71 +46,60 @@
 
     /* ─── BUTTONS ───────────────────────────────────────────────────────── */
     .btn {
+      font-family: 'Inter', sans-serif;
       font-size: 13.5px;
-      font-weight: 600;
-      border-radius: 9px;
+      font-weight: 500;
+      border-radius: 8px;
       padding: 10px 18px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.16s ease;
       white-space: nowrap;
       text-decoration: none;
+      user-select: none;
     }
 
     .btn-primary {
       background: #FAFAFA;
       color: #09090B;
       border: 1px solid #FAFAFA;
-      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.12);
+      font-weight: 600;
     }
 
     .btn-primary:hover {
       background: #FFFFFF;
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.22);
-    }
-
-    .btn-emerald {
-      background: #10B981;
-      color: #042F2E;
-      border: 1px solid #10B981;
-      font-weight: 700;
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
-    }
-
-    .btn-emerald:hover {
-      background: #34D399;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
     }
 
     .btn-secondary {
-      background: #141419;
+      background: #141418;
       color: #FAFAFA;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
     }
 
     .btn-secondary:hover {
       background: #1A1A22;
-      border-color: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.2);
       transform: translateY(-1px);
     }
 
     .btn-sm {
-      padding: 7px 13px;
+      padding: 7px 14px;
       font-size: 12.5px;
       border-radius: 7px;
     }
 
     /* ─── HEADER ────────────────────────────────────────────────────────── */
     header {
-      background: rgba(9, 9, 11, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 8, 10, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -121,7 +109,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 62px;
+      height: 64px;
     }
 
     .logo {
@@ -136,26 +124,28 @@
     }
 
     .logo-badge {
-      font-size: 10px;
-      font-weight: 600;
-      color: #10B981;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 2px 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: #A1A1AA;
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 2px 8px;
       border-radius: 4px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.02em;
     }
 
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 24px;
     }
 
     .nav-link {
       font-size: 13px;
       font-weight: 500;
-      color: #A1A1AA;
+      color: #8E8E93;
       transition: color 0.15s ease;
     }
 
@@ -171,67 +161,61 @@
 
     /* ─── HERO SECTION ──────────────────────────────────────────────────── */
     .hero {
-      padding: 60px 0 50px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.06), transparent 50%);
+      padding: 72px 0 60px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      background: linear-gradient(180deg, rgba(20, 20, 24, 0.3) 0%, rgba(8, 8, 10, 0) 100%);
     }
 
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 40px;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 48px;
       align-items: center;
     }
 
     .hero-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #10B981;
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.22);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #D4D4D8;
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 5px 12px;
       border-radius: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
-    .hero-pill-dot {
-      width: 7px;
-      height: 7px;
+    .status-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: #10B981;
-      box-shadow: 0 0 10px #10B981;
+      background: #34D399;
+      flex-shrink: 0;
     }
 
     .hero-title {
       font-size: 46px;
-      font-weight: 800;
-      line-height: 1.12;
-      letter-spacing: -0.035em;
+      font-weight: 700;
+      line-height: 1.14;
+      letter-spacing: -0.03em;
+      color: #A1A1AA;
+      margin-bottom: 20px;
+    }
+
+    .hero-title strong {
       color: #FAFAFA;
-      margin-bottom: 18px;
-    }
-
-    .hero-title span {
-      background: linear-gradient(135deg, #FFFFFF 30%, #A1A1AA 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-title .highlight-green {
-      background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-weight: 700;
     }
 
     .hero-desc {
-      font-size: 17px;
-      line-height: 1.55;
-      color: #A1A1AA;
-      margin-bottom: 28px;
+      font-size: 16.5px;
+      line-height: 1.58;
+      color: #8E8E93;
+      margin-bottom: 32px;
       max-width: 560px;
     }
 
@@ -257,222 +241,311 @@
     }
 
     .hero-guarantee svg {
-      color: #10B981;
+      color: #8E8E93;
       flex-shrink: 0;
     }
 
-    /* ─── LIVE DIALOG MOCKUP (HERO RIGHT) ───────────────────────────────── */
+    /* ─── HERO MOCKUP CARD (SYNCHRONIZED WITH WIDGET.JS) ────────────────── */
     .hero-mockup-card {
-      background: #121216;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
       position: relative;
     }
 
     .mockup-header {
+      background: #141418;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 13px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 14px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .mockup-header-title {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
-      color: #A1A1AA;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .mockup-pulse {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #10B981;
-    }
-
-    .mockup-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      font-weight: 600;
-      color: #10B981;
-      background: rgba(16, 185, 129, 0.1);
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .mockup-chat {
-      display: flex;
-      flex-direction: column;
       gap: 12px;
     }
 
-    .chat-bubble {
-      max-width: 90%;
-      font-size: 13px;
-      line-height: 1.45;
-      padding: 10px 14px;
-      border-radius: 12px;
+    .mockup-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
 
-    .chat-bubble.user {
+    .mockup-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #1A1A22;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #E4E4E7;
+      flex-shrink: 0;
+    }
+
+    .mockup-header-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .mockup-studio-name {
+      color: #FAFAFA;
+      font-size: 13.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .mockup-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #71717A;
+      letter-spacing: 0.02em;
+    }
+
+    .mockup-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #71717A;
+    }
+
+    .mockup-chat {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #111114;
+    }
+
+    .mockup-msg {
+      max-width: 88%;
+      padding: 10px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .mockup-msg.user {
       align-self: flex-end;
       background: #E4E4E7;
       color: #09090B;
       font-weight: 500;
-      border-bottom-right-radius: 3px;
+      border-radius: 12px 12px 3px 12px;
     }
 
-    .chat-bubble.bot {
+    .mockup-msg.bot {
       align-self: flex-start;
-      background: #191922;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #16161B;
+      border: 1px solid rgba(255, 255, 255, 0.06);
       color: #FAFAFA;
-      border-bottom-left-radius: 3px;
+      border-radius: 12px 12px 12px 3px;
     }
 
-    .chat-bubble.bot strong {
-      color: #10B981;
+    .mockup-msg.bot strong {
+      color: #FFFFFF;
+      font-weight: 600;
     }
 
-    .mockup-result-strip {
-      margin-top: 16px;
-      padding: 12px 14px;
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px dashed rgba(16, 185, 129, 0.3);
+    /* Solid Sleek Order Summary Bar */
+    .mockup-summary-bar {
+      margin: 4px 16px 12px 16px;
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 10px;
+      padding: 11px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .result-left {
+    .summary-left {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
 
-    .result-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
+    .summary-label {
+      font-size: 11px;
       color: #71717A;
-      text-transform: uppercase;
     }
 
-    .result-sum {
+    .summary-val {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      color: #10B981;
+      color: #FAFAFA;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .result-tag {
+    .summary-old {
+      font-size: 12px;
+      color: #71717A;
+      text-decoration: line-through;
+      font-weight: 500;
+    }
+
+    .summary-tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      color: #FAFAFA;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 4px 10px;
-      border-radius: 6px;
+      font-weight: 600;
+      color: #34D399;
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.18);
+      padding: 3px 8px;
+      border-radius: 5px;
     }
 
-    /* ─── 4 KEY NUMBERS STRIP ───────────────────────────────────────────── */
+    /* Mock Chat Input Footer */
+    .mockup-footer {
+      background: #141418;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 14px 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mockup-input-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 7px 10px 7px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .mockup-input-box:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .mockup-placeholder {
+      font-size: 12.5px;
+      color: #71717A;
+      user-select: none;
+    }
+
+    .mockup-send-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #E4E4E7;
+      border: none;
+      color: #09090B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ─── 4 NUMBERS HORIZONTAL STRIP ────────────────────────────────────── */
     .metrics-section {
       padding: 36px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      background: #0C0C0F;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .metrics-grid {
+    .metrics-bar {
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+      overflow: hidden;
     }
 
-    .metric-card {
-      background: #111115;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 20px;
-      transition: all 0.2s ease;
+    .metric-cell {
+      padding: 24px 28px;
+      border-right: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .metric-card:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-      transform: translateY(-2px);
+    .metric-cell:last-child {
+      border-right: none;
     }
 
     .metric-num {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 34px;
-      font-weight: 800;
+      font-size: 32px;
+      font-weight: 700;
       letter-spacing: -0.02em;
       color: #FAFAFA;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
-    .metric-num.green {
-      color: #10B981;
+    .metric-num.mint {
+      color: #34D399;
     }
 
-    .metric-label {
-      font-size: 13px;
+    .metric-title {
+      font-size: 13.5px;
       font-weight: 600;
       color: #FAFAFA;
-      margin-bottom: 4px;
     }
 
     .metric-sub {
       font-size: 12px;
       color: #71717A;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     /* ─── BEFORE / AFTER COMPARISON SECTION ─────────────────────────────── */
     .comparison-section {
-      padding: 70px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 76px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .section-head-center {
       text-align: center;
-      max-width: 720px;
-      margin: 0 auto 44px auto;
+      max-width: 680px;
+      margin: 0 auto 48px auto;
     }
 
     .section-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
-      color: #10B981;
-      letter-spacing: 0.08em;
+      color: #8E8E93;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .section-title {
       font-size: 34px;
-      font-weight: 800;
+      font-weight: 700;
       letter-spacing: -0.03em;
       color: #FAFAFA;
       margin-bottom: 12px;
-      line-height: 1.25;
+      line-height: 1.22;
     }
 
     .section-subtitle {
       font-size: 15px;
-      color: #A1A1AA;
+      color: #8E8E93;
       line-height: 1.55;
     }
 
     .compare-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 20px;
     }
 
     .compare-card {
@@ -480,41 +553,43 @@
       padding: 32px 28px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 22px;
     }
 
     .compare-card.before {
-      background: #110E0E;
-      border: 1px solid rgba(239, 68, 68, 0.2);
+      background: #0B0B0E;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .compare-card.after {
-      background: #0D1412;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.08);
+      background: #111116;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
     }
 
     .compare-title {
-      font-size: 19px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 10px;
+      letter-spacing: -0.01em;
     }
 
     .compare-card.before .compare-title {
-      color: #F87171;
+      color: #A1A1AA;
     }
 
     .compare-card.after .compare-title {
-      color: #34D399;
+      color: #FAFAFA;
     }
 
     .compare-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
 
     .compare-item {
@@ -531,92 +606,103 @@
     }
 
     .compare-item.bad svg {
-      color: #EF4444;
+      color: #71717A;
     }
 
     .compare-item.good svg {
-      color: #10B981;
-    }
-
-    .compare-item strong {
-      color: #FAFAFA;
+      color: #34D399;
     }
 
     .compare-card.before .compare-item span {
+      color: #71717A;
+    }
+
+    .compare-card.before .compare-item strong {
       color: #A1A1AA;
     }
 
     .compare-card.after .compare-item span {
-      color: #E4E4E7;
+      color: #D4D4D8;
     }
 
-    /* ─── 4 MAIN ADVANTAGES (SHOWCASE BENTO) ────────────────────────────── */
+    .compare-card.after .compare-item strong {
+      color: #FFFFFF;
+    }
+
+    /* ─── 4 MAIN ADVANTAGES (ASYMMETRIC BENTO GRID) ─────────────────────── */
     .features-section {
-      padding: 70px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      background: #0B0B0E;
+      padding: 76px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .bento-grid-2x2 {
+    .bento-asymmetric {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
     }
 
     .bento-box {
-      background: #121217;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 16px;
-      padding: 32px 28px;
+      padding: 30px 28px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease;
     }
 
     .bento-box:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .bento-col-7 {
+      grid-column: span 7;
+    }
+
+    .bento-col-5 {
+      grid-column: span 5;
     }
 
     .bento-tag-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .bento-num {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       color: #71717A;
     }
 
     .bento-badge {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 11px;
-      font-weight: 700;
-      color: #10B981;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      padding: 3px 9px;
-      border-radius: 6px;
+      font-weight: 500;
+      color: #A1A1AA;
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 3px 8px;
+      border-radius: 5px;
     }
 
     .bento-title {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 600;
       letter-spacing: -0.02em;
       color: #FAFAFA;
       margin-bottom: 10px;
-      line-height: 1.3;
+      line-height: 1.32;
     }
 
     .bento-desc {
-      font-size: 14px;
+      font-size: 13.5px;
       line-height: 1.55;
-      color: #A1A1AA;
+      color: #8E8E93;
       margin-bottom: 24px;
     }
 
@@ -625,101 +711,114 @@
       font-weight: 600;
     }
 
-    .bento-visual {
-      background: #171720;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 16px;
+    /* Realistic Mini-UI Components */
+    .mini-window {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      overflow: hidden;
       margin-top: auto;
     }
 
-    /* Visual 1: Upsell flow */
-    .upsell-flow {
+    .mini-window-bar {
+      background: #181820;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-    }
-
-    .upsell-step {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .upsell-step-title {
       font-size: 11px;
       color: #71717A;
-      font-family: 'JetBrains Mono', monospace;
     }
 
-    .upsell-step-val {
-      font-size: 15px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      color: #FAFAFA;
-    }
-
-    .upsell-arrow {
-      color: #10B981;
-      font-weight: 800;
-      font-size: 16px;
-    }
-
-    .upsell-final {
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 6px 12px;
-      border-radius: 8px;
-      text-align: right;
-    }
-
-    .upsell-final .upsell-step-val {
-      color: #10B981;
-      font-size: 18px;
-    }
-
-    /* Visual 2: Night clock */
-    .night-visual {
+    .mini-dots {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
+      gap: 5px;
     }
 
-    .night-time {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #F59E0B;
+    .mini-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2C2C32;
     }
 
-    .night-status {
-      color: #10B981;
+    .order-breakdown {
+      padding: 12px 14px;
       display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Visual 3: Brandbook platform pills */
-    .platform-pills {
-      display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 8px;
     }
 
-    .platform-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
-      color: #E4E4E7;
-      background: #111116;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 5px 10px;
-      border-radius: 6px;
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #A1A1AA;
     }
 
-    /* Visual 4: Table mini preview */
+    .order-row.total {
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      font-weight: 600;
+      color: #FAFAFA;
+    }
+
+    .order-row.total .price {
+      font-family: 'JetBrains Mono', monospace;
+      color: #FAFAFA;
+      font-weight: 700;
+    }
+
+    .night-event-box {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .event-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #A1A1AA;
+    }
+
+    .event-time {
+      font-family: 'JetBrains Mono', monospace;
+      color: #71717A;
+      font-size: 11px;
+    }
+
+    .event-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: #34D399;
+      background: rgba(52, 211, 153, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .platform-tags {
+      padding: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .p-tag {
+      font-size: 11.5px;
+      color: #D4D4D8;
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 9px;
+      border-radius: 5px;
+    }
+
     .mini-table {
       width: 100%;
       border-collapse: collapse;
@@ -730,152 +829,145 @@
     .mini-table th {
       text-align: left;
       color: #71717A;
-      padding: 4px 6px;
+      padding: 6px 10px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 9.5px;
+      font-weight: 500;
     }
 
     .mini-table td {
-      padding: 6px 6px;
-      color: #FAFAFA;
+      padding: 7px 10px;
+      color: #D4D4D8;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    .status-confirmed {
-      color: #10B981;
-      font-weight: 700;
+    .badge-status {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
-    /* ─── ROI & ECONOMICS (MATH) ────────────────────────────────────────── */
+    .badge-status.confirmed {
+      color: #34D399;
+      background: rgba(52, 211, 153, 0.08);
+    }
+
+    .badge-status.pending {
+      color: #FBBF24;
+      background: rgba(251, 191, 36, 0.08);
+    }
+
+    /* ─── ROI & FINANCIAL DASHBOARD ─────────────────────────────────────── */
     .roi-section {
-      padding: 70px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 76px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .roi-box {
-      background: linear-gradient(180deg, #121516 0%, #0F1212 100%);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      border-radius: 18px;
+    .roi-dashboard {
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
       padding: 40px 36px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 36px;
+      align-items: center;
     }
 
-    .roi-header {
+    .roi-inputs {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .roi-title-col {
-      max-width: 620px;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .roi-h2 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #FAFAFA;
-      margin-bottom: 8px;
-      letter-spacing: -0.02em;
-    }
-
-    .roi-h2 span {
-      color: #10B981;
-    }
-
-    .roi-p {
-      font-size: 14.5px;
-      color: #A1A1AA;
-      line-height: 1.5;
-    }
-
-    .roi-grid-3 {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1.2fr;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 32px;
-    }
-
-    .roi-card {
-      background: #161A19;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 22px 20px;
-      text-align: center;
-    }
-
-    .roi-card.green-highlight {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: rgba(16, 185, 129, 0.35);
-    }
-
-    .roi-val {
-      font-family: 'JetBrains Mono', monospace;
       font-size: 26px;
-      font-weight: 800;
-      color: #FAFAFA;
-      margin-bottom: 4px;
-    }
-
-    .roi-val.green {
-      color: #10B981;
-      font-size: 28px;
-    }
-
-    .roi-lbl {
-      font-size: 12px;
-      color: #A1A1AA;
-      line-height: 1.4;
-    }
-
-    .roi-op {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 20px;
       font-weight: 700;
-      color: #71717A;
+      color: #FAFAFA;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
     }
 
-    .roi-footer-bar {
+    .roi-data-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .data-row {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 24px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      flex-wrap: wrap;
-      gap: 16px;
+      font-size: 13px;
     }
 
-    .roi-terms {
-      font-size: 13.5px;
-      color: #E4E4E7;
+    .data-label {
+      color: #8E8E93;
+    }
+
+    .data-value {
+      font-family: 'JetBrains Mono', monospace;
+      color: #FAFAFA;
+      font-weight: 600;
+    }
+
+    .roi-result-card {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 28px 24px;
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    .roi-terms strong {
-      color: #10B981;
+    .roi-result-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: #71717A;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .roi-big-stat {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 38px;
+      font-weight: 700;
+      color: #FAFAFA;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .roi-result-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #8E8E93;
     }
 
     /* ─── PRICING ───────────────────────────────────────────────────────── */
     .pricing-section {
-      padding: 70px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      background: #09090C;
+      padding: 76px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .pricing-toggle-wrap {
       display: flex;
       justify-content: center;
-      margin-bottom: 36px;
+      margin-bottom: 40px;
     }
 
     .pricing-toggle {
-      background: #141418;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       padding: 4px;
       border-radius: 10px;
       display: inline-flex;
@@ -883,13 +975,13 @@
     }
 
     .toggle-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 500;
       background: transparent;
       border: none;
-      color: #A1A1AA;
-      padding: 7px 16px;
+      color: #8E8E93;
+      padding: 7px 18px;
       border-radius: 7px;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -898,55 +990,59 @@
     .toggle-btn.active {
       background: #FAFAFA;
       color: #09090B;
+      font-weight: 600;
     }
 
     .pricing-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: 20px;
     }
 
     .price-card {
-      background: #111116;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 16px;
-      padding: 32px 24px;
+      padding: 30px 24px;
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease;
     }
 
     .price-card:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.16);
     }
 
     .price-card.featured {
-      background: #13141B;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      background: #111116;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
     }
 
     .featured-badge {
       position: absolute;
-      top: -12px;
+      top: -11px;
       left: 24px;
-      background: #10B981;
-      color: #042F2E;
-      font-family: 'JetBrains Mono', monospace;
+      background: #1E1E26;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #FAFAFA;
+      font-family: 'Inter', sans-serif;
       font-size: 10.5px;
-      font-weight: 700;
-      padding: 3px 10px;
+      font-weight: 600;
+      padding: 3px 9px;
       border-radius: 4px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.02em;
     }
 
     .plan-name {
-      font-size: 19px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
       color: #FAFAFA;
       margin-bottom: 6px;
+      letter-spacing: -0.01em;
     }
 
     .plan-desc {
@@ -954,6 +1050,7 @@
       color: #71717A;
       margin-bottom: 20px;
       min-height: 38px;
+      line-height: 1.45;
     }
 
     .plan-price-row {
@@ -966,15 +1063,16 @@
     .plan-price {
       font-family: 'JetBrains Mono', monospace;
       font-size: 32px;
-      font-weight: 800;
+      font-weight: 700;
       color: #FAFAFA;
+      letter-spacing: -0.02em;
     }
 
     .plan-period {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: #10B981;
-      font-weight: 600;
+      font-size: 12.5px;
+      color: #A1A1AA;
+      font-weight: 500;
     }
 
     .plan-note {
@@ -988,7 +1086,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
       flex: 1;
     }
 
@@ -997,79 +1095,88 @@
       align-items: flex-start;
       gap: 10px;
       font-size: 13px;
-      color: #D4D4D8;
+      color: #A1A1AA;
       line-height: 1.45;
     }
 
     .plan-feature-item svg {
-      color: #10B981;
+      color: #FAFAFA;
       flex-shrink: 0;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     .plan-feature-item strong {
       color: #FAFAFA;
     }
 
-    /* ─── FOUNDER TRUST CARD ────────────────────────────────────────────── */
+    /* ─── FOUNDER PERSONAL GUARANTEE (CLEAN SIGNATURE) ─────────────────── */
     .founder-section {
-      padding: 60px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 64px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .founder-card {
-      background: #111115;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    .founder-box {
+      background: #0F0F12;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 16px;
-      padding: 32px;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 28px;
-      align-items: center;
-    }
-
-    .founder-avatar {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: #1E1E26;
-      border: 2px solid rgba(16, 185, 129, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #FAFAFA;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .founder-info {
+      padding: 36px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 24px;
     }
 
     .founder-quote {
-      font-size: 15px;
-      line-height: 1.55;
-      color: #E4E4E7;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #D4D4D8;
     }
 
     .founder-quote strong {
-      color: #10B981;
+      color: #FAFAFA;
+      font-weight: 600;
     }
 
-    .founder-meta {
-      font-size: 13px;
+    .founder-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .founder-person {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .founder-name {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #FAFAFA;
+    }
+
+    .founder-role {
+      font-size: 12.5px;
       color: #71717A;
-      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .founder-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8E8E93;
+      margin-top: 2px;
     }
 
     /* ─── FOOTER ────────────────────────────────────────────────────────── */
     footer {
-      background: #09090B;
+      background: #08080A;
       padding: 36px 0;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .footer-inner {
@@ -1081,71 +1188,19 @@
     }
 
     .footer-copy {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
+      font-size: 12px;
       color: #71717A;
     }
 
     .footer-links {
       display: flex;
       gap: 20px;
-      font-size: 13px;
-      color: #A1A1AA;
+      font-size: 12.5px;
+      color: #8E8E93;
     }
 
     .footer-links a:hover {
       color: #FAFAFA;
-    }
-
-    /* ─── STICKY BOTTOM ACTION BAR ──────────────────────────────────────── */
-    .sticky-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(14, 14, 18, 0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 10px 20px;
-      z-index: 99;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .sticky-inner {
-      max-width: 1180px;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .sticky-text {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #FAFAFA;
-    }
-
-    .sticky-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      font-weight: 700;
-      color: #10B981;
-      background: rgba(16, 185, 129, 0.15);
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .sticky-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
 
     /* ─── RESPONSIVE ────────────────────────────────────────────────────── */
@@ -1154,27 +1209,26 @@
         grid-template-columns: 1fr;
         gap: 36px;
       }
-      .metrics-grid {
+      .metrics-bar {
         grid-template-columns: repeat(2, 1fr);
       }
-      .bento-grid-2x2 {
-        grid-template-columns: 1fr;
+      .metric-cell:nth-child(2) {
+        border-right: none;
+      }
+      .metric-cell:nth-child(1), .metric-cell:nth-child(2) {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .bento-col-7, .bento-col-5 {
+        grid-column: span 12;
       }
       .compare-grid {
         grid-template-columns: 1fr;
       }
-      .roi-grid-3 {
+      .roi-dashboard {
         grid-template-columns: 1fr;
-      }
-      .roi-op {
-        display: none;
       }
       .pricing-grid {
         grid-template-columns: 1fr;
-      }
-      .founder-card {
-        grid-template-columns: 1fr;
-        text-align: left;
       }
     }
 
@@ -1185,14 +1239,15 @@
       .header-nav {
         display: none;
       }
-      .sticky-text {
-        font-size: 11.5px;
-      }
-      .sticky-pill {
-        display: none;
-      }
-      .metrics-grid {
+      .metrics-bar {
         grid-template-columns: 1fr;
+      }
+      .metric-cell {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .metric-cell:last-child {
+        border-bottom: none;
       }
     }
   </style>
@@ -1215,15 +1270,15 @@
       </nav>
 
       <div class="header-actions">
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm mono" title="Написать основателю в Telegram">
+        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Написать основателю в Telegram">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/>
             <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
           @godblessed77
         </a>
-        <button onclick="window.openEcmWidget()" class="btn btn-primary btn-sm mono">
-          Тест демо-чата ↘
+        <button onclick="window.openEcmWidget()" class="btn btn-primary btn-sm">
+          Тест демо-чата
         </button>
       </div>
     </div>
@@ -1233,110 +1288,151 @@
   <section class="hero">
     <div class="container hero-grid">
       
-      <!-- Left: Punchy Copy & CTAs -->
+      <!-- Left: Austere Copy & Actions -->
       <div>
         <div class="hero-pill">
-          <span class="hero-pill-dot"></span>
-          ТЕСТ-ДРАЙВ 24 ЧАСА БЕЗ ПРЕДОПЛАТЫ // ОПЛАТА ПОСЛЕ УСТАНОВКИ
+          <span class="status-dot"></span>
+          Тест-драйв 24 часа без предоплаты после установки
         </div>
 
         <h1 class="hero-title">
-          <span>ИИ-администратор,</span><br>
-          который окупается с <span class="highlight-green">первого клиента</span>
+          ИИ-администратор, который окупается с <strong>первого клиента</strong>
         </h1>
 
         <p class="hero-desc">
-          Увеличивает средний чек на <strong>+35%</strong> за счет автодопродаж, забирает клиентов <strong>24/7</strong> и встраивается в сайт в вашем фирменном стиле за 5 минут.
+          Увеличивает средний чек на <strong>+35%</strong> за счет автодопродаж, перехватывает клиентов <strong>24/7</strong> и встраивается в сайт в вашем фирменном стиле за 5 минут.
         </p>
 
         <div class="hero-ctas">
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-emerald mono">
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/>
               <polygon points="22 2 15 22 11 13 2 9 22 2"/>
             </svg>
             Запустить бесплатный пилот
           </a>
-          <button onclick="window.openEcmWidget()" class="btn btn-secondary mono">
-            Протестировать вживую ↘
+          <button onclick="window.openEcmWidget()" class="btn btn-secondary">
+            Протестировать вживую
           </button>
         </div>
 
         <div class="hero-guarantee">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
-          Никаких предоплат. Вы платите только после реальной подтвержденной записи.
+          Без предоплаты. Вы платите только после проверки работы бота в боевых условиях.
         </div>
       </div>
 
-      <!-- Right: Live Real-time Upsell Demonstration -->
+      <!-- Right: Hero Mockup Card (100% Synced with widget.js) -->
       <div class="hero-mockup-card">
+        
+        <!-- Header -->
         <div class="mockup-header">
-          <div class="mockup-header-title">
-            <span class="mockup-pulse"></span>
-            BMW F10 // ВХОДЯЩИЙ ДИАЛОГ С САЙТА
+          <div class="mockup-header-left">
+            <div class="mockup-avatar">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+              </svg>
+            </div>
+            <div class="mockup-header-info">
+              <span class="mockup-studio-name">ECM Detailing Lab</span>
+              <span class="mockup-status">
+                <span class="status-dot"></span> ONLINE • GEMINI AI CORE
+              </span>
+            </div>
           </div>
-          <span class="mockup-badge">LIVE UPSELL</span>
+          <div class="mockup-header-actions">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </div>
         </div>
 
+        <!-- Chat Stream -->
         <div class="mockup-chat">
-          <div class="chat-bubble user">
+          <div class="mockup-msg user">
             Сколько стоит полировка на BMW F10?
           </div>
-          <div class="chat-bubble bot">
+          <div class="mockup-msg bot">
             Комплексная восстановительная полировка для BMW F10 (седан) — ровно 18 000 ₽.<br><br>
-            Рекомендуем сразу закрепить результат 2 слоями нанокерамики 9H (<strong>+25 000 ₽</strong>) — это защитит глянец на 2 года, а антидождь по акции в подарок!
+            Рекомендуем сразу закрепить результат 2 слоями нанокерамики 9H (<strong>+25 000 ₽</strong>) — это зафиксирует блеск на 2 года, а антидождь по акции в подарок!
           </div>
-          <div class="chat-bubble user">
+          <div class="mockup-msg user">
             Давайте с керамикой! Когда можно приехать?
           </div>
-          <div class="chat-bubble bot">
+          <div class="mockup-msg bot">
             Отлично! Свободно окно на субботу в 14:00. Напишите ваш номер телефона — закреплю бронь за вами на 15 минут.
           </div>
         </div>
 
-        <div class="mockup-result-strip">
-          <div class="result-left">
-            <span class="result-label">СУММА ЗАКАЗА ВМЕСТО 18 000 ₽:</span>
-            <span class="result-sum">43 000 ₽ (+25 000 ₽)</span>
+        <!-- Sleek Order Summary Bar -->
+        <div class="mockup-summary-bar">
+          <div class="summary-left">
+            <span class="summary-label">Итоговая сумма заказа:</span>
+            <div class="summary-val">
+              43 000 ₽
+              <span class="summary-old">18 000 ₽</span>
+            </div>
           </div>
-          <span class="result-tag">+138% ЧЕК</span>
+          <span class="summary-tag">+35% К ЧЕКУ</span>
         </div>
+
+        <!-- Mock Chat Input (Clickable to open real widget) -->
+        <div class="mockup-footer">
+          <div class="mockup-input-box" onclick="window.openEcmWidget()" title="Нажмите, чтобы протестировать виджет">
+            <span class="mockup-placeholder">Напишите сообщение или проверьте бота...</span>
+            <button class="mockup-send-btn" type="button" aria-label="Отправить">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"/>
+                <polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
       </div>
 
     </div>
   </section>
 
-  <!-- ─── 4 KEY NUMBERS STRIP ─────────────────────────────────────────── -->
+  <!-- ─── 4 NUMBERS HORIZONTAL STRIP ──────────────────────────────────── -->
   <section class="metrics-section">
-    <div class="container metrics-grid">
-      
-      <div class="metric-card">
-        <div class="metric-num green">+35%</div>
-        <div class="metric-label">К среднему чеку</div>
-        <div class="metric-sub">Автодопродажа керамики 9H и брони к каждой полировке</div>
-      </div>
+    <div class="container">
+      <div class="metrics-bar">
+        
+        <div class="metric-cell">
+          <div class="metric-num mint">+35%</div>
+          <div class="metric-title">К среднему чеку</div>
+          <div class="metric-sub">Автодопродажа керамики 9H и брони к каждой полировке</div>
+        </div>
 
-      <div class="metric-card">
-        <div class="metric-num">2.4 с</div>
-        <div class="metric-label">Скорость ответа 24/7</div>
-        <div class="metric-sub">Ни один ночной клиент не уйдет к вашим конкурентам</div>
-      </div>
+        <div class="metric-cell">
+          <div class="metric-num">2.4 с</div>
+          <div class="metric-title">Скорость ответа 24/7</div>
+          <div class="metric-sub">Мгновенный перехват ночных клиентов без задержек</div>
+        </div>
 
-      <div class="metric-card">
-        <div class="metric-num green">0 ₽</div>
-        <div class="metric-label">Тест без предоплаты</div>
-        <div class="metric-sub">24 часа бесплатного теста после установки, оплата по результату</div>
-      </div>
+        <div class="metric-cell">
+          <div class="metric-num">0 ₽</div>
+          <div class="metric-title">Тест-драйв 24 часа</div>
+          <div class="metric-sub">Без предоплаты, оплата только после проверки в деле</div>
+        </div>
 
-      <div class="metric-card">
-        <div class="metric-num">1 лид</div>
-        <div class="metric-label">Окупает внедрение</div>
-        <div class="metric-sub">При среднем чеке 35 000–60 000 ₽ система окупается сразу</div>
-      </div>
+        <div class="metric-cell">
+          <div class="metric-num">1 лид</div>
+          <div class="metric-title">Окупает внедрение</div>
+          <div class="metric-sub">При среднем чеке студии от 35 000 ₽ система окупается сразу</div>
+        </div>
 
+      </div>
     </div>
   </section>
 
@@ -1348,19 +1444,19 @@
         <div class="section-tag">ПОЧЕМУ АВТОСТУДИИ ТЕРЯЮТ ДЕНЬГИ</div>
         <h2 class="section-title">Обычный сайт vs Система ECM Systems</h2>
         <p class="section-subtitle">
-          Пока администратор спит или занят машиной в боксе, клиенты уходят. Вот как ИИ меняет экономику вашей студии:
+          Пока администратор спит или занят автомобилем в боксе, клиенты уходят к конкурентам.
         </p>
       </div>
 
       <div class="compare-grid">
         
-        <!-- BEFORE (Bad) -->
+        <!-- Before (Standard Studio) -->
         <div class="compare-card before">
           <div class="compare-title">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>
             </svg>
-            Без ИИ (как сейчас)
+            Обычный сайт и ручной администратор
           </div>
 
           <ul class="compare-list">
@@ -1374,7 +1470,7 @@
             </li>
             <li class="compare-item bad">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              <span><strong>Хаос в заявках</strong> — контакты в WhatsApp, блокнотах и на салфетках. Часть лидов забывают обработать.</span>
+              <span><strong>Хаос в заявках</strong> — контакты в WhatsApp, блокнотах и чатах. Часть лидов забывают обработать.</span>
             </li>
             <li class="compare-item bad">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1383,10 +1479,10 @@
           </ul>
         </div>
 
-        <!-- AFTER (Good) -->
+        <!-- After (With ECM Systems) -->
         <div class="compare-card after">
           <div class="compare-title">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
             С системой ECM Systems
@@ -1395,7 +1491,7 @@
           <ul class="compare-list">
             <li class="compare-item good">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              <span><strong>Ответ за 2.4 секунды 24/7</strong> — моментальный расчет по кузову и фиксация брони, пока клиент горячий.</span>
+              <span><strong>Ответ за 2.4 секунды 24/7</strong> — моментальный расчет по кузову и фиксация брони, пока клиент теплый.</span>
             </li>
             <li class="compare-item good">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1417,26 +1513,26 @@
     </div>
   </section>
 
-  <!-- ─── 4 MAIN ADVANTAGES (SHOWCASE BENTO) ──────────────────────────── -->
+  <!-- ─── 4 MAIN ADVANTAGES (ASYMMETRIC BENTO GRID) ───────────────────── -->
   <section class="features-section" id="advantages">
     <div class="container">
       
       <div class="section-head-center">
-        <div class="section-tag">4 КЛЮЧЕВЫХ ПРЕИМУЩЕСТВА</div>
+        <div class="section-tag">КЛЮЧЕВЫЕ ВОЗМОЖНОСТИ</div>
         <h2 class="section-title">Что делает ИИ-администратор на практике</h2>
         <p class="section-subtitle">
-          Никакой воды: 4 конкретные функции, которые приносят студии деньги каждый день.
+          Четыре конкретные функции, которые приносят студии деньги каждый день.
         </p>
       </div>
 
-      <div class="bento-grid-2x2">
+      <div class="bento-asymmetric">
         
-        <!-- Card 1: Upsell -->
-        <div class="bento-box">
+        <!-- Card 1: Upsell Engine (Col 7 - Wide) -->
+        <div class="bento-box bento-col-7">
           <div>
             <div class="bento-tag-row">
-              <span class="bento-num">01 // ДОПРОДАЖИ</span>
-              <span class="bento-badge">+35% К ВЫРУЧКЕ</span>
+              <span class="bento-num">01</span>
+              <span class="bento-badge">Допродажи</span>
             </div>
             <h3 class="bento-title">Сам предлагает допуслуги и увеличивает средний чек</h3>
             <p class="bento-desc">
@@ -1444,84 +1540,106 @@
             </p>
           </div>
 
-          <div class="bento-visual">
-            <div class="upsell-flow">
-              <div class="upsell-step">
-                <span class="upsell-step-title">ПОЛИРОВКА</span>
-                <span class="upsell-step-val">18 000 ₽</span>
+          <div class="mini-window">
+            <div class="mini-window-bar">
+              <div class="mini-dots">
+                <span class="mini-dot"></span>
+                <span class="mini-dot"></span>
+                <span class="mini-dot"></span>
               </div>
-              <div class="upsell-arrow">+</div>
-              <div class="upsell-step">
-                <span class="upsell-step-title">КЕРАМИКА 9H</span>
-                <span class="upsell-step-val">+25 000 ₽</span>
+              <span class="mono">КАЛЬКУЛЯЦИЯ ЗАКАЗА • BMW F10</span>
+            </div>
+            <div class="order-breakdown">
+              <div class="order-row">
+                <span>Восстановительная полировка кузова (седан)</span>
+                <span class="mono">18 000 ₽</span>
               </div>
-              <div class="upsell-arrow">➔</div>
-              <div class="upsell-final">
-                <span class="upsell-step-title">ИТОГ В КАССУ</span>
-                <div class="upsell-step-val">43 000 ₽</div>
+              <div class="order-row">
+                <span>Нанокерамика 9H (2 слоя) • Автодопродажа ИИ</span>
+                <span class="mono">+25 000 ₽</span>
+              </div>
+              <div class="order-row">
+                <span>Гидрофобный антидождь передней полусферы</span>
+                <span class="mono">0 ₽ (подарок)</span>
+              </div>
+              <div class="order-row total">
+                <span>Итого к оплате клиентом:</span>
+                <span class="price">43 000 ₽ (+138%)</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Card 2: 24/7 Night Traffic -->
-        <div class="bento-box">
+        <!-- Card 2: 24/7 Night Traffic (Col 5 - Compact) -->
+        <div class="bento-box bento-col-5">
           <div>
             <div class="bento-tag-row">
-              <span class="bento-num">02 // НОЧНОЙ ТРАФИК</span>
-              <span class="bento-badge">0 ПОТЕРЯННЫХ ЗАЯВОК</span>
+              <span class="bento-num">02</span>
+              <span class="bento-badge">Ночной трафик</span>
             </div>
             <h3 class="bento-title">Перехватывает клиентов 24/7, пока администратор спит</h3>
             <p class="bento-desc">
-              До <strong>40% клиентов</strong> ищут детейлинг поздним вечером (с 20:00 до 02:00). Бот мгновенно рассчитывает стоимость по классу авто (седан, кроссовер, джип), бронирует свободное окно и фиксирует номер телефона.
+              До <strong>40% клиентов</strong> ищут детейлинг поздним вечером (с 20:00 до 02:00). Бот мгновенно рассчитывает стоимость по классу авто, бронирует окно и фиксирует номер.
             </p>
           </div>
 
-          <div class="bento-visual">
-            <div class="night-visual">
-              <div class="night-time">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                02:14 НОЧИ
+          <div class="mini-window">
+            <div class="mini-window-bar">
+              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
+              <span class="mono">ЛОГ СОБЫТИЙ</span>
+            </div>
+            <div class="night-event-box">
+              <div class="event-line">
+                <span class="event-time">02:14</span>
+                <span>Mercedes GLE • Полная оклейка PPF</span>
               </div>
-              <div class="night-status">
-                <span class="mockup-pulse"></span>
-                ЗАЯВКА ЗАФИКСИРОВАНА В CRM
+              <div class="event-line">
+                <span class="event-time">02:15</span>
+                <span class="event-tag">СЛОТ СБ 14:00 ЗАБРОНИРОВАН</span>
+              </div>
+              <div class="event-line">
+                <span class="event-time">02:15</span>
+                <span>Контакт +7 (985) •••-••-12 сохранен</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Card 3: Brandbook Design -->
-        <div class="bento-box">
+        <!-- Card 3: Brandbook Design (Col 5 - Compact) -->
+        <div class="bento-box bento-col-5">
           <div>
             <div class="bento-tag-row">
-              <span class="bento-num">03 // ФИРМЕННЫЙ СТИЛЬ</span>
-              <span class="bento-badge">100% NATIVE DESIGN</span>
+              <span class="bento-num">03</span>
+              <span class="bento-badge">Фирменный стиль</span>
             </div>
             <h3 class="bento-title">Выглядит как дорогая заказная разработка за 200 000 ₽</h3>
             <p class="bento-desc">
-              Никаких дешевых шаблонов из конструкторов. Мы вручную адаптируем палитру (Dark/Light), шрифты, скругления и логотип виджета под брендбук вашего сайта. Встраивается в <strong>1 строчку кода</strong> без конфликтов верстки.
+              Никаких дешевых шаблонов из конструкторов. Вручную адаптируем палитру, шрифты и скругления под брендбук вашего сайта. Изоляция в <strong>Shadow DOM</strong> исключает конфликты стилей.
             </p>
           </div>
 
-          <div class="bento-visual">
-            <div class="platform-pills">
-              <span class="platform-pill">Tilda</span>
-              <span class="platform-pill">WordPress</span>
-              <span class="platform-pill">1C-Битрикс</span>
-              <span class="platform-pill">Webflow</span>
-              <span class="platform-pill">React / Next.js</span>
-              <span class="platform-pill">Самопис</span>
+          <div class="mini-window">
+            <div class="mini-window-bar">
+              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
+              <span class="mono">СОВМЕСТИМОСТЬ</span>
+            </div>
+            <div class="platform-tags">
+              <span class="p-tag">Tilda</span>
+              <span class="p-tag">WordPress</span>
+              <span class="p-tag">1C-Битрикс</span>
+              <span class="p-tag">Webflow</span>
+              <span class="p-tag">React / Next.js</span>
+              <span class="p-tag">Самописные сайты</span>
             </div>
           </div>
         </div>
 
-        <!-- Card 4: Google Sheets CRM -->
-        <div class="bento-box">
+        <!-- Card 4: Google Sheets CRM (Col 7 - Wide) -->
+        <div class="bento-box bento-col-7">
           <div>
             <div class="bento-tag-row">
-              <span class="bento-num">04 // АВТО-CRM</span>
-              <span class="bento-badge">БЕЗ ПЛАТНЫХ ПОДПИСОК</span>
+              <span class="bento-num">04</span>
+              <span class="bento-badge">Авто-CRM</span>
             </div>
             <h3 class="bento-title">Все заявки со статусами в Google Таблице и в Telegram</h3>
             <p class="bento-desc">
@@ -1529,12 +1647,16 @@
             </p>
           </div>
 
-          <div class="bento-visual">
+          <div class="mini-window">
+            <div class="mini-window-bar">
+              <div class="mini-dots"><span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot"></span></div>
+              <span class="mono">GOOGLE SHEETS CRM SYNC</span>
+            </div>
             <table class="mini-table">
               <thead>
                 <tr>
                   <th>Клиент</th>
-                  <th>Авто</th>
+                  <th>Автомобиль</th>
                   <th>Услуга</th>
                   <th>Сумма</th>
                   <th>Статус</th>
@@ -1546,7 +1668,14 @@
                   <td>BMW X5</td>
                   <td>Полировка + Керамика</td>
                   <td>56 000 ₽</td>
-                  <td><span class="status-confirmed">CONFIRMED</span></td>
+                  <td><span class="badge-status confirmed">CONFIRMED</span></td>
+                </tr>
+                <tr>
+                  <td>Михаил</td>
+                  <td>Porsche Macan</td>
+                  <td>Оклейка зон риска PPF</td>
+                  <td>75 000 ₽</td>
+                  <td><span class="badge-status pending">PENDING</span></td>
                 </tr>
               </tbody>
             </table>
@@ -1558,58 +1687,42 @@
     </div>
   </section>
 
-  <!-- ─── ROI & ECONOMICS (MATH) ──────────────────────────────────────── -->
+  <!-- ─── ROI & FINANCIAL DASHBOARD ────────────────────────────────────── -->
   <section class="roi-section" id="roi">
     <div class="container">
       
-      <div class="roi-box">
+      <div class="roi-dashboard">
         
-        <div class="roi-header">
-          <div class="roi-title-col">
+        <div class="roi-inputs">
+          <div>
             <div class="section-tag">МАТЕМАТИКА ОКУПАЕМОСТИ</div>
-            <h3 class="roi-h2">Почему система окупается с <span>первого клиента</span></h3>
-            <p class="roi-p">
-              В детейлинге высокие чеки. Достаточно закрыть всего одну ночную заявку или допродать керамику к полировке, чтобы окупить установку системы на 100%.
-            </p>
+            <h3 class="roi-h2">Инвестиция, которая окупается с первого клиента</h3>
           </div>
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-emerald mono">
+
+          <div class="roi-data-rows">
+            <div class="data-row">
+              <span class="data-label">Средний чек детейлинга в студии:</span>
+              <span class="data-value">35 000 – 60 000 ₽</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Стоимость внедрения системы ECM:</span>
+              <span class="data-value">от 6 900 ₽</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Условие старта:</span>
+              <span class="data-value">24 часа без предоплаты</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="roi-result-card">
+          <div class="roi-result-tag">Срок окупаемости</div>
+          <div class="roi-big-stat">1 клиент</div>
+          <p class="roi-result-text">
+            Всего одна ночная заявка или допродажа керамики к полировке полностью окупает установку системы. Все последующие записи приносят чистую прибыль.
+          </p>
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 6px;">
             Обсудить запуск
-          </a>
-        </div>
-
-        <div class="roi-grid-3">
-          
-          <div class="roi-card">
-            <div class="roi-val">35 000 – 60 000 ₽</div>
-            <div class="roi-lbl">Средний чек на комплексную полировку с керамикой или оклейку зон риска в студии</div>
-          </div>
-
-          <div class="roi-op">VS</div>
-
-          <div class="roi-card">
-            <div class="roi-val">от 6 900 ₽</div>
-            <div class="roi-lbl">Стоимость внедрения всей ИИ-системы ECM Systems под ключ</div>
-          </div>
-
-          <div class="roi-op">=</div>
-
-          <div class="roi-card green-highlight">
-            <div class="roi-val green">1 закрытый лид</div>
-            <div class="roi-lbl">Полностью окупает внедрение. Все последующие заявки — ваша чистая прибыль!</div>
-          </div>
-
-        </div>
-
-        <div class="roi-footer-bar">
-          <div class="roi-terms">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            Условие тест-драйва: <strong>24 часа работы бота без предоплаты после установки</strong>. Оплата только если бот вас полностью устроит!
-          </div>
-
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono btn-sm">
-            Написать лично основателю ➔
           </a>
         </div>
 
@@ -1657,24 +1770,24 @@
 
           <ul class="plan-features">
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Полный расчет сметы по классам авто</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Автодопродажи керамики и брони</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Google CRM таблица + пуши в Telegram</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>15-минутный hold брони</span>
             </li>
           </ul>
 
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono">
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
             Подключить Telegram-бота
           </a>
         </div>
@@ -1692,31 +1805,31 @@
 
           <ul class="plan-features">
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span><strong>Кастомный дизайн</strong> под брендбук сайта</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Встраивание в 1 строчку (Tilda, WP, Bitrix)</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Автодопродажи допов в каждом диалоге</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Google CRM + дублирование заявок в TG</span>
             </li>
           </ul>
 
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono">
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
             Выбрать виджет на сайт
           </a>
         </div>
 
         <!-- Plan 3: Full Suite (Featured) -->
         <div class="price-card featured">
-          <div class="featured-badge">САМЫЙ ВЫГОДНЫЙ // ПОЛНЫЙ КОМПЛЕКС</div>
+          <div class="featured-badge">ПОЛНЫЙ КОМПЛЕКС</div>
           <div class="plan-name">Сайт + Telegram</div>
           <div class="plan-desc">Единая экосистема: виджет на сайте, бот в Telegram и общая база окон</div>
           
@@ -1728,24 +1841,24 @@
 
           <ul class="plan-features">
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span><strong>Единая база слотов</strong> (сайт и Telegram)</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Исключение накладок и овербукинга</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Кастомный дизайн под сайт + TG-бот</span>
             </li>
             <li class="plan-feature-item">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Авто-CRM Google Sheets + кнопки подтверждения</span>
             </li>
           </ul>
 
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-emerald mono">
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
             Подключить комплекс
           </a>
         </div>
@@ -1755,22 +1868,25 @@
     </div>
   </section>
 
-  <!-- ─── FOUNDER TRUST CARD ──────────────────────────────────────────── -->
+  <!-- ─── FOUNDER PERSONAL GUARANTEE (CLEAN SIGNATURE) ─────────────────── -->
   <section class="founder-section">
     <div class="container">
-      <div class="founder-card">
-        <div class="founder-avatar">M</div>
-        <div class="founder-info">
-          <div class="founder-quote">
-            «Я лично отвечаю за адаптацию системы под ваш брендбук и прайс-лист. Мы подключаем бота на 24 часа без предоплаты: <strong>вы тестируете систему в деле целые сутки, и оплачиваете только если довольны результатом</strong>. Напишите мне в Telegram — согласуем запуск за 1 день.»
-          </div>
-          <div class="founder-meta">
-            МАКСИМ // ОСНОВАТЕЛЬ ECM SYSTEMS
-          </div>
+      <div class="founder-box">
+        <div class="founder-quote">
+          «Я лично отвечаю за адаптацию системы под ваш брендбук и прайс-лист. Мы подключаем бота на 24 часа без предоплаты: <strong>вы тестируете систему в деле целые сутки и оплачиваете только если довольны результатом</strong>. Напишите мне в Telegram — согласуем запуск за 1 день.»
         </div>
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-primary mono" style="white-space: nowrap;">
-          Написать в Telegram
-        </a>
+        <div class="founder-footer">
+          <div class="founder-person">
+            <span class="founder-name">Максим</span>
+            <span class="founder-role">Основатель ECM Systems</span>
+            <div class="founder-status">
+              <span class="status-dot"></span> Отвечаю лично в течение 10 минут
+            </div>
+          </div>
+          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            Написать в Telegram
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -1787,24 +1903,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- ─── STICKY BOTTOM ACTION BAR ────────────────────────────────────── -->
-  <div class="sticky-bar">
-    <div class="sticky-inner">
-      <div class="sticky-text">
-        <span class="sticky-pill">АКЦИЯ</span>
-        Тест-драйв 24 часа без предоплаты после установки — оцени работу бота в деле!
-      </div>
-      <div class="sticky-actions">
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-emerald btn-sm mono">
-          Запустить пилот
-        </a>
-        <button onclick="window.openEcmWidget()" class="btn btn-secondary btn-sm mono">
-          Демо-чат ↘
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- ─── PRICING TOGGLE SCRIPT ───────────────────────────────────────── -->
   <script>
