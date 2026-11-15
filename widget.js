@@ -83,59 +83,6 @@
 
   // ─── 4. ТЕМЫ СТИЛЕЙ СТУДИИ ────────────────────────────────────────
   const THEMES = {
-    epoxy: {
-      name: 'epoxy',
-      bg: '#E7E9EA',
-      panel: '#F6F7F7',
-      card_bg: '#FFFFFF',
-      ink: '#1A1D21',
-      muted: '#5E666D',
-      rule: '#C5CACE',
-      accent: '#F5C518',
-      accent_ink: '#1A1D21',
-      ok: '#1B6E44',
-      radius_win: '14px',
-      radius_card: '4px',
-      radius_btn: '6px',
-      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif"
-    },
-    copper: {
-      name: 'copper',
-      bg: '#15181B',
-      panel: '#1F2327',
-      card_bg: '#181B1E',
-      ink: '#ECEEEF',
-      muted: '#9AA2A9',
-      rule: '#2C3238',
-      accent: '#C8764A',
-      accent_ink: '#FFFFFF',
-      ok: '#2E8B57',
-      radius_win: '14px',
-      radius_card: '8px',
-      radius_btn: '8px',
-      font: "'Onest', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Onest', sans-serif"
-    },
-    sport: {
-      name: 'sport',
-      bg: '#FFFFFF',
-      panel: '#F3F3F3',
-      card_bg: '#FFFFFF',
-      ink: '#111111',
-      muted: '#666666',
-      rule: '#DCDCDC',
-      accent: '#D32F2F',
-      accent_ink: '#FFFFFF',
-      ok: '#1B6E44',
-      radius_win: '0px',
-      radius_card: '0px',
-      radius_btn: '0px',
-      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif",
-      upsell_bg: 'rgba(211, 47, 47, 0.08)',
-      upsell_tag_color: '#FFFFFF'
-    },
     dark: {
       name: 'dark',
       bg: '#090A0D',
@@ -147,13 +94,57 @@
       accent: '#2563EB',
       accent_ink: '#FFFFFF',
       ok: '#22C55E',
+      hold_bg: 'rgba(37, 99, 235, 0.1)',
+      hold_text: '#60A5FA',
+      upsell_bg: 'rgba(37, 99, 235, 0.14)',
+      upsell_tag_color: '#FFFFFF',
       radius_win: '14px',
       radius_card: '4px',
       radius_btn: '6px',
       font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif",
-      upsell_bg: 'rgba(37, 99, 235, 0.14)',
-      upsell_tag_color: '#FFFFFF'
+      font_head: "'Fira Sans Extra Condensed', sans-serif"
+    },
+    copper: {
+      name: 'copper',
+      bg: '#15181B',
+      panel: '#1F2327',
+      card_bg: '#1A1E22',
+      ink: '#ECEEEF',
+      muted: '#9AA2A9',
+      rule: '#2C3238',
+      accent: '#D97736',
+      accent_ink: '#FFFFFF',
+      ok: '#34D399',
+      hold_bg: 'rgba(217, 119, 54, 0.1)',
+      hold_text: '#FDBA74',
+      upsell_bg: 'rgba(217, 119, 54, 0.12)',
+      upsell_tag_color: '#FFFFFF',
+      radius_win: '14px',
+      radius_card: '6px',
+      radius_btn: '6px',
+      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      font_head: "'Fira Sans Extra Condensed', sans-serif"
+    },
+    epoxy: {
+      name: 'epoxy',
+      bg: '#E7E9EA',
+      panel: '#F6F7F7',
+      card_bg: '#FFFFFF',
+      ink: '#1A1D21',
+      muted: '#5E666D',
+      rule: '#C5CACE',
+      accent: '#F5C518',
+      accent_ink: '#1A1D21',
+      ok: '#1B6E44',
+      hold_bg: 'rgba(27, 110, 68, 0.08)',
+      hold_text: '#1B6E44',
+      upsell_bg: 'rgba(245, 197, 24, 0.12)',
+      upsell_tag_color: '#8C6A00',
+      radius_win: '14px',
+      radius_card: '4px',
+      radius_btn: '6px',
+      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      font_head: "'Fira Sans Extra Condensed', sans-serif"
     }
   };
 
@@ -517,13 +508,13 @@
 
       .ecm-hold-banner {
         padding: 7px 12px;
-        background: rgba(27, 110, 68, 0.08);
+        background: ${theme.hold_bg || 'rgba(27, 110, 68, 0.08)'};
         border-top: 1px solid var(--w-rule);
         display: flex;
         align-items: center;
         justify-content: space-between;
         font-size: 12px;
-        color: var(--w-ok);
+        color: ${theme.hold_text || 'var(--w-ok)'};
         font-weight: 500;
       }
 
@@ -1154,6 +1145,18 @@
       }
     }, 1000);
   }
+
+    // Наблюдатель за сменой темы сайта (Светлая / Тёмная)
+  try {
+    const siteThemeObserver = new MutationObserver(() => {
+      const isDark = document.documentElement.getAttribute('data-site-theme') === 'dark';
+      window.EcmWidget.setTheme(isDark ? 'dark' : 'epoxy');
+    });
+    siteThemeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-site-theme']
+    });
+  } catch(e) {}
 
   // Старт
   initHoldTimer();

@@ -424,7 +424,7 @@
     }
 
     .widget-bar {
-      background: #FFFFFF;
+      background: var(--card);
       border-bottom: 1px solid var(--rule);
       padding: 12px 18px;
       display: flex;
@@ -492,7 +492,7 @@
     }
 
     .msg-user-bubble {
-      background: #FFFFFF;
+      background: var(--card); color: var(--ink);
       border: 1px solid var(--rule);
       border-radius: var(--r-btn);
       padding: 10px 14px;
@@ -502,7 +502,7 @@
 
     /* Карточка-наряд сметы */
     .estimate-order-card {
-      background: #FFFFFF;
+      background: var(--card);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       overflow: hidden;
@@ -555,7 +555,7 @@
     }
 
     .estimate-table tr.row-total {
-      background: #F9FAFA;
+      background: var(--panel);
       font-weight: 600;
       border-top: 2px solid var(--rule);
     }
@@ -593,7 +593,7 @@
     .widget-chips-strip::-webkit-scrollbar { display: none; }
 
     .widget-chip-btn {
-      background: #FFFFFF;
+      background: var(--card); color: var(--ink);
       border: 1px solid var(--rule);
       border-radius: var(--r-btn);
       padding: 5px 10px;
@@ -656,7 +656,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px 12px;
-      background: #FFFFFF;
+      background: var(--panel);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       font-size: 13px;
@@ -675,7 +675,7 @@
       padding: 4px 10px;
       border-radius: var(--r-btn);
       border: 1px solid var(--rule);
-      background: #F0F2F3;
+      background: var(--card);
       color: var(--ink);
       cursor: pointer;
       transition: all 0.15s ease;
@@ -730,40 +730,153 @@
       line-height: 1.5;
     }
 
-    /* Размеченные плейсхолдеры со штриховкой */
-    .media-placeholder {
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      background: repeating-linear-gradient(
-        -45deg,
-        #F0F2F3,
-        #F0F2F3 8px,
-        #E6E8E9 8px,
-        #E6E8E9 16px
-      );
-      border: 1px dashed var(--rule);
+    /* Мини-сообщения мессенджера вместо скриншотов */
+    .step-chat-box {
+      margin-top: auto;
+      background: var(--floor);
+      border: 1px solid var(--rule);
       border-radius: var(--r-card);
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-      text-align: center;
-      color: var(--steel);
-      font-size: 12px;
-      line-height: 1.35;
-      margin-top: auto;
+      gap: 8px;
     }
 
-    .placeholder-badge {
-      font-size: 10.5px;
+    .mini-chat-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--steel);
+    }
+
+    .mini-chat-status {
       font-weight: 600;
-      text-transform: uppercase;
-      background: #FFFFFF;
-      border: 1px solid var(--rule);
-      padding: 2px 6px;
+      font-size: 10.5px;
+      padding: 1px 6px;
       border-radius: 3px;
-      margin-bottom: 6px;
+      background: var(--panel);
+      border: 1px solid var(--rule);
+    }
+    .mini-chat-status.ok-status {
+      color: var(--ok);
+      background: var(--ok-bg);
+      border-color: var(--ok-border);
+    }
+    .mini-chat-status.timer-status {
+      color: var(--pad-border);
+      background: var(--upsell-bg);
+      border-color: var(--rule);
+    }
+
+    .mini-chat-bubble {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.45;
+      position: relative;
+    }
+
+    .mini-chat-bubble.client-bubble {
+      border-bottom-right-radius: 2px;
+    }
+    .mini-chat-bubble.bot-bubble {
+      border-bottom-left-radius: 2px;
+    }
+
+    .mini-msg-time {
+      display: block;
+      text-align: right;
+      font-size: 10.5px;
+      color: var(--steel);
+      margin-top: 4px;
+    }
+
+    .mini-quote-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      font-size: 12px;
+      border-bottom: 1px solid var(--rule-light);
+    }
+    .mini-quote-row.upsell-row {
+      color: var(--pad-border);
+      font-weight: 500;
+    }
+    [data-site-theme="dark"] .mini-quote-row.upsell-row {
+      color: #60A5FA;
+    }
+    .mini-quote-row.gift-row {
+      color: var(--ok);
+    }
+
+    .mini-quote-total {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 13px;
+      padding-top: 5px;
+      color: var(--ink);
+    }
+
+    .mini-hold-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .mini-hold-slot {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .mini-hold-rule {
+      font-size: 11.5px;
+      color: var(--ok);
+    }
+    .mini-hold-input-demo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 11.5px;
+      margin-top: 4px;
+    }
+    .mini-input-tag {
+      font-size: 10px;
+      color: var(--steel);
+    }
+
+    .mini-crm-card {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 12px;
+    }
+    .mini-crm-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ok);
+      margin-bottom: 2px;
+    }
+    .mini-crm-line {
+      color: var(--ink);
+      line-height: 1.35;
+    }
+    .mini-crm-action {
+      margin-top: 6px;
+      background: var(--pad);
+      color: var(--pad-ink);
+      text-align: center;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 11.5px;
     }
 
     /* ─── 3. СЕКЦИЯ: ОДНА НОЧЬ БЕЗ БОТА И С БОТОМ ─────────────────────── */
@@ -789,8 +902,7 @@
     }
 
     .timeline-card.success-side {
-      background: #FFFFFF;
-      border: 2px solid var(--ink);
+      background: var(--card); border: 2px solid var(--pad);
     }
 
     .timeline-card-header {
@@ -861,7 +973,7 @@
     }
 
     .calc-box {
-      background: #FFFFFF;
+      background: var(--card);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       padding: 36px;
@@ -910,7 +1022,7 @@
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--ink);
+      background: var(--pad);
       cursor: pointer;
     }
 
@@ -968,7 +1080,7 @@
     }
 
     .pricing-toggle-box {
-      background: #FFFFFF;
+      background: var(--panel);
       border: 1px solid var(--rule);
       border-radius: var(--r-btn);
       padding: 3px;
@@ -995,7 +1107,7 @@
     }
 
     .pricing-table-wrap {
-      background: #FFFFFF;
+      background: var(--card);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       overflow-x: auto;
@@ -1038,7 +1150,7 @@
 
     /* Выделение рекомендуемого тарифа усиленной инструментальной линией */
     .pricing-table .col-featured {
-      background: #FAFBFB;
+      background: var(--card-hover);
       border-left: 2px solid var(--ink);
       border-right: 2px solid var(--ink);
     }
@@ -1074,7 +1186,7 @@
     }
 
     .faq-item {
-      background: #FFFFFF;
+      background: var(--card);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       padding: 22px 24px;
@@ -1349,9 +1461,9 @@
         <div class="theme-switcher-bar">
           <span>Стиль виджета:</span>
           <div class="theme-btns-group">
-            <button class="theme-btn active" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Эпоксид</button>
-            <button class="theme-btn" id="themeBtnDark" onclick="switchDemoTheme('dark')">Тёмный и синий</button>
-            <button class="theme-btn" id="themeBtnSport" onclick="switchDemoTheme('sport')">Спорт</button>
+            <button class="theme-btn active" id="themeBtnDark" onclick="switchDemoTheme('dark')">Тёмный карбон</button>
+            <button class="theme-btn" id="themeBtnCopper" onclick="switchDemoTheme('copper')">Графит и медь</button>
+            <button class="theme-btn" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Светлый эпоксид</button>
           </div>
         </div>
 
@@ -1373,51 +1485,104 @@
 
       <div class="steps-grid">
         
+        <!-- Шаг 1 -->
         <div class="step-card">
           <div class="step-num-bar">01</div>
           <h3 class="step-title">Клиент спрашивает цену</h3>
           <p class="step-desc">
             Обращение поступает поздно вечером или ночью, когда администратор уже ушёл из бокса.
           </p>
-          <div class="media-placeholder">
-            <span class="placeholder-badge">Скриншот 01</span>
-            Сообщение клиента в 23:14 с вопросом о стоимости
+          <div class="step-chat-box">
+            <div class="mini-chat-bar">
+              <span>Telegram • 23:14</span>
+              <span class="mini-chat-status">Клиент</span>
+            </div>
+            <div class="mini-chat-bubble client-bubble">
+              <p>Здравствуйте! Сколько стоит полировка BMW 5 F10 и нанести керамику? На субботу есть окно?</p>
+              <span class="mini-msg-time">23:14</span>
+            </div>
           </div>
         </div>
 
+        <!-- Шаг 2 -->
         <div class="step-card">
           <div class="step-num-bar">02</div>
           <h3 class="step-title">Бот считает смету и предлагает допуслугу</h3>
           <p class="step-desc">
             Определяет класс кузова (седан, кроссовер или внедорожник), называет цену по прайсу и предлагает керамику 9H.
           </p>
-          <div class="media-placeholder">
-            <span class="placeholder-badge">Скриншот 02</span>
-            Расчёт сметы и автодопродажа керамики (+25&nbsp;000&nbsp;₽)
+          <div class="step-chat-box">
+            <div class="mini-chat-bar">
+              <span>ИИ-администратор • 23:14</span>
+              <span class="mini-chat-status ok-status">Ответ за 2.4 с</span>
+            </div>
+            <div class="mini-chat-bubble bot-bubble">
+              <div class="mini-quote-row">
+                <span>Полировка кузова:</span>
+                <span class="tabular">18 000 ₽</span>
+              </div>
+              <div class="mini-quote-row upsell-row">
+                <span>+ Керамика 9H:</span>
+                <span class="tabular">+25 000 ₽</span>
+              </div>
+              <div class="mini-quote-row gift-row">
+                <span>Антидождь:</span>
+                <span>0 ₽ (в подарок)</span>
+              </div>
+              <div class="mini-quote-total">
+                <span>Итого:</span>
+                <span class="tabular">43 000 ₽</span>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- Шаг 3 -->
         <div class="step-card">
           <div class="step-num-bar">03</div>
           <h3 class="step-title">Окно держится 15 минут</h3>
           <p class="step-desc">
             Система проверяет график студии, подбирает свободный слот и удерживает его за клиентом до подтверждения.
           </p>
-          <div class="media-placeholder">
-            <span class="placeholder-badge">Скриншот 03</span>
-            Таймер закрепления окна записи на 15:00 минут
+          <div class="step-chat-box">
+            <div class="mini-chat-bar">
+              <span>Бронь окна • 23:15</span>
+              <span class="mini-chat-status timer-status">⏱ 14:52</span>
+            </div>
+            <div class="mini-chat-bubble bot-bubble">
+              <div class="mini-hold-box">
+                <div class="mini-hold-slot">Суббота, 14:00 (Бокс 1)</div>
+                <div class="mini-hold-rule">Окно брони зафиксировано на 15 мин</div>
+                <div class="mini-hold-input-demo">
+                  <span>+7 926 512-••-••</span>
+                  <span class="mini-input-tag">Ожидание</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- Шаг 4 -->
         <div class="step-card">
           <div class="step-num-bar">04</div>
           <h3 class="step-title">Карточка в Telegram и строка в таблице</h3>
           <p class="step-desc">
             Утром вы открываете телефон: заявка уже оформлена, имя и номер сохранены, нужно только нажать «Подтвердить».
           </p>
-          <div class="media-placeholder">
-            <span class="placeholder-badge">Скриншот 04</span>
-            Карточка в Telegram с кнопкой «Подтвердить» и Google Таблица
+          <div class="step-chat-box">
+            <div class="mini-chat-bar">
+              <span>Директору в TG • 23:16</span>
+              <span class="mini-chat-status ok-status">CRM</span>
+            </div>
+            <div class="mini-chat-bubble bot-bubble">
+              <div class="mini-crm-card">
+                <div class="mini-crm-badge">🔔 Новая запись в Google Таблицу</div>
+                <div class="mini-crm-line"><b>Авто:</b> BMW F10 • Седан</div>
+                <div class="mini-crm-line"><b>Сумма:</b> 43 000 ₽ (комплекс)</div>
+                <div class="mini-crm-line"><b>Слот:</b> Сб 14:00 • Алексей</div>
+                <div class="mini-crm-action">Подтвердить в 1 клик</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1823,37 +1988,32 @@
         localStorage.setItem('ecm_site_theme', theme);
       } catch(e) {}
 
-      const btnEpoxy = document.getElementById('themeBtnEpoxy');
-      const btnDark = document.getElementById('themeBtnDark');
-      if (btnEpoxy && btnDark) {
-        btnEpoxy.classList.toggle('active', theme === 'light');
-        btnDark.classList.toggle('active', theme === 'dark');
-      }
-
+      // Синхронизируем тему виджета по умолчанию под тему сайта
       if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
         window.EcmWidget.setTheme(theme === 'dark' ? 'dark' : 'epoxy');
       }
+
+      const btnDark = document.getElementById('themeBtnDark');
+      const btnCopper = document.getElementById('themeBtnCopper');
+      const btnEpoxy = document.getElementById('themeBtnEpoxy');
+      if (btnDark && btnEpoxy) {
+        btnDark.classList.toggle('active', theme === 'dark');
+        if (btnCopper) btnCopper.classList.remove('active');
+        btnEpoxy.classList.toggle('active', theme !== 'dark');
+      }
     }
 
-    // Переключение стилей студий в демо
+    // Переключение стилей студий в демо (ТОЛЬКО ВИДЖЕТ, НЕ САЙТ!)
     function switchDemoTheme(theme) {
-      const btnEpoxy = document.getElementById('themeBtnEpoxy');
       const btnDark = document.getElementById('themeBtnDark');
-      const btnSport = document.getElementById('themeBtnSport');
+      const btnCopper = document.getElementById('themeBtnCopper');
+      const btnEpoxy = document.getElementById('themeBtnEpoxy');
 
-      if (btnEpoxy) btnEpoxy.classList.toggle('active', theme === 'epoxy');
       if (btnDark) btnDark.classList.toggle('active', theme === 'dark');
-      if (btnSport) btnSport.classList.toggle('active', theme === 'sport');
+      if (btnCopper) btnCopper.classList.toggle('active', theme === 'copper');
+      if (btnEpoxy) btnEpoxy.classList.toggle('active', theme === 'epoxy');
 
-      // Если выбран тёмный или светлый — синхронизируем тему сайта
-      if (theme === 'dark' || theme === 'epoxy') {
-        const siteTheme = theme === 'dark' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-site-theme', siteTheme);
-        try {
-          localStorage.setItem('ecm_site_theme', siteTheme);
-        } catch(e) {}
-      }
-
+      // Переключаем ТОЛЬКО виджет, сайт не трогаем!
       if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
         window.EcmWidget.setTheme(theme);
       }
