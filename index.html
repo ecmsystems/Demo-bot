@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ECM Systems — ИИ-администратор для детейлинга и автостудий | Рост среднего чека на +35%</title>
   <meta name="description" content="ИИ-виджет на сайт и Telegram-бот для автостудий и детейлинга. Автодопродажи, перехват клиентов 24/7, Google CRM и тест-драйв 24 часа без предоплаты.">
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -121,6 +123,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+
+    .logo-emblem {
+      height: 22px;
+      width: auto;
+      object-fit: contain;
+      display: block;
     }
 
     .logo-badge {
@@ -1258,7 +1267,8 @@
   <header>
     <div class="container header-inner">
       <a href="./" class="logo">
-        ECM SYSTEMS
+        <img src="./logo.png" alt="ECM" class="logo-emblem">
+        <span>ECM SYSTEMS</span>
         <span class="logo-badge">AI SALES CORE</span>
       </a>
 
@@ -1332,10 +1342,7 @@
         <div class="mockup-header">
           <div class="mockup-header-left">
             <div class="mockup-avatar">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="4 17 10 11 4 5"/>
-                <line x1="12" y1="19" x2="20" y2="19"/>
-              </svg>
+              <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; object-fit: contain;">
             </div>
             <div class="mockup-header-info">
               <span class="mockup-studio-name">ECM Detailing Lab</span>
@@ -1894,8 +1901,9 @@
   <!-- ─── FOOTER ──────────────────────────────────────────────────────── -->
   <footer>
     <div class="container footer-inner">
-      <div class="footer-copy">
-        © 2026 ECM SYSTEMS. ПРЕМИАЛЬНЫЕ ИИ-РЕШЕНИЯ ДЛЯ АВТОСТУДИЙ.
+      <div class="footer-copy" style="display: flex; align-items: center; gap: 8px;">
+        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; opacity: 0.8;">
+        <span>© 2026 ECM SYSTEMS. ПРЕМИАЛЬНЫЕ ИИ-РЕШЕНИЯ ДЛЯ АВТОСТУДИЙ.</span>
       </div>
       <div class="footer-links">
         <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer">Связаться в Telegram</a>
