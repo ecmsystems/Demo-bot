@@ -39,12 +39,25 @@
     :root {
       --floor: #E7E9EA;
       --panel: #F6F7F7;
+      --card: #FFFFFF;
       --ink: #1A1D21;
       --steel: #5E666D;
       --rule: #C5CACE;
       --pad: #F5C518;
+      --logo-filter: var(--logo-filter);
       --r-btn: 6px;
       --r-card: 4px;
+    }
+
+    [data-site-theme="dark"] {
+      --floor: #090A0D;
+      --panel: #111319;
+      --card: #161922;
+      --ink: #F1F3F7;
+      --steel: #8F97A6;
+      --rule: #232734;
+      --pad: #2563EB;
+      --logo-filter: none;
     }
 
     *, *::before, *::after {
@@ -68,7 +81,7 @@
     }
 
     .policy-card {
-      background: #FFFFFF;
+      background: var(--card);
       border: 1px solid var(--rule);
       border-radius: var(--r-card);
       padding: 36px 40px;
@@ -117,6 +130,16 @@
       color: var(--ink);
     }
   </style>
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('ecm_site_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-site-theme', theme);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="container">

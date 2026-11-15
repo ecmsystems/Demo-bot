@@ -132,11 +132,42 @@
       radius_card: '0px',
       radius_btn: '0px',
       font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif"
+      font_head: "'Fira Sans Extra Condensed', sans-serif",
+      upsell_bg: 'rgba(211, 47, 47, 0.08)',
+      upsell_tag_color: '#FFFFFF'
+    },
+    dark: {
+      name: 'dark',
+      bg: '#090A0D',
+      panel: '#111319',
+      card_bg: '#161922',
+      ink: '#F1F3F7',
+      muted: '#8F97A6',
+      rule: '#232734',
+      accent: '#2563EB',
+      accent_ink: '#FFFFFF',
+      ok: '#22C55E',
+      radius_win: '14px',
+      radius_card: '4px',
+      radius_btn: '6px',
+      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
+      font_head: "'Fira Sans Extra Condensed', sans-serif",
+      upsell_bg: 'rgba(37, 99, 235, 0.14)',
+      upsell_tag_color: '#FFFFFF'
     }
   };
 
-  let activeTheme = THEMES.epoxy;
+  const prefersDarkInitial = (function() {
+    try {
+      const attr = document.documentElement.getAttribute('data-site-theme');
+      if (attr) return attr === 'dark';
+      const saved = localStorage.getItem('ecm_site_theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (e) { return false; }
+  })();
+
+  let activeTheme = prefersDarkInitial ? THEMES.dark : THEMES.epoxy;
 
   // ─── 5. SVG ИКОНКИ (ТЕХНИЧЕСКИЕ) ──────────────────────────────────
   const SVG_CHAT = `
@@ -242,11 +273,7 @@
         outline: 2px solid var(--w-ink);
         outline-offset: 3px;
       }
-      .ecm-floating-launcher.hidden {
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.85);
-      }
+
       .ecm-launcher-icon {
         display: flex;
         align-items: center;
@@ -460,14 +487,14 @@
       }
 
       .ecm-row-upsell {
-        background: rgba(245, 197, 24, 0.12);
+        background: ${theme.upsell_bg || 'rgba(245, 197, 24, 0.12)'};
       }
 
       .ecm-upsell-tag {
         display: inline-block;
         font-size: 11px;
         font-weight: 600;
-        color: #8C6A00;
+        color: ${theme.upsell_tag_color || '#8C6A00'};
         background: var(--w-accent);
         padding: 1px 5px;
         border-radius: 3px;
@@ -832,18 +859,7 @@
       resetConversation();
     });
 
-    // IntersectionObserver: когда Hero виден, прячем плавающую кнопку
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          floatingLauncher.classList.add('hidden');
-        } else {
-          floatingLauncher.classList.remove('hidden');
-        }
-      });
-    }, { threshold: 0.15 });
-
-    observer.observe(inlineContainer);
+// Плавающая кнопка всегда видна статично (без скрытия по скроллу)
   }
 
   // Чипы в плавающем окне

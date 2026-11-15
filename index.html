@@ -74,18 +74,71 @@
       unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
 
-    /* ─── ТОКЕНЫ: «ЗАКАЗ-НАРЯД МАСТЕРСКОЙ» ───────────────────────────── */
+    /* ─── ТОКЕНЫ: «ЗАКАЗ-НАРЯД МАСТЕРСКОЙ» (СВЕТЛАЯ / ТЕМНАЯ ТЕМА) ──── */
     :root {
       --floor: #E7E9EA;
       --panel: #F6F7F7;
+      --card: #FFFFFF;
+      --card-hover: #ECEEEF;
       --ink: #1A1D21;
       --steel: #5E666D;
       --rule: #C5CACE;
       --pad: #F5C518;
+      --pad-hover: #E6B715;
+      --pad-border: #DDB010;
+      --pad-ink: #1A1D21;
+      --upsell-bg: rgba(245, 197, 24, 0.12);
+      --upsell-tag-bg: #F5C518;
+      --upsell-tag-ink: #1A1D21;
       --ok: #1B6E44;
+      --ok-bg: #EAF4EE;
+      --ok-border: #B8DCBF;
+      --bad: #B91C1C;
+      --bad-bg: #FEE2E2;
+      --bad-border: #FCA5A5;
+      --logo-filter: var(--logo-filter);
       --r-btn: 6px;
       --r-card: 4px;
       --r-win: 14px;
+    }
+
+    [data-site-theme="dark"] {
+      --floor: #090A0D;
+      --panel: #111319;
+      --card: #161922;
+      --card-hover: #1C202C;
+      --ink: #F1F3F7;
+      --steel: #8F97A6;
+      --rule: #232734;
+      --pad: #2563EB;
+      --pad-hover: #1D4ED8;
+      --pad-border: #3B82F6;
+      --pad-ink: #FFFFFF;
+      --upsell-bg: rgba(37, 99, 235, 0.14);
+      --upsell-tag-bg: #2563EB;
+      --upsell-tag-ink: #FFFFFF;
+      --ok: #22C55E;
+      --ok-bg: rgba(34, 197, 94, 0.12);
+      --ok-border: rgba(34, 197, 94, 0.28);
+      --bad: #EF4444;
+      --bad-bg: rgba(239, 68, 68, 0.12);
+      --bad-border: rgba(239, 68, 68, 0.28);
+      --logo-filter: none;
+    }
+
+    [data-site-theme="dark"] .step-hatch-box {
+      background: repeating-linear-gradient(
+        -45deg,
+        #111319,
+        #111319 8px,
+        #171B24 8px,
+        #171B24 16px
+      );
+      border-bottom-color: var(--rule);
+    }
+
+    [data-site-theme="dark"] .col-rec {
+      background-color: rgba(37, 99, 235, 0.08);
     }
 
     *, *::before, *::after {
@@ -160,12 +213,12 @@
     /* 1-е главное место акцента --pad: CTA */
     .btn-pad {
       background-color: var(--pad);
-      color: var(--ink);
-      border: 1px solid #DDB010;
+      color: var(--pad-ink);
+      border: 1px solid var(--pad-border);
       font-weight: 600;
     }
     .btn-pad:hover {
-      background-color: #E6B715;
+      background-color: var(--pad-hover);
     }
 
     .btn-secondary {
@@ -181,6 +234,46 @@
     .btn-sm {
       padding: 7px 14px;
       font-size: 13.5px;
+    }
+
+        /* Кнопка переключения темы (Солнце / Луна) */
+    .theme-toggle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--r-btn);
+      background-color: var(--panel);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+      padding: 0;
+    }
+    .theme-toggle-btn:hover {
+      background-color: var(--card-hover);
+      border-color: var(--ink);
+      transform: scale(1.05);
+    }
+    .theme-toggle-btn:active {
+      transform: scale(0.95);
+    }
+    .theme-toggle-btn:focus-visible {
+      outline: 2px solid var(--pad);
+      outline-offset: 2px;
+    }
+    .theme-icon-sun {
+      display: none;
+    }
+    .theme-icon-moon {
+      display: block;
+    }
+    [data-site-theme="dark"] .theme-icon-sun {
+      display: block;
+    }
+    [data-site-theme="dark"] .theme-icon-moon {
+      display: none;
     }
 
     /* ─── ШАПКА САЙТА ─────────────────────────────────────────────────── */
@@ -215,7 +308,7 @@
       width: auto;
       object-fit: contain;
       display: block;
-      filter: invert(0.9);
+      filter: var(--logo-filter);
     }
 
     .header-nav {
@@ -968,160 +1061,7 @@
       margin-top: 4px;
     }
 
-    /* ─── 6. СЕКЦИЯ: СТАНДАРТЫ В БОКСЕ (4 ФОТОСЛОТА) ──────────────────── */
-    .photos-section {
-      padding: 72px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .photos-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-    }
-
-    .photo-slot-card {
-      background: var(--panel);
-      border: 1px solid var(--rule);
-      border-radius: var(--r-card);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .photo-viewbox {
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      background: repeating-linear-gradient(
-        -45deg,
-        #F0F2F3,
-        #F0F2F3 10px,
-        #E3E6E8 10px,
-        #E3E6E8 20px
-      );
-      border-bottom: 1px solid var(--rule);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      text-align: center;
-      gap: 6px;
-    }
-
-    .photo-meta-tag {
-      font-size: 11px;
-      font-weight: 600;
-      background: #FFFFFF;
-      border: 1px solid var(--rule);
-      padding: 2px 7px;
-      border-radius: 3px;
-      color: var(--steel);
-    }
-
-    .photo-desc-box {
-      padding: 14px 16px;
-      font-size: 13.5px;
-      color: var(--ink);
-      line-height: 1.45;
-    }
-
-    /* ─── 7. СЕКЦИЯ: ЛИЧНАЯ ГАРАНТИЯ ОСНОВАТЕЛЯ ──────────────────────── */
-    .founder-section {
-      padding: 72px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .founder-layout {
-      background: #FFFFFF;
-      border: 1px solid var(--rule);
-      border-radius: var(--r-card);
-      padding: 36px;
-      display: grid;
-      grid-template-columns: 240px 1fr 200px;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .founder-photo-slot {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: repeating-linear-gradient(
-        -45deg,
-        #F0F2F3,
-        #F0F2F3 8px,
-        #E6E8E9 8px,
-        #E6E8E9 16px
-      );
-      border: 1px dashed var(--rule);
-      border-radius: var(--r-card);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--steel);
-    }
-
-    .founder-details {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .founder-name-title {
-      font-family: 'Fira Sans Extra Condensed', sans-serif;
-      font-size: 30px;
-      font-weight: 600;
-      color: var(--ink);
-      line-height: 1;
-    }
-
-    .founder-role-sub {
-      font-size: 14px;
-      color: var(--steel);
-    }
-
-    .founder-rules-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 15px;
-      color: var(--ink);
-    }
-
-    .founder-rules-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .founder-video-slot {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      background: repeating-linear-gradient(
-        -45deg,
-        #F0F2F3,
-        #F0F2F3 8px,
-        #E6E8E9 8px,
-        #E6E8E9 16px
-      );
-      border: 1px dashed var(--rule);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      text-align: center;
-      font-size: 11.5px;
-      color: var(--steel);
-    }
-
-    /* ─── 8. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ─────────────────────── */
+    /* ─── 6. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ─────────────────────── */
     .faq-section {
       padding: 72px 0;
       border-bottom: 1px solid var(--rule);
@@ -1158,7 +1098,7 @@
       line-height: 1.55;
     }
 
-    /* ─── 9. ФУТЕР ────────────────────────────────────────────────────── */
+    /* ─── 7. ФУТЕР ────────────────────────────────────────────────────── */
     footer {
       background-color: var(--floor);
       padding: 40px 0;
@@ -1235,6 +1175,16 @@
       }
     }
   </style>
+  <script>
+    (function() {
+      try {
+        const saved = localStorage.getItem('ecm_site_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-site-theme', theme);
+      } catch(e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -1253,7 +1203,25 @@
       </nav>
 
       <div class="header-actions">
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Написать основателю в Telegram">
+        <!-- Кнопка переключения темы (Солнце / Луна) -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleSiteTheme()" aria-label="Переключить тему оформления" title="Светлая / Тёмная тема">
+          <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Написать в Telegram">
           Написать в Telegram
         </a>
       </div>
@@ -1382,7 +1350,7 @@
           <span>Стиль виджета:</span>
           <div class="theme-btns-group">
             <button class="theme-btn active" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Эпоксид</button>
-            <button class="theme-btn" id="themeBtnCopper" onclick="switchDemoTheme('copper')">Графит и медь</button>
+            <button class="theme-btn" id="themeBtnDark" onclick="switchDemoTheme('dark')">Тёмный и синий</button>
             <button class="theme-btn" id="themeBtnSport" onclick="switchDemoTheme('sport')">Спорт</button>
           </div>
         </div>
@@ -1722,117 +1690,7 @@
     </div>
   </section>
 
-  <!-- ─── 6. СЕКЦИЯ: СТАНДАРТЫ В БОКСЕ (4 ФОТОСЛОТА) ────────────────────── -->
-  <section class="photos-section">
-    <div class="container">
-      
-      <div class="section-header">
-        <h2 class="section-title">Стандарты работы в боксе</h2>
-        <p class="section-desc">
-          Слоты под реальные фотографии технологического процесса вашей студии.
-        </p>
-      </div>
-
-      <div class="photos-grid">
-        
-        <div class="photo-slot-card">
-          <div class="photo-viewbox">
-            <span class="photo-meta-tag">Фото 01 • 16:10</span>
-            Снять 50/50 под инспекционной лампой: риска слева, чистый лак справа
-          </div>
-          <div class="photo-desc-box">
-            Макро блика на капоте до и после восстановительной полировки
-          </div>
-        </div>
-
-        <div class="photo-slot-card">
-          <div class="photo-viewbox">
-            <span class="photo-meta-tag">Фото 02 • 16:10</span>
-            Снять процесс подворота края полиуретановой плёнки на детали
-          </div>
-          <div class="photo-desc-box">
-            Оклейка зон риска самозатягивающейся плёнкой PPF толщиной 200 микрон
-          </div>
-        </div>
-
-        <div class="photo-slot-card">
-          <div class="photo-viewbox">
-            <span class="photo-meta-tag">Фото 03 • 16:10</span>
-            Снять выраженный гидрофобный угол капель на запечённой керамике
-          </div>
-          <div class="photo-desc-box">
-            Гидрофобный эффект и защита ЛКП нанокерамикой 9H (2 слоя)
-          </div>
-        </div>
-
-        <div class="photo-slot-card">
-          <div class="photo-viewbox">
-            <span class="photo-meta-tag">Фото 04 • 16:10</span>
-            Снять чистый светлый бокс с автомобилем под рассеянным светом
-          </div>
-          <div class="photo-desc-box">
-            Общий план подготовленного бокса со специальным светом для детейлинга
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── 7. СЕКЦИЯ: ЛИЧНАЯ ГАРАНТИЯ ОСНОВАТЕЛЯ ────────────────────────── -->
-  <section class="founder-section">
-    <div class="container">
-      
-      <div class="founder-layout">
-        
-        <!-- Слот под фото Максима -->
-        <div class="founder-photo-slot">
-          <span style="font-weight: 600; margin-bottom: 4px;">Фото основателя</span>
-          Максим, основатель ECM Systems
-        </div>
-
-        <!-- Детали и 3 строки гарантии -->
-        <div class="founder-details">
-          <div>
-            <h3 class="founder-name-title">Максим</h3>
-            <span class="founder-role-sub">Основатель ECM Systems</span>
-          </div>
-
-          <ul class="founder-rules-list">
-            <li>
-              <span>1.</span>
-              <span>Настраиваю прайс-лист, классы авто и расписание под вашу студию лично.</span>
-            </li>
-            <li>
-              <span>2.</span>
-              <span>Подключаем систему на 24 часа без предоплаты: вы проверяете бота на реальных клиентах.</span>
-            </li>
-            <li>
-              <span>3.</span>
-              <span>Оплачиваете внедрение только в том случае, если довольны работой и видите результат.</span>
-            </li>
-          </ul>
-
-          <div>
-            <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-              Написать Максиму в Telegram
-            </a>
-          </div>
-        </div>
-
-        <!-- Слот под видео-кружок -->
-        <div class="founder-video-slot">
-          <span style="font-weight: 600; margin-bottom: 2px;">Видео-кружок</span>
-          Демонстрация интерфейса в боксе
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── 8. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ───────────────────────── -->
+  <!-- ─── 6. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ───────────────────────── -->
   <section class="faq-section" id="faq">
     <div class="container">
       
@@ -1892,11 +1750,11 @@
     </div>
   </section>
 
-  <!-- ─── 9. ФУТЕР ─────────────────────────────────────────────────────── -->
+  <!-- ─── 7. ФУТЕР ─────────────────────────────────────────────────────── -->
   <footer>
     <div class="container footer-inner">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; filter: invert(0.9);">
+        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; filter: var(--logo-filter);">
         <span>© 2026 ECM Systems. Инструмент автоматизации для детейлинг-студий.</span>
       </div>
       <div class="footer-links">
@@ -1953,24 +1811,47 @@
       }
     }
 
+    // Переключение глобальной темы сайта (Светлая / Тёмная)
+    function toggleSiteTheme() {
+      const isDark = document.documentElement.getAttribute('data-site-theme') === 'dark';
+      setSiteTheme(isDark ? 'light' : 'dark');
+    }
+
+    function setSiteTheme(theme) {
+      document.documentElement.setAttribute('data-site-theme', theme);
+      try {
+        localStorage.setItem('ecm_site_theme', theme);
+      } catch(e) {}
+
+      const btnEpoxy = document.getElementById('themeBtnEpoxy');
+      const btnDark = document.getElementById('themeBtnDark');
+      if (btnEpoxy && btnDark) {
+        btnEpoxy.classList.toggle('active', theme === 'light');
+        btnDark.classList.toggle('active', theme === 'dark');
+      }
+
+      if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
+        window.EcmWidget.setTheme(theme === 'dark' ? 'dark' : 'epoxy');
+      }
+    }
+
     // Переключение стилей студий в демо
     function switchDemoTheme(theme) {
-      document.getElementById('themeBtnEpoxy').classList.toggle('active', theme === 'epoxy');
-      document.getElementById('themeBtnCopper').classList.toggle('active', theme === 'copper');
-      document.getElementById('themeBtnSport').classList.toggle('active', theme === 'sport');
+      const btnEpoxy = document.getElementById('themeBtnEpoxy');
+      const btnDark = document.getElementById('themeBtnDark');
+      const btnSport = document.getElementById('themeBtnSport');
 
-      const widgetEl = document.getElementById('ecm-demo');
-      if (!widgetEl) return;
+      if (btnEpoxy) btnEpoxy.classList.toggle('active', theme === 'epoxy');
+      if (btnDark) btnDark.classList.toggle('active', theme === 'dark');
+      if (btnSport) btnSport.classList.toggle('active', theme === 'sport');
 
-      if (theme === 'copper') {
-        widgetEl.style.backgroundColor = '#1F2327';
-        widgetEl.style.borderColor = '#2A3036';
-      } else if (theme === 'sport') {
-        widgetEl.style.backgroundColor = '#F3F3F3';
-        widgetEl.style.borderColor = '#C5CACE';
-      } else {
-        widgetEl.style.backgroundColor = 'var(--panel)';
-        widgetEl.style.borderColor = 'var(--rule)';
+      // Если выбран тёмный или светлый — синхронизируем тему сайта
+      if (theme === 'dark' || theme === 'epoxy') {
+        const siteTheme = theme === 'dark' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-site-theme', siteTheme);
+        try {
+          localStorage.setItem('ecm_site_theme', siteTheme);
+        } catch(e) {}
       }
 
       if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
@@ -1980,6 +1861,16 @@
 
     // Инициализация при загрузке
     calculateLoss();
+    // Синхронизация состояния кнопок с начальной темой
+    (function syncInitialThemeBtns() {
+      const isDark = document.documentElement.getAttribute('data-site-theme') === 'dark';
+      const btnEpoxy = document.getElementById('themeBtnEpoxy');
+      const btnDark = document.getElementById('themeBtnDark');
+      if (btnEpoxy && btnDark) {
+        btnEpoxy.classList.toggle('active', !isDark);
+        btnDark.classList.toggle('active', isDark);
+      }
+    })();
   </script>
 
   <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->
