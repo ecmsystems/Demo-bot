@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECM Systems — ИИ-администратор для бизнеса: веб-виджет и Telegram-бот</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #09090B;
+      color: #FAFAFA;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ─── Typography & Utilities ────────────────────────────────────────── */
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      width: 100%;
+    }
+
+    /* ─── Header ────────────────────────────────────────────────────────── */
+    header {
+      background: #09090B;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+    }
+
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #FAFAFA;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      font-size: 10px;
+      color: #71717A;
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 8px;
+      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: #E4E4E7;
+      color: #09090B;
+      border: 1px solid #E4E4E7;
+    }
+
+    .btn-primary:hover {
+      background: #FFFFFF;
+      border-color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #111114;
+      color: #FAFAFA;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-secondary:hover {
+      background: #16161C;
+      border-color: rgba(255, 255, 255, 0.24);
+      transform: translateY(-1px);
+    }
+
+    /* ─── Hero Section ─────────────────────────────────────────────────── */
+    .hero {
+      padding: 72px 0 64px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: #A1A1AA;
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+    }
+
+    .hero-tag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+
+    .hero-title {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      color: #FAFAFA;
+      margin-bottom: 20px;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #A1A1AA;
+      margin-bottom: 28px;
+      max-width: 500px;
+    }
+
+    .tech-spec-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .spec-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spec-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #FAFAFA;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ─── Interactive Live Simulator (Right Column) ─────────────────────── */
+    .sim-card {
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+      transition: border-color 0.2s ease;
+    }
+
+    .sim-card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .sim-header {
+      background: #15151A;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sim-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sim-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .sim-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .sim-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #A1A1AA;
+      letter-spacing: 0.02em;
+    }
+
+    .sim-sync-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: #10B981;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sim-sync-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+
+    .sim-body {
+      padding: 18px 16px;
+    }
+
+    .sim-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      color: #71717A;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sim-slots {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .slot-row {
+      background: #16161B;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.25s ease;
+    }
+
+    .slot-row.highlight {
+      border-color: rgba(255, 255, 255, 0.3);
+      background: #1C1C24;
+    }
+
+    .slot-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .slot-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #FAFAFA;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slot-client {
+      font-size: 12px;
+      color: #A1A1AA;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .slot-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    .slot-badge.confirmed {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .slot-badge.pending {
+      background: rgba(245, 158, 11, 0.12);
+      color: #F59E0B;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      animation: pulseHold 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseHold {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .slot-badge.available {
+      background: rgba(255, 255, 255, 0.04);
+      color: #71717A;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sim-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .sim-btn {
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #E4E4E7;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .sim-btn:hover {
+      background: #20202A;
+      border-color: rgba(255, 255, 255, 0.24);
+      color: #FFFFFF;
+    }
+
+    .sim-btn-confirm {
+      grid-column: span 2;
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #10B981;
+      display: none;
+    }
+
+    .sim-btn-confirm:hover {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10B981;
+      color: #34D399;
+    }
+
+    .sim-log {
+      background: #09090D;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      line-height: 1.5;
+      color: #71717A;
+      height: 80px;
+      overflow-y: auto;
+    }
+
+    .sim-log-line {
+      display: block;
+      white-space: pre-wrap;
+    }
+
+    .sim-log-line.green {
+      color: #10B981;
+    }
+
+    .sim-log-line.amber {
+      color: #F59E0B;
+    }
+
+    /* ─── Bento Grid Section ───────────────────────────────────────────── */
+    .bento-section {
+      padding: 72px 0 88px 0;
+    }
+
+    .section-head {
+      margin-bottom: 40px;
+    }
+
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #FAFAFA;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .bento-card {
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+
+    .bento-card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .bento-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #16161B;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #E4E4E7;
+      margin-bottom: 20px;
+    }
+
+    .bento-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #FAFAFA;
+      margin-bottom: 4px;
+    }
+
+    .bento-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .bento-desc {
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: #A1A1AA;
+      margin-bottom: 24px;
+    }
+
+    .bento-foot {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #71717A;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bento-foot span {
+      color: #A1A1AA;
+    }
+
+    /* ─── Footer ────────────────────────────────────────────────────────── */
+    footer {
+      margin-top: auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 24px 0;
+      background: #09090B;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+    }
+
+    .footer-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #A1A1AA;
+    }
+
+    .footer-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+
+    /* ─── Responsive Media Queries ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .bento-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-title {
+        font-size: 34px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .header-actions .btn-secondary {
+        display: none;
+      }
+      .hero {
+        padding: 48px 0;
+      }
+      .footer-inner {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ──────────────────────────────────────────────────────── -->
+  <header>
+    <div class="container header-inner">
+      <a href="./" class="logo">
+        ECM SYSTEMS
+        <span class="logo-badge">PROD v2.0</span>
+      </a>
+      <div class="header-actions">
+        <a href="https://t.me/ecm_systems_demo_bot" target="_blank" rel="noopener noreferrer" class="btn btn-secondary mono">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Тест в Telegram
+        </a>
+        <button onclick="window.openEcmWidget()" class="btn btn-primary mono">
+          Открыть чат на сайте
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Hero Section ────────────────────────────────────────────────── -->
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        
+        <!-- Left Column: Copy & CTAs -->
+        <div class="hero-left">
+          <div class="hero-tag">
+            <span class="hero-tag-dot"></span>
+            TELEGRAM BOT + EMBEDDABLE WEB WIDGET
+          </div>
+
+          <h1 class="hero-title">
+            ИИ-администратор для бизнеса: виджет на сайт и бот в Telegram
+          </h1>
+
+          <p class="hero-desc">
+            Расчёт стоимости за 3 секунды, нативная допродажа услуг и запись в единое расписание без участия человека. Исключает накладки и отвечает клиентам 24/7.
+          </p>
+
+          <div class="tech-spec-row">
+            <div class="spec-item">
+              <span class="spec-label">Latency</span>
+              <span class="spec-val">~1.8s</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Database</span>
+              <span class="spec-val">SQLite WAL</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Schedule Sync</span>
+              <span class="spec-val">Instant (0ms)</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Pending Hold</span>
+              <span class="spec-val">15 min auto-lock</span>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <a href="https://t.me/ecm_systems_demo_bot" target="_blank" rel="noopener noreferrer" class="btn btn-primary mono">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              Протестировать в Telegram
+            </a>
+            <button onclick="window.openEcmWidget()" class="btn btn-secondary mono">
+              Написать в виджет ↘
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Live Simulator -->
+        <div class="hero-right">
+          <div class="sim-card">
+            
+            <div class="sim-header">
+              <div class="sim-header-left">
+                <div class="sim-dots">
+                  <span class="sim-dot"></span>
+                  <span class="sim-dot"></span>
+                  <span class="sim-dot"></span>
+                </div>
+                <span class="sim-title">SHOWROOM // LIVE SCHEDULE SYNC</span>
+              </div>
+              <div class="sim-sync-status">
+                <span class="sim-sync-dot"></span> SYNCED
+              </div>
+            </div>
+
+            <div class="sim-body">
+              <div class="sim-section-label">
+                <span>АКТУАЛЬНЫЕ ОКНА РАСПИСАНИЯ</span>
+                <span>DB: SQLITE WAL</span>
+              </div>
+
+              <!-- Slots List -->
+              <div class="sim-slots" id="simSlotsContainer">
+                
+                <!-- Slot 1 -->
+                <div class="slot-row" id="slot1">
+                  <div class="slot-info">
+                    <span class="slot-time">ПЯТНИЦА 12:00</span>
+                    <span class="slot-client">BMW X5 // Комплексная полировка + Керамика 9H</span>
+                  </div>
+                  <span class="slot-badge confirmed">CONFIRMED</span>
+                </div>
+
+                <!-- Slot 2 -->
+                <div class="slot-row" id="slot2">
+                  <div class="slot-info">
+                    <span class="slot-time">СУББОТА 14:00</span>
+                    <span class="slot-client" id="slot2Client">Porsche Macan // Оклейка зоны риска PPF</span>
+                  </div>
+                  <span class="slot-badge pending" id="slot2Badge">PENDING (12:40)</span>
+                </div>
+
+                <!-- Slot 3 (Dynamic Target) -->
+                <div class="slot-row" id="slot3">
+                  <div class="slot-info">
+                    <span class="slot-time">СУББОТА 17:00</span>
+                    <span class="slot-client" id="slot3Client">Окно свободно для онлайн-записи</span>
+                  </div>
+                  <span class="slot-badge available" id="slot3Badge">AVAILABLE</span>
+                </div>
+
+              </div>
+
+              <!-- Interactive Simulator Buttons -->
+              <div class="sim-controls">
+                <button class="sim-btn" id="btnSimTg" onclick="simulateBooking('Telegram', 'Audi Q8', 'Керамика кузова')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Запись из Telegram
+                </button>
+                <button class="sim-btn" id="btnSimWidget" onclick="simulateBooking('Виджет', 'Mercedes GLE', 'Полная оклейка')">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Запись из виджета
+                </button>
+                <button class="sim-btn sim-btn-confirm" id="btnSimConfirm" onclick="confirmBooking()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Подтвердить в CRM (освободить / утвердить)
+                </button>
+              </div>
+
+              <!-- Real-time Console Log -->
+              <div class="sim-log" id="simLog">
+                <span class="sim-log-line">[SYSTEM] Ядро запущено. Режим SQLite WAL активирован.</span>
+                <span class="sim-log-line">[SYNC] Слушатель Telegram Bot и Web Widget подключен.</span>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── Bento Grid Section ─────────────────────────────────────────── -->
+    <section class="bento-section">
+      <div class="container">
+        
+        <div class="section-head">
+          <div class="section-tag">Архитектурные преимущества</div>
+          <h2 class="section-title">Единый процесс. Ноль накладок. Рост выручки.</h2>
+        </div>
+
+        <div class="bento-grid">
+          
+          <!-- Card 1: Единый мозг -->
+          <div class="bento-card">
+            <div>
+              <div class="bento-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                  <line x1="6" y1="6" x2="6.01" y2="6"/>
+                  <line x1="6" y1="18" x2="6.01" y2="18"/>
+                </svg>
+              </div>
+              <h3 class="bento-title">Единый мозг</h3>
+              <div class="bento-sub">Multi-Channel Sync</div>
+              <p class="bento-desc">
+                Сайт + Telegram работают с общей базой данных на SQLite WAL. Если клиент бронирует окно в боте, оно моментально блокируется в веб-виджете на сайте. Овербукинг исключён на уровне архитектуры.
+              </p>
+            </div>
+            <div class="bento-foot">
+              <span>SINGLE SOURCE OF TRUTH</span>
+              <span>ZERO OVERBOOKING</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Умный допродажник -->
+          <div class="bento-card">
+            <div>
+              <div class="bento-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="20" x2="12" y2="10"/>
+                  <line x1="18" y1="20" x2="18" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="16"/>
+                </svg>
+              </div>
+              <h3 class="bento-title">Умный допродажник</h3>
+              <div class="bento-sub">Context-Aware Upsell</div>
+              <p class="bento-desc">
+                Нативно выявляет потребности и предлагает сопутствующие услуги в контексте запроса: керамика при полировке, гидрофобный антидождь, бронепленка зон пескоструя. Повышает средний чек на 25–40%.
+              </p>
+            </div>
+            <div class="bento-foot">
+              <span>AVG CHECK BOOST</span>
+              <span>+35% REVENUE</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Бронь до подтверждения -->
+          <div class="bento-card">
+            <div>
+              <div class="bento-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <h3 class="bento-title">Бронь до подтверждения</h3>
+              <div class="bento-sub">15-Min Expiring Hold</div>
+              <p class="bento-desc">
+                Защита от фейковых заявок и удержания слотов. Клиент получает временный холд на 15 минут, а владельцу в CRM-бот моментально падает карточка с кнопками подтверждения в 1 клик.
+              </p>
+            </div>
+            <div class="bento-foot">
+              <span>ANTI-SPAM SHIELD</span>
+              <span>15 MIN TIMEOUT</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ─── Footer ──────────────────────────────────────────────────────── -->
+  <footer>
+    <div class="container footer-inner">
+      <div>ECM SYSTEMS // ENTERPRISE AI CONCIERGE INFRASTRUCTURE</div>
+      <div>FASTAPI • AI CORE • SQLITE WAL • TELEGRAM CRM</div>
+      <div class="footer-status">
+        <span class="footer-dot"></span> ALL SYSTEMS OPERATIONAL
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Simulator Logic ─────────────────────────────────────────────── -->
+  <script>
+    function addLog(text, type = '') {
+      const log = document.getElementById('simLog');
+      const time = new Date().toTimeString().split(' ')[0];
+      const line = document.createElement('span');
+      line.className = 'sim-log-line ' + type;
+      line.textContent = `[${time}] ${text}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    let isSlot3Booked = false;
+
+    function simulateBooking(channel, car, service) {
+      if (isSlot3Booked) {
+        addLog(`Слот 17:00 уже занят. Подтвердите или сбросьте текущую бронь.`, 'amber');
+        return;
+      }
+      isSlot3Booked = true;
+
+      const slot3 = document.getElementById('slot3');
+      const client = document.getElementById('slot3Client');
+      const badge = document.getElementById('slot3Badge');
+      const confirmBtn = document.getElementById('btnSimConfirm');
+
+      slot3.classList.add('highlight');
+      client.textContent = `${car} // ${service} (через ${channel})`;
+      badge.className = 'slot-badge pending';
+      badge.textContent = 'PENDING (15:00)';
+
+      confirmBtn.style.display = 'flex';
+
+      addLog(`${channel.toUpperCase()}: Входящая заявка от клиента на ${car}.`, 'green');
+      addLog(`SQLITE WAL: Слот СБ 17:00 заблокирован [статус PENDING, 15m hold].`, 'amber');
+      addLog(`DISPATCH: Интерактивная карточка отправлена в Telegram CRM владельца.`, 'green');
+      addLog(`SYNC: Веб-виджет на сайте обновил расписание (окно скрыто).`);
+
+      setTimeout(() => slot3.classList.remove('highlight'), 800);
+    }
+
+    function confirmBooking() {
+      if (!isSlot3Booked) return;
+
+      const slot3 = document.getElementById('slot3');
+      const badge = document.getElementById('slot3Badge');
+      const confirmBtn = document.getElementById('btnSimConfirm');
+
+      badge.className = 'slot-badge confirmed';
+      badge.textContent = 'CONFIRMED';
+      confirmBtn.style.display = 'none';
+
+      addLog(`CRM: Владелец нажал «✅ Подтвердить бронь» в Telegram-боте.`, 'green');
+      addLog(`GOOGLE SHEETS: Данные синхронизированы в таблицу студии.`, 'green');
+      addLog(`STATUS: Запись переведена в CONFIRMED. Слот закреплён.`, 'green');
+
+      setTimeout(() => {
+        // Reset slot back to available after 4 seconds for replayability
+        badge.className = 'slot-badge available';
+        badge.textContent = 'AVAILABLE';
+        document.getElementById('slot3Client').textContent = 'Окно свободно для онлайн-записи';
+        isSlot3Booked = false;
+        addLog(`[SYSTEM] Демо-слот СБ 17:00 снова переведён в статус AVAILABLE.`);
+      }, 5000);
+    }
+  </script>
+
+  <!-- ─── Чат-виджет ECM Systems ─────────────────────────────────────── -->
+  <script src="./widget.js" data-studio="default"></script>
+</body>
+</html>
