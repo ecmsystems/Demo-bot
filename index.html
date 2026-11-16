@@ -96,7 +96,7 @@
       --bad: #B91C1C;
       --bad-bg: #FEE2E2;
       --bad-border: #FCA5A5;
-      --logo-filter: var(--logo-filter);
+      --logo-filter: invert(1);
       --r-btn: 6px;
       --r-card: 4px;
       --r-win: 14px;
@@ -1210,6 +1210,8 @@
       line-height: 1.55;
     }
 
+    .footer-logo-img { height: 14px; width: auto; display: block; filter: var(--logo-filter); }
+
     /* ─── 7. ФУТЕР ────────────────────────────────────────────────────── */
     footer {
       background-color: var(--floor);
@@ -1919,7 +1921,7 @@
   <footer>
     <div class="container footer-inner">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <img src="./logo.png" alt="ECM" style="height: 14px; width: auto; filter: var(--logo-filter);">
+        <img src="./logo.png" alt="ECM" class="footer-logo-img">
         <span>© 2026 ECM Systems. Инструмент автоматизации для детейлинг-студий.</span>
       </div>
       <div class="footer-links">
