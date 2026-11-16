@@ -553,9 +553,9 @@
       display: inline-block;
       font-size: 11px;
       font-weight: 600;
-      color: #8C6A00;
-      background: var(--pad);
-      padding: 1px 6px;
+      color: var(--upsell-tag-ink);
+      background: var(--upsell-tag-bg);
+      padding: 2px 7px;
       border-radius: 3px;
       margin-left: 6px;
     }
@@ -689,7 +689,8 @@
 
     .theme-btn.active {
       background: var(--pad);
-      border-color: #DDB010;
+      border-color: var(--pad-border);
+      color: var(--pad-ink);
       font-weight: 600;
     }
 
@@ -1357,7 +1358,317 @@
         padding: 20px;
       }
     }
+    /* ─── СЕКЦИЯ: ЖИВАЯ БАЗА ЗАЯВОК (GOOGLE SHEETS / CRM) ──────────── */
+    .sheets-live-section {
+      padding: 72px 0;
+      border-top: 1px solid var(--rule);
+      background: var(--floor);
+      position: relative;
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .sheets-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--pad);
+      background: var(--upsell-bg);
+      padding: 4px 10px;
+      border-radius: var(--r-btn);
+      margin-bottom: 12px;
+      border: 1px solid var(--rule);
+    }
+
+    .sheets-container-card {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: var(--r-win);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+
+    .sheets-topbar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--rule);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .sheets-live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--steel);
+    }
+
+    .sheets-live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: sheetsPulseDot 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    @keyframes sheetsPulseDot {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+
+    .sheets-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sheets-counter-pill {
+      font-size: 12px;
+      color: var(--steel);
+      background: var(--card);
+      border: 1px solid var(--rule);
+      padding: 5px 11px;
+      border-radius: var(--r-btn);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sheets-refresh-btn {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      padding: 6px 14px;
+      border-radius: var(--r-btn);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .sheets-refresh-btn:hover {
+      border-color: var(--pad);
+      background: var(--card-hover);
+    }
+
+    .sheets-refresh-btn:active {
+      transform: scale(0.98);
+    }
+
+    .refresh-icon.is-spinning {
+      animation: spinRefresh 0.75s linear infinite;
+    }
+
+    @keyframes spinRefresh {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .sheets-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .sheets-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .sheets-table th {
+      background: var(--panel);
+      color: var(--steel);
+      font-family: 'Golos Text', sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--rule);
+      white-space: nowrap;
+    }
+
+    .sheets-table td {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--rule);
+      color: var(--ink);
+      vertical-align: middle;
+      font-family: 'Onest', sans-serif;
+    }
+
+    .sheets-table tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    .sheets-table tbody tr:hover {
+      background: var(--card-hover);
+    }
+
+    @keyframes sheetNewRowGlow {
+      0% {
+        background-color: rgba(34, 197, 94, 0.32);
+        box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.6);
+      }
+      50% {
+        background-color: rgba(34, 197, 94, 0.16);
+      }
+      100% {
+        background-color: transparent;
+        box-shadow: none;
+      }
+    }
+
+    .sheet-row-new {
+      animation: sheetNewRowGlow 2.8s ease-out forwards;
+    }
+
+    .sheet-time {
+      color: var(--steel);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .sheet-client {
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .sheet-car {
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .sheet-service {
+      color: var(--ink);
+      max-width: 320px;
+    }
+
+    .sheet-price {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+
+    .sheet-badge-source {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: var(--r-btn);
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-widget {
+      background: rgba(37, 99, 235, 0.1);
+      color: #2563EB;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    [data-site-theme="dark"] .badge-widget {
+      color: #60A5FA;
+    }
+
+    .badge-telegram {
+      background: rgba(34, 158, 217, 0.1);
+      color: #0284C7;
+      border: 1px solid rgba(34, 158, 217, 0.25);
+    }
+
+    [data-site-theme="dark"] .badge-telegram {
+      color: #38BDF8;
+    }
+
+    .sheet-badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-new {
+      background: rgba(245, 158, 11, 0.12);
+      color: #D97706;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    [data-site-theme="dark"] .status-new {
+      color: #FBBF24;
+    }
+
+    .status-confirmed {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border: 1px solid var(--ok-border);
+    }
+
+    .sheets-card-footer {
+      background: var(--panel);
+      border-top: 1px solid var(--rule);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--steel);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sheets-footer-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .sheets-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .sheets-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .sheets-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
+
   <script>
     (function() {
       try {
@@ -1663,7 +1974,78 @@
     </div>
   </section>
 
+  <!-- ─── 2.5 СЕКЦИЯ: ЖИВАЯ БАЗА ЗАЯВОК (GOOGLE SHEETS / CRM) ───────────── -->
+  <section class="sheets-live-section" id="live-leads">
+    <div class="container">
+
+      <div class="section-header">
+        <div class="sheets-badge-tag">CRM-интеграция в реальном времени</div>
+        <h2 class="section-title">Живая база заявок (Google Sheets)</h2>
+        <p class="section-desc">
+          Каждое ночное обращение из виджета и Telegram-бота рассчитывается по кузову и моментально фиксируется в рабочей таблице студии. Напишите в виджет выше — строка появится здесь за 3 секунды.
+        </p>
+      </div>
+
+      <div class="sheets-container-card">
+        <!-- Верхняя плашка статуса и управления -->
+        <div class="sheets-topbar">
+          <div class="sheets-live-indicator">
+            <span class="sheets-live-dot"></span>
+            <span id="sheetsStatusText">Синхронизация с Google Sheets • Обновляется автоматически</span>
+          </div>
+          <div class="sheets-actions">
+            <span class="sheets-counter-pill" id="sheetsRowCount">Заявок: 7</span>
+            <button class="sheets-refresh-btn" id="sheetsManualRefreshBtn" title="Обновить вручную">
+              <svg class="refresh-icon" id="sheetsRefreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+              </svg>
+              <span>Обновить вручную</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Таблица с горизонтальным скроллом -->
+        <div class="sheets-table-wrap">
+          <table class="sheets-table" id="sheetsDataTable">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Дата / время</th>
+                <th style="width: 180px;">Клиент</th>
+                <th style="width: 160px;">Автомобиль</th>
+                <th>Услуга / Расчёт сметы</th>
+                <th style="width: 130px; text-align: right;">Смета</th>
+                <th style="width: 140px;">Источник</th>
+                <th style="width: 130px;">Статус</th>
+              </tr>
+            </thead>
+            <tbody id="sheetsTableBody">
+              <!-- Заполняется динамически -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Подвал карточки -->
+        <div class="sheets-card-footer">
+          <div class="sheets-footer-hint">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>Данные передаются без задержки через Webhook. Доступ сразу у владельца и администратора студии.</span>
+          </div>
+          <div>
+            <span>Формат: Google Sheets v4 / Excel / YClients</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
   <!-- ─── 3. СЕКЦИЯ: ОДНА НОЧЬ БЕЗ БОТА И С БОТОМ ──────────────────────── -->
+
   <section class="timeline-section">
     <div class="container">
       
@@ -2201,6 +2583,365 @@
         btnDark.classList.toggle('active', isDark);
       }
     })();
+  </script>
+
+  <!-- ─── ИНТЕРАКТИВНЫЙ МОДУЛЬ: ЖИВАЯ БАЗА ЗАЯВОК (GOOGLE SHEETS / CRM) ──── -->
+  <script>
+    /*
+     * =========================================================================
+     * НАСТРОЙКА ИНТЕГРАЦИИ С GOOGLE SHEETS
+     * =========================================================================
+     * Чтобы подключить вашу рабочую Google Таблицу к демо-лендингу:
+     * 1. Откройте Google Таблицу -> Меню «Файл» -> «Поделиться» -> «Опубликовать в интернете».
+     * 2. Выберите нужный лист и формат «CSV (значения, разделённые запятыми)».
+     * 3. Либо вставьте стандартную gviz CSV-ссылку:
+     *    https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}
+     * 4. Вставьте ссылку в константу GOOGLE_SHEETS_CSV_URL ниже.
+     * 
+     * Если ссылка пустая ('') или соединение недоступно, система автоматически
+     * переходит на реалистичный демо-поток с сохранением всей CRM-анимации.
+     * =========================================================================
+     */
+    const GOOGLE_SHEETS_CSV_URL = '';
+
+    // Реалистичная база последних заявок детейлинг-мастерской
+    const INITIAL_DEMO_LEADS = [
+      {
+        id: 'lead-1',
+        time: 'Сегодня, 01:24',
+        client: 'Александр',
+        contact: '+7 916 •••-42-10',
+        car: 'BMW X5 (G05)',
+        service: 'Оклейка зон риска PPF + керамика кузова',
+        price: '98 000 ₽',
+        source: 'Виджет на сайте',
+        sourceType: 'widget',
+        status: 'Новая заявка',
+        statusType: 'new'
+      },
+      {
+        id: 'lead-2',
+        time: 'Сегодня, 00:48',
+        client: 'Михаил',
+        contact: 'WhatsApp',
+        car: 'Zeekr 001',
+        service: 'Комплексная нанокерамика 9H (3 слоя) + антидождь',
+        price: '65 000 ₽',
+        source: 'Telegram-бот',
+        sourceType: 'telegram',
+        status: 'Слот забронирован',
+        statusType: 'confirmed'
+      },
+      {
+        id: 'lead-3',
+        time: 'Вчера, 23:15',
+        client: 'Денис В.',
+        contact: '@denis_v (Telegram)',
+        car: 'Porsche Cayenne',
+        service: 'Восстановительная полировка кузова + антидождь',
+        price: '43 000 ₽',
+        source: 'Виджет на сайте',
+        sourceType: 'widget',
+        status: 'Новая заявка',
+        statusType: 'new'
+      },
+      {
+        id: 'lead-4',
+        time: 'Вчера, 22:40',
+        client: 'Роман К.',
+        contact: '+7 903 •••-11-85',
+        car: 'Mercedes E-Class (W213)',
+        service: 'Оклейка кузова матовым полиуретаном SunTek',
+        price: '165 000 ₽',
+        source: 'Telegram-бот',
+        sourceType: 'telegram',
+        status: 'Слот забронирован',
+        statusType: 'confirmed'
+      },
+      {
+        id: 'lead-5',
+        time: 'Вчера, 21:05',
+        client: 'Артем',
+        contact: 'Форма расчёта сметы',
+        car: 'Li Auto L9',
+        service: 'Химчистка салона с разбором + озонация + керамика кожи',
+        price: '38 000 ₽',
+        source: 'Виджет на сайте',
+        sourceType: 'widget',
+        status: 'Новая заявка',
+        statusType: 'new'
+      },
+      {
+        id: 'lead-6',
+        time: 'Вчера, 20:12',
+        client: 'Сергей Николаевич',
+        contact: '+7 925 •••-77-34',
+        car: 'Audi Q8',
+        service: 'Керамика 9H + бронирование фар и порогов',
+        price: '55 000 ₽',
+        source: 'Telegram-бот',
+        sourceType: 'telegram',
+        status: 'Подтверждена',
+        statusType: 'confirmed'
+      },
+      {
+        id: 'lead-7',
+        time: 'Вчера, 19:30',
+        client: 'Константин',
+        contact: '@kostya_m (Telegram)',
+        car: 'BMW 5 (F10)',
+        service: 'Восстановительная полировка + керамика (акция)',
+        price: '43 000 ₽',
+        source: 'Виджет на сайте',
+        sourceType: 'widget',
+        status: 'Слот забронирован',
+        statusType: 'confirmed'
+      }
+    ];
+
+    let currentLeadsList = [...INITIAL_DEMO_LEADS];
+    let knownLeadSignatures = new Set(INITIAL_DEMO_LEADS.map(l => l.car + l.service + l.price));
+    let pollingTimerId = null;
+    const POLL_INTERVAL_MS = 4000;
+
+    // Парсер CSV, поддерживающий кавычки, запятые и переносы строк внутри ячеек
+    function parseCSV(text) {
+      const lines = [];
+      let row = [];
+      let inQuotes = false;
+      let curVal = '';
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            curVal += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(curVal.trim());
+          curVal = '';
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+          if (char === '\r' && nextChar === '\n') i++;
+          row.push(curVal.trim());
+          if (row.some(c => c.length > 0)) lines.push(row);
+          row = [];
+          curVal = '';
+        } else {
+          curVal += char;
+        }
+      }
+      if (curVal.length > 0 || row.length > 0) {
+        row.push(curVal.trim());
+        if (row.some(c => c.length > 0)) lines.push(row);
+      }
+      return lines;
+    }
+
+    // Рендер таблицы с визуальными эффектами
+    function renderSheetsTable(leads, newLeadIds = new Set()) {
+      const tbody = document.getElementById('sheetsTableBody');
+      const counterEl = document.getElementById('sheetsRowCount');
+      if (!tbody) return;
+
+      if (counterEl) {
+        counterEl.textContent = `Заявок: ${leads.length}`;
+      }
+
+      tbody.innerHTML = leads.map(lead => {
+        const isNew = newLeadIds.has(lead.id);
+        const isTg = (lead.sourceType === 'telegram' || /telegram|тг/i.test(lead.source));
+        const sourceClass = isTg ? 'badge-telegram' : 'badge-widget';
+        const sourceIcon = isTg
+          ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.77-1.17 3.35-1.37 3.73-1.38.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>'
+          : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+
+        const isConfirmed = (lead.statusType === 'confirmed' || /подтвержд|забронирован|слот/i.test(lead.status));
+        const statusClass = isConfirmed ? 'status-confirmed' : 'status-new';
+
+        return `
+          <tr class="${isNew ? 'sheet-row-new' : ''}" data-lead-id="${lead.id}">
+            <td class="sheet-time">${escapeHtml(lead.time)}</td>
+            <td>
+              <div class="sheet-client">${escapeHtml(lead.client)}</div>
+              ${lead.contact ? `<div style="font-size:11px;color:var(--steel);">${escapeHtml(lead.contact)}</div>` : ''}
+            </td>
+            <td class="sheet-car">${escapeHtml(lead.car)}</td>
+            <td class="sheet-service">${escapeHtml(lead.service)}</td>
+            <td class="sheet-price">${escapeHtml(lead.price)}</td>
+            <td>
+              <span class="sheet-badge-source ${sourceClass}">
+                ${sourceIcon}
+                <span>${escapeHtml(lead.source)}</span>
+              </span>
+            </td>
+            <td>
+              <span class="sheet-badge-status ${statusClass}">
+                ${escapeHtml(lead.status)}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Загрузка данных из Google Sheets
+    async function fetchSheetsData(isManual = false) {
+      const statusText = document.getElementById('sheetsStatusText');
+      const refreshIcon = document.getElementById('sheetsRefreshIcon');
+
+      if (isManual && refreshIcon) {
+        refreshIcon.classList.add('is-spinning');
+      }
+
+      if (!GOOGLE_SHEETS_CSV_URL) {
+        if (isManual) {
+          if (statusText) statusText.textContent = 'Синхронизировано • Тестовый режим CRM';
+          setTimeout(() => {
+            if (refreshIcon) refreshIcon.classList.remove('is-spinning');
+            if (statusText) statusText.textContent = 'Синхронизация с Google Sheets • Обновляется автоматически';
+          }, 700);
+        }
+        return;
+      }
+
+      try {
+        const cacheBust = `${GOOGLE_SHEETS_CSV_URL.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+        const response = await fetch(GOOGLE_SHEETS_CSV_URL + cacheBust, {
+          headers: { 'Accept': 'text/csv, text/plain, */*' },
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const csvText = await response.text();
+        const rows = parseCSV(csvText);
+
+        if (rows.length > 1) {
+          const dataRows = rows.slice(1);
+          const newLeads = [];
+          const newLeadIds = new Set();
+
+          dataRows.forEach((cols, idx) => {
+            if (cols.length < 3) return;
+            const lead = {
+              id: `sheet-${idx}-${cols[0] || ''}`,
+              time: cols[0] || 'Сегодня',
+              client: cols[1] || 'Клиент',
+              contact: cols[2] || '',
+              car: cols[3] || 'Автомобиль',
+              service: cols[4] || 'Детейлинг-услуга',
+              price: cols[5] || 'По запросу',
+              source: cols[6] || 'Виджет на сайте',
+              sourceType: /telegram|тг/i.test(cols[6] || '') ? 'telegram' : 'widget',
+              status: cols[7] || 'Новая заявка',
+              statusType: /подтвержд|забронирован/i.test(cols[7] || '') ? 'confirmed' : 'new'
+            };
+
+            const signature = lead.car + lead.service + lead.price;
+            if (!knownLeadSignatures.has(signature)) {
+              newLeadIds.add(lead.id);
+              knownLeadSignatures.add(signature);
+            }
+
+            newLeads.push(lead);
+          });
+
+          if (newLeads.length > 0) {
+            currentLeadsList = newLeads.slice(0, 10);
+            renderSheetsTable(currentLeadsList, newLeadIds);
+          }
+
+          if (statusText) {
+            statusText.textContent = 'Google Sheets подключена • Обновление в реальном времени';
+          }
+        }
+      } catch (err) {
+        console.warn('Google Sheets fetch notice:', err.message);
+        if (statusText) {
+          statusText.textContent = 'Синхронизация с CRM активна • Локальный резерв';
+        }
+      } finally {
+        if (refreshIcon) {
+          setTimeout(() => refreshIcon.classList.remove('is-spinning'), 600);
+        }
+      }
+    }
+
+    // Фоновое обновление каждые 4 секунды (ТОЛЬКО при активной вкладке)
+    function startSheetsPolling() {
+      if (pollingTimerId) clearInterval(pollingTimerId);
+      pollingTimerId = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          fetchSheetsData(false);
+        }
+      }, POLL_INTERVAL_MS);
+    }
+
+    // Кнопка «Обновить вручную»
+    const manualRefreshBtn = document.getElementById('sheetsManualRefreshBtn');
+    if (manualRefreshBtn) {
+      manualRefreshBtn.addEventListener('click', () => {
+        fetchSheetsData(true);
+      });
+    }
+
+    // Интерактивная связка с виджетом: при любом расчёте или сообщении создаём новую запись
+    window.addEventListener('ecm-lead-created', (e) => {
+      const detail = e.detail || {};
+      const now = new Date();
+      const timeStr = `Сегодня, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const newId = `lead-live-${Date.now()}`;
+
+      const newLead = {
+        id: newId,
+        time: timeStr,
+        client: detail.client || 'Посетитель сайта',
+        contact: detail.contact || 'Онлайн-диалог в виджете',
+        car: detail.car || 'BMW F10 (Седан)',
+        service: detail.service || 'Восстановительная полировка + керамика',
+        price: detail.cost || '43 000 ₽',
+        source: detail.source || 'Виджет на сайте',
+        sourceType: 'widget',
+        status: detail.status || 'Новая заявка',
+        statusType: 'new'
+      };
+
+      // Добавляем в начало таблицы
+      currentLeadsList.unshift(newLead);
+      if (currentLeadsList.length > 10) currentLeadsList.pop();
+
+      const newSet = new Set([newId]);
+      renderSheetsTable(currentLeadsList, newSet);
+
+      // Уведомление в статусной строке
+      const statusText = document.getElementById('sheetsStatusText');
+      if (statusText) {
+        statusText.textContent = '⚡ Новая заявка моментально зафиксирована в таблице!';
+        setTimeout(() => {
+          statusText.textContent = 'Синхронизация с Google Sheets • Обновляется автоматически';
+        }, 4500);
+      }
+    });
+
+    // Инициализация при загрузке страницы
+    renderSheetsTable(currentLeadsList);
+    startSheetsPolling();
   </script>
 
   <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->

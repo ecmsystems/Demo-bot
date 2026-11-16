@@ -134,10 +134,10 @@
       hold_bg: 'rgba(217, 119, 54, 0.12)',
       hold_text: '#FDBA74',
       upsell_bg: 'rgba(217, 119, 54, 0.14)',
-      upsell_tag_bg: '#C25E1A',
+      upsell_tag_bg: '#D97706',
       upsell_tag_color: '#FFFFFF',
-      upsell_tag_shadow: '0 1px 2px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.8)',
-      upsell_tag_stroke: '0.35px rgba(0, 0, 0, 0.7)',
+      upsell_tag_shadow: '0 1px 2px rgba(0, 0, 0, 0.6)',
+      upsell_tag_stroke: 'none',
       avatar_bg: 'rgba(255, 255, 255, 0.08)',
       avatar_border: 'rgba(255, 255, 255, 0.14)',
       logo_filter: 'none',
@@ -1009,18 +1009,57 @@
         totalPrice: 105000,
         slot: 'понедельник 11:00'
       });
+      try {
+        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
+          detail: {
+            client: 'Посетитель сайта',
+            contact: 'Онлайн-диалог',
+            car: 'Mercedes GLE (Внедорожник)',
+            service: 'Оклейка кузова PPF + керамика',
+            cost: '105 000 ₽',
+            source: 'Виджет на сайте',
+            status: 'Новая заявка'
+          }
+        }));
+      } catch (e) {}
     } else if (low.includes('воскресень') || low.includes('завтра')) {
       messages.push({
         role: 'bot',
         isEstimate: false,
         text: 'На ближайшие сутки боксы полностью загружены. Ближайший свободный слот — суббота в 14:00. Закрепить за вами?'
       });
+      try {
+        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
+          detail: {
+            client: 'Посетитель сайта',
+            contact: 'Запрос записи',
+            car: 'Автомобиль клиента',
+            service: 'Подбор слота: суббота 14:00',
+            cost: 'Уточняется',
+            source: 'Виджет на сайте',
+            status: 'Диалог в чате'
+          }
+        }));
+      } catch (e) {}
     } else if (low.includes('суббот') || low.includes('запис') || low.includes('окно') || low.includes('время')) {
       messages.push({
         role: 'bot',
         isEstimate: false,
         text: 'На субботу свободно окно в 14:00 (мастер второй смены). Напишите номер телефона для фиксации брони на 15 минут.'
       });
+      try {
+        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
+          detail: {
+            client: 'Посетитель сайта',
+            contact: 'Фиксация брони 15 мин',
+            car: 'Автомобиль клиента',
+            service: 'Бронь слота суббота 14:00',
+            cost: '43 000 ₽',
+            source: 'Виджет на сайте',
+            status: 'Слот забронирован'
+          }
+        }));
+      } catch (e) {}
     } else {
       messages.push({
         role: 'bot',
@@ -1032,6 +1071,19 @@
         totalPrice: 43000,
         slot: 'суббота 14:00'
       });
+      try {
+        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
+          detail: {
+            client: 'Посетитель сайта',
+            contact: 'Онлайн-расчёт сметы',
+            car: trimmed.length < 25 ? trimmed : 'BMW / Седан',
+            service: 'Восстановительная полировка + керамика 9H',
+            cost: '43 000 ₽',
+            source: 'Виджет на сайте',
+            status: 'Новая заявка'
+          }
+        }));
+      } catch (e) {}
     }
 
     renderAllStreams();
