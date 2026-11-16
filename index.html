@@ -150,6 +150,7 @@
     html {
       overflow-x: hidden;
       width: 100%;
+      scroll-behavior: smooth;
     }
 
     body {
@@ -330,6 +331,11 @@
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+        /* Плавная прокрутка с отступом под липкую шапку */
+    .hero, .steps-section, .timeline-section, .calculator-section, .pricing-section, .faq-section {
+      scroll-margin-top: 84px;
     }
 
     /* ─── ЗАГОЛОВКИ СЕКЦИЙ (СТРОГО ПО ЛЕВОМУ КРАЮ) ─────────────────────── */
@@ -1011,19 +1017,70 @@
 
     .calc-range {
       width: 100%;
-      height: 6px;
-      background: var(--floor);
-      border-radius: 3px;
+      height: 8px;
+      background: var(--panel);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
       outline: none;
       -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .calc-range:hover {
+      border-color: var(--pad);
     }
     .calc-range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      appearance: none;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: var(--pad);
-      cursor: pointer;
+      border: 2.5px solid var(--card);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      cursor: grab;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    }
+    .calc-range:hover::-webkit-slider-thumb {
+      transform: scale(1.18);
+      box-shadow: 0 0 12px var(--pad);
+    }
+    .calc-range:active::-webkit-slider-thumb {
+      transform: scale(1.3);
+      cursor: grabbing;
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25), 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+    .calc-range::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--pad);
+      border: 2.5px solid var(--card);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      cursor: grab;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    }
+    .calc-range:hover::-moz-range-thumb {
+      transform: scale(1.18);
+      box-shadow: 0 0 12px var(--pad);
+    }
+    .calc-range:active::-moz-range-thumb {
+      transform: scale(1.3);
+      cursor: grabbing;
+    }
+
+    .calc-val-display {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--ink);
+      transition: transform 0.15s ease, color 0.15s ease;
+      display: inline-block;
+    }
+    .calc-val-display.is-dragging {
+      color: var(--pad);
+      transform: scale(1.12);
     }
 
     .calc-summary-panel {
@@ -1034,6 +1091,11 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .calc-summary-panel.panel-pulse {
+      border-color: rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 24px rgba(239, 68, 68, 0.12);
     }
 
     .calc-metric-title {
@@ -1047,8 +1109,24 @@
       font-family: 'Fira Sans Extra Condensed', sans-serif;
       font-size: 48px;
       font-weight: 600;
-      color: #B91C1C;
+      color: var(--bad);
       line-height: 1;
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), text-shadow 0.2s ease;
+      display: inline-block;
+    }
+    .calc-big-loss.calc-num-pulse {
+      transform: scale(1.06);
+      text-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+    }
+
+    .price-num-main {
+      font-family: 'Fira Sans Extra Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+      transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-block;
     }
 
     .calc-compare-note {
@@ -1312,6 +1390,7 @@
 
       <nav class="header-nav">
         <a href="#how-it-works" class="nav-link">Как работает</a>
+        <a href="#calculator" class="nav-link">Калькулятор</a>
         <a href="#pricing" class="nav-link">Тарифы</a>
         <a href="#faq" class="nav-link">Вопросы</a>
       </nav>
@@ -1692,7 +1771,7 @@
   </section>
 
   <!-- ─── 4. СЕКЦИЯ: ПОСЧИТАЙТЕ, СКОЛЬКО УХОДИТ (КАЛЬКУЛЯТОР) ───────────── -->
-  <section class="calculator-section">
+  <section class="calculator-section" id="calculator">
     <div class="container">
       
       <div class="section-header">
@@ -1934,36 +2013,174 @@
 
   <!-- ─── СКРИПТЫ: КАЛЬКУЛЯТОР, ТАРИФЫ, ДЕМО-ИНТЕРАКТИВ ────────────────── -->
   <script>
-    // Калькулятор потерь
-    function calculateLoss() {
-      const inq = parseInt(document.getElementById('inputInquiries').value, 10);
-      const chk = parseInt(document.getElementById('inputCheck').value, 10);
-      const chr = parseInt(document.getElementById('inputChurn').value, 10);
+    // Живой счетчик чисел и анимация калькулятора
+    let currentLossValue = 210000;
+    let lossAnimFrame = null;
+    let panelPulseTimeout = null;
+
+    function updateSliderTrack(slider) {
+      if (!slider) return;
+      const min = parseFloat(slider.min) || 0;
+      const max = parseFloat(slider.max) || 100;
+      const val = parseFloat(slider.value) || 0;
+      const pct = ((val - min) / (max - min)) * 100;
+      slider.style.background = `linear-gradient(to right, var(--pad) 0%, var(--pad) ${pct}%, var(--panel) ${pct}%, var(--panel) 100%)`;
+    }
+
+    function animateLossResult(targetValue) {
+      const resultEl = document.getElementById('calcLossResult');
+      const panelEl = document.querySelector('.calc-summary-panel');
+      if (!resultEl) return;
+
+      const startValue = currentLossValue;
+      const change = targetValue - startValue;
+
+      // Пульсация плашки и цифры
+      resultEl.classList.add('calc-num-pulse');
+      if (panelEl) {
+        panelEl.classList.add('panel-pulse');
+        clearTimeout(panelPulseTimeout);
+        panelPulseTimeout = setTimeout(() => panelEl.classList.remove('panel-pulse'), 350);
+      }
+
+      if (change === 0) {
+        resultEl.textContent = targetValue.toLocaleString('ru-RU') + ' ₽';
+        setTimeout(() => resultEl.classList.remove('calc-num-pulse'), 120);
+        return;
+      }
+
+      if (lossAnimFrame) cancelAnimationFrame(lossAnimFrame);
+
+      const duration = 260;
+      const startTime = performance.now();
+
+      function tick(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(startValue + change * ease);
+
+        resultEl.textContent = current.toLocaleString('ru-RU') + ' ₽';
+
+        if (progress < 1) {
+          lossAnimFrame = requestAnimationFrame(tick);
+        } else {
+          currentLossValue = targetValue;
+          resultEl.textContent = targetValue.toLocaleString('ru-RU') + ' ₽';
+          setTimeout(() => resultEl.classList.remove('calc-num-pulse'), 120);
+        }
+      }
+
+      lossAnimFrame = requestAnimationFrame(tick);
+    }
+
+    function calculateLoss(isInitial) {
+      const sInq = document.getElementById('inputInquiries');
+      const sChk = document.getElementById('inputCheck');
+      const sChr = document.getElementById('inputChurn');
+
+      const inq = parseInt(sInq.value, 10);
+      const chk = parseInt(sChk.value, 10);
+      const chr = parseInt(sChr.value, 10);
 
       document.getElementById('dispInquiries').textContent = inq + ' обращений';
       document.getElementById('dispCheck').textContent = chk.toLocaleString('ru-RU') + ' ₽';
       document.getElementById('dispChurn').textContent = chr + '%';
 
+      // Обновляем градиент заполнения дорожек
+      updateSliderTrack(sInq);
+      updateSliderTrack(sChk);
+      updateSliderTrack(sChr);
+
       const lostClients = Math.round(inq * (chr / 100));
       const totalLoss = lostClients * chk;
 
-      document.getElementById('calcLossResult').textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
+      if (isInitial) {
+        currentLossValue = totalLoss;
+        document.getElementById('calcLossResult').textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
+      } else {
+        animateLossResult(totalLoss);
+      }
     }
 
-    // Переключение тарифов
+    // Привязка событий перетягивания со свечением значений
+    function initSliderDragEffects() {
+      const sliders = [
+        { el: document.getElementById('inputInquiries'), disp: document.getElementById('dispInquiries') },
+        { el: document.getElementById('inputCheck'), disp: document.getElementById('dispCheck') },
+        { el: document.getElementById('inputChurn'), disp: document.getElementById('dispChurn') }
+      ];
+
+      sliders.forEach(({ el, disp }) => {
+        if (!el || !disp) return;
+        const onStart = () => disp.classList.add('is-dragging');
+        const onEnd = () => disp.classList.remove('is-dragging');
+
+        el.addEventListener('pointerdown', onStart);
+        el.addEventListener('pointerup', onEnd);
+        el.addEventListener('blur', onEnd);
+        el.addEventListener('input', () => {
+          disp.classList.add('is-dragging');
+          calculateLoss(true);
+    initSliderDragEffects();
+    initSmoothNavScroll();
+        });
+        el.addEventListener('change', () => {
+          disp.classList.remove('is-dragging');
+          calculateLoss(true);
+    initSliderDragEffects();
+    initSmoothNavScroll();
+        });
+      });
+    }
+
+    // Переключение тарифов с плавной анимацией цифр
     function setPricingMode(mode) {
       const isMonthly = mode === 'monthly';
       document.getElementById('btnPricingMonthly').classList.toggle('active', isMonthly);
       document.getElementById('btnPricingLifetime').classList.toggle('active', !isMonthly);
 
-      document.getElementById('pPrice1').innerHTML = isMonthly ? '6&nbsp;900&nbsp;₽' : '11&nbsp;900&nbsp;₽';
-      document.getElementById('pPeriod1').textContent = isMonthly ? '+ 1 500 ₽/мес' : 'разовый выкуп навсегда';
+      const priceItems = [
+        { p: document.getElementById('pPrice1'), s: document.getElementById('pPeriod1'), val: isMonthly ? '6 900 ₽' : '11 900 ₽', sub: isMonthly ? '+ 1 500 ₽/мес' : 'разовый выкуп навсегда' },
+        { p: document.getElementById('pPrice2'), s: document.getElementById('pPeriod2'), val: isMonthly ? '10 900 ₽' : '17 900 ₽', sub: isMonthly ? '+ 2 000 ₽/мес' : 'разовый выкуп навсегда' },
+        { p: document.getElementById('pPrice3'), s: document.getElementById('pPeriod3'), val: isMonthly ? '14 900 ₽' : '24 900 ₽', sub: isMonthly ? '+ 2 500 ₽/мес' : 'разовый выкуп навсегда' }
+      ];
 
-      document.getElementById('pPrice2').innerHTML = isMonthly ? '10&nbsp;900&nbsp;₽' : '17&nbsp;900&nbsp;₽';
-      document.getElementById('pPeriod2').textContent = isMonthly ? '+ 2 000 ₽/мес' : 'разовый выкуп навсегда';
+      priceItems.forEach(item => {
+        if (item.p) {
+          item.p.style.opacity = '0';
+          item.p.style.transform = 'translateY(-6px)';
+          setTimeout(() => {
+            item.p.innerHTML = item.val.replace(/ /g, '&nbsp;');
+            if (item.s) item.s.textContent = item.sub;
+            item.p.style.opacity = '1';
+            item.p.style.transform = 'translateY(0)';
+          }, 140);
+        }
+      });
+    }
 
-      document.getElementById('pPrice3').innerHTML = isMonthly ? '14&nbsp;900&nbsp;₽' : '24&nbsp;900&nbsp;₽';
-      document.getElementById('pPeriod3').textContent = isMonthly ? '+ 2 500 ₽/мес' : 'разовый выкуп навсегда';
+    // Плавный скролл при клике на верхний бар ко всем секциям
+    function initSmoothNavScroll() {
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          const href = this.getAttribute('href');
+          if (!href || href === '#' || href === './') return;
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            const headerHeight = 74;
+            const elementPosition = target.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
     }
 
     // Быстрый клик по чипам в демо Hero
@@ -2022,7 +2239,9 @@
     }
 
     // Инициализация при загрузке
-    calculateLoss();
+    calculateLoss(true);
+    initSliderDragEffects();
+    initSmoothNavScroll();
     // Синхронизация состояния кнопок с начальной темой
     (function syncInitialThemeBtns() {
       const isDark = document.documentElement.getAttribute('data-site-theme') === 'dark';
