@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECM Systems — Модуль обращения к лидам</title>
+  <link rel="icon" type="image/png" href="favicon-32.png">
+  <style>
+    :root {
+      --bg: #090A0D;
+      --panel: #111319;
+      --card-bg: #161922;
+      --card-border: #232734;
+      --ink: #F1F3F7;
+      --muted: #8F97A6;
+      --accent: #2563EB;
+      --accent-hover: #1D4ED8;
+      --ok: #22C55E;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Верхняя панель */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-badge {
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      font-size: 15px;
+      padding: 4px 8px;
+      background: #fff;
+      color: #000;
+      border-radius: 4px;
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-pill strong { color: var(--ink); }
+    .btn {
+      background: var(--card-bg);
+      color: var(--ink);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn:hover { background: #1C202B; border-color: var(--muted); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-success { background: #15803D; border-color: #22C55E; color: #fff; }
+    .btn-success:hover { background: #166534; }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); color: #FCA5A5; }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+
+    /* Основная сетка */
+    main {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Панель фильтров */
+    .filter-bar {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .filter-label { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+    select, input[type="text"] {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--ink);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    select:focus, input[type="text"]:focus { border-color: var(--accent); }
+
+    /* Карточка лида */
+    .lead-card {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+
+    .lead-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .lead-title-area h2 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lead-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .lead-meta a { color: #60A5FA; text-decoration: none; }
+    .lead-meta a:hover { text-decoration: underline; }
+
+    .tier-badge {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tier-A { background: rgba(34, 197, 94, 0.15); color: #4ADE80; border: 1px solid #22C55E; }
+    .tier-B { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid #F59E0B; }
+    .tier-C { background: rgba(143, 151, 166, 0.15); color: #CBD5E1; border: 1px solid #64748B; }
+
+    /* Оценки весов */
+    .scores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 12px 16px;
+      border-radius: 8px;
+    }
+    .score-item { display: flex; flex-direction: column; gap: 4px; }
+    .score-item-title { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+    .score-item-val { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+    /* Объяснение скора */
+    .explanation-box {
+      font-size: 13px;
+      color: var(--muted);
+      background: rgba(37, 99, 235, 0.06);
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    /* Сигналы */
+    .signals-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .signal-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: #93C5FD;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Блок проверенного pitch hook */
+    .hook-card {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hook-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: #4ADE80;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .hook-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #E2E8F0;
+    }
+    .hook-source {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Редактор сообщения */
+    .editor-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .editor-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .variant-selector {
+      display: flex;
+      gap: 6px;
+    }
+    .variant-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .variant-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .char-counter {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .char-counter.limit-exceeded { color: var(--danger); }
+
+    textarea.message-box {
+      width: 100%;
+      height: 120px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--ink);
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    textarea.message-box:focus { border-color: var(--accent); }
+
+    /* 1-Click Action Hub */
+    .action-hub {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: 8px;
+    }
+    .channels-btns {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .channel-btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-wa { background: #25D366; color: #000; }
+    .btn-wa:hover { background: #20BA5A; }
+    .btn-tg { background: #229ED9; color: #fff; }
+    .btn-tg:hover { background: #1E8BC0; }
+    .btn-email { background: #EA4335; color: #fff; }
+    .btn-email:hover { background: #D33828; }
+    .btn-vk { background: #0077FF; color: #fff; }
+
+    /* Оверлей 45-секундного кулдауна */
+    .cooldown-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 10, 13, 0.88);
+      backdrop-filter: blur(4px);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 10;
+    }
+    .timer-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Модальное окно аналитики */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      max-width: 650px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .funnel-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Верхняя шапка -->
+  <header>
+    <div class="header-left">
+      <span class="logo-badge">ECM</span>
+      <span class="header-title">Модуль индивидуального обращения к лидам</span>
+    </div>
+    <div class="header-right">
+      <div class="stat-pill">
+        <span>Отправлено сегодня:</span>
+        <strong id="daily-sent-counter">0 / 25</strong>
+      </div>
+      <div class="stat-pill" id="working-hours-pill">
+        <span>Окно:</span>
+        <strong id="working-hours-text">Будни 10:00–18:00</strong>
+      </div>
+      <button class="btn" onclick="openAnalyticsModal()">📊 Воронка</button>
+    </div>
+  </header>
+
+  <!-- Основной контейнер -->
+  <main>
+    <!-- Панель фильтров -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-label">Фильтры:</span>
+        <select id="filter-tier" onchange="loadNextLead()">
+          <option value="">Все тиры (A, B, C)</option>
+          <option value="A" selected>Tier A (Приоритетные ≥80)</option>
+          <option value="B">Tier B (Перспективные 60–79)</option>
+          <option value="C">Tier C (&lt;60)</option>
+        </select>
+        <select id="filter-segment" onchange="loadNextLead()">
+          <option value="">Все сегменты</option>
+          <option value="A">Сегмент A (Виджет на сайт)</option>
+          <option value="B">Сегмент B (Telegram-бот)</option>
+          <option value="C">Сегмент C (Комплекс)</option>
+        </select>
+        <select id="filter-status" onchange="loadNextLead()">
+          <option value="queued" selected>В очереди (готовы к отправке)</option>
+          <option value="uncontacted">Не контактированные</option>
+          <option value="sent">Отправленные</option>
+          <option value="replied">Ответили</option>
+          <option value="interested">Заинтересованы</option>
+        </select>
+        <input type="text" id="filter-city" placeholder="Поиск по городу..." onkeyup="if(event.key==='Enter') loadNextLead()">
+      </div>
+      <button class="btn btn-primary" onclick="loadNextLead()">🔄 Обновить</button>
+    </div>
+
+    <!-- Карточка активного лида -->
+    <div class="lead-card" id="lead-card-container">
+      <div id="lead-loading-state" style="text-align: center; padding: 40px; color: var(--muted);">
+        Загрузка следующего лида из очереди...
+      </div>
+    </div>
+  </main>
+
+  <!-- Модальное окно аналитики -->
+  <div class="modal-backdrop" id="analytics-modal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 18px;">📊 Воронка аутрича ECM Systems</h3>
+        <button class="btn" onclick="closeAnalyticsModal()">✕</button>
+      </div>
+      <div id="analytics-content" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Динамически заполняется -->
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <a href="leads_rf.csv" class="btn" download>📥 Скачать CSV с сигналами</a>
+        <button class="btn btn-primary" onclick="closeAnalyticsModal()">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLeadData = null;
+    let cooldownTimerInterval = null;
+
+    async function loadNextLead() {
+      const card = document.getElementById('lead-card-container');
+      card.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--muted);">Загрузка следующего целевого лида...</div>`;
+
+      const tier = document.getElementById('filter-tier').value;
+      const segment = document.getElementById('filter-segment').value;
+      const status = document.getElementById('filter-status').value;
+      const city = document.getElementById('filter-city').value;
+
+      const params = new URLSearchParams();
+      if (tier) params.append('tier', tier);
+      if (segment) params.append('segment', segment);
+      if (status) params.append('status', status);
+      if (city) params.append('city', city);
+
+      try {
+        const resp = await fetch(`/api/outreach/next?${params.toString()}`);
+        const data = await resp.json();
+
+        if (data.status === 'ready') {
+          currentLeadData = data;
+          renderLeadCard(data);
+          updateHeaderStats(data.daily_sent, data.daily_max, data.working_hours_info);
+        } else {
+          currentLeadData = null;
+          card.innerHTML = `
+            <div style="text-align: center; padding: 50px 20px;">
+              <div style="font-size: 36px; margin-bottom: 12px;">⏸️</div>
+              <h3 style="font-size: 18px; margin-bottom: 8px;">${data.reason || 'Очередь пуста'}</h3>
+              <p style="font-size: 13px; color: var(--muted); max-width: 500px; margin: 0 auto 16px;">
+                Попробуйте изменить фильтры тира/сегмента или сбросить статус на «В очереди».
+              </p>
+              <button class="btn btn-primary" onclick="loadNextLead()">Проверить снова</button>
+            </div>
+          `;
+        }
+      } catch (err) {
+        card.innerHTML = `<div style="color: var(--danger); text-align: center; padding: 40px;">Ошибка связи с сервером: ${err.message}</div>`;
+      }
+    }
+
+    function updateHeaderStats(sent, max, whInfo) {
+      document.getElementById('daily-sent-counter').textContent = `${sent} / ${max}`;
+      if (whInfo) {
+        document.getElementById('working-hours-text').textContent = whInfo;
+      }
+    }
+
+    function renderLeadCard(data) {
+      const l = data.lead;
+      const sigs = data.signals || {};
+      const card = document.getElementById('lead-card-container');
+
+      // Сигналы в виде плашек
+      const signalsHtml = Object.entries(sigs).map(([k, v]) => {
+        let text = v;
+        if (Array.isArray(v)) text = v.join(', ');
+        if (typeof v === 'boolean') text = k;
+        return `<span class="signal-pill">✓ ${text}</span>`;
+      }).join('');
+
+      // Pitch Hook блок
+      let hookHtml = '';
+      if (l.pitch_hook) {
+        hookHtml = `
+          <div class="hook-card">
+            <div class="hook-header">🔍 Проверенное наблюдение для первого сообщения:</div>
+            <div class="hook-text">«${l.pitch_hook}»</div>
+            <div class="hook-source">Источник: <a href="${l.hook_source_url}" target="_blank" style="color: #93C5FD;">${l.hook_source_url}</a> (${l.hook_date || 'зафиксировано'})</div>
+          </div>
+        `;
+      }
+
+      // Кнопки каналов
+      const links = data.action_links || {};
+      let channelButtons = '';
+
+      if (links.whatsapp) {
+        channelButtons += `<a href="${links.whatsapp}" target="_blank" class="channel-btn btn-wa" onclick="recordChannelClick('whatsapp')">🟢 Открыть в WhatsApp</a>`;
+      }
+      if (links.telegram) {
+        channelButtons += `<button class="channel-btn btn-tg" onclick="handleTelegramClick('${links.telegram}')">🔷 Открыть в Telegram</button>`;
+      }
+      if (links.vk) {
+        channelButtons += `<a href="${links.vk}" target="_blank" class="channel-btn btn-vk" onclick="copyTextToClipboard()">🔹 Открыть VK</a>`;
+      }
+      if (links.email) {
+        channelButtons += `<a href="${links.email}" class="channel-btn btn-email">✉️ Открыть Email</a>`;
+      }
+
+      card.innerHTML = `
+        <div class="lead-header">
+          <div class="lead-title-area">
+            <h2>
+              ${l.company_name}
+              <span class="tier-badge tier-${l.tier}">TIER ${l.tier} (${l.score}/100)</span>
+            </h2>
+            <div class="lead-meta">
+              <span>📍 г. ${l.city} (${l.timezone || 'МСК'})</span>
+              <span>🌐 <a href="${l.site_url}" target="_blank">${l.domain}</a></span>
+              <span>⚙️ CMS: <strong>${l.cms || 'HTML'}</strong></span>
+              <span>🏷️ Оффер: <strong>${l.recommended_offer || 'Виджет'}</strong></span>
+            </div>
+          </div>
+          <div>
+            <a href="${l.demo_url}" target="_blank" class="btn" style="color: #60A5FA;">👁️ Персональное демо</a>
+          </div>
+        </div>
+
+        <div class="scores-grid">
+          <div class="score-item">
+            <span class="score-item-title">Fit (Бизнес)</span>
+            <span class="score-item-val">${l.fit_score || 0} / 30</span>
+          </div>
+          <div class="score-item">
+            <span class="score-item-title">Pain (Боль)</span>
+            <span class="score-item-val">${l.pain_score || 0} / 30</span>
+          </div>
+          <div class="score-item">
+            <span class="score-item-title">Reach (Контакт)</span>
+            <span class="score-item-val">${l.reach_score || 0} / 25</span>
+          </div>
+          <div class="score-item">
+            <span class="score-item-title">Budget (Ресурс)</span>
+            <span class="score-item-val">${l.budget_score || 0} / 15</span>
+          </div>
+        </div>
+
+        <div class="explanation-box">
+          <strong>Причина оценки:</strong> ${l.score_explanation || 'Целевой детейлинг с живыми мессенджерами'}
+        </div>
+
+        ${hookHtml}
+
+        <div class="signals-list">
+          ${signalsHtml}
+        </div>
+
+        <!-- Редактор текста сообщения -->
+        <div class="editor-section">
+          <div class="editor-top">
+            <div class="variant-selector">
+              <span style="color: var(--muted); margin-right: 4px;">Шаблон:</span>
+              <button class="variant-btn active" onclick="switchVariant(0)">V1 (Потеря)</button>
+              <button class="variant-btn" onclick="switchVariant(1)">V2 (Реклама)</button>
+              <button class="variant-btn" onclick="switchVariant(2)">V3 (Кузов)</button>
+              <button class="variant-btn" onclick="switchVariant(3)">V4 (Консьерж)</button>
+            </div>
+            <div class="char-counter" id="char-counter">${data.message_text.length} / 350 знаков</div>
+          </div>
+          <textarea class="message-box" id="message-text-input" oninput="handleTextChange(this)">${data.message_text}</textarea>
+        </div>
+
+        <!-- Кнопки отправки в 1 клик -->
+        <div class="action-hub">
+          <div class="channels-btns">
+            ${channelButtons || '<span style="color: var(--muted); font-size: 13px;">Мессенджеры не найдены</span>'}
+            <button class="btn" onclick="switchChannel()">🔄 Канал не сработал</button>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-success" onclick="markSent()">✅ Отправлено</button>
+            <button class="btn" onclick="loadNextLead()">⏭ Пропустить</button>
+            <button class="btn btn-danger" onclick="addToStopList()">🚫 В стоп-лист</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleTextChange(el) {
+      const len = el.value.length;
+      const counter = document.getElementById('char-counter');
+      counter.textContent = `${len} / 350 знаков`;
+      if (len > 350) {
+        counter.classList.add('limit-exceeded');
+      } else {
+        counter.classList.remove('limit-exceeded');
+      }
+    }
+
+    function copyTextToClipboard() {
+      const text = document.getElementById('message-text-input').value;
+      navigator.clipboard.writeText(text);
+      alert('Текст скопирован в буфер обмена! Вставьте в открывшийся чат.');
+    }
+
+    function handleTelegramClick(tgUrl) {
+      copyTextToClipboard();
+      window.open(tgUrl, '_blank');
+    }
+
+    function recordChannelClick(channel) {
+      console.log('Opened channel:', channel);
+    }
+
+    async function markSent() {
+      if (!currentLeadData) return;
+      const text = document.getElementById('message-text-input').value;
+
+      try {
+        const resp = await fetch('/api/outreach/sent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lead_id: currentLeadData.lead.id,
+            channel: currentLeadData.active_channel || 'telegram',
+            template_id: currentLeadData.template_id || 'v1',
+            message_text: text
+          })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          startCooldownTimer(res.cooldown_seconds || 45);
+        }
+      } catch (err) {
+        alert('Ошибка сохранения: ' + err.message);
+      }
+    }
+
+    function startCooldownTimer(seconds) {
+      const card = document.getElementById('lead-card-container');
+      let remaining = seconds;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'cooldown-overlay';
+      overlay.innerHTML = `
+        <div class="timer-circle" id="cooldown-sec">${remaining}</div>
+        <div style="font-size: 15px; font-weight: 600;">Защита от флуда и спешки</div>
+        <div style="font-size: 13px; color: var(--muted); max-width: 400px; text-align: center;">
+          Сообщение зафиксировано. Очередь разблокируется через несколько секунд для качественного изучения следующего лида.
+        </div>
+      `;
+      card.appendChild(overlay);
+
+      clearInterval(cooldownTimerInterval);
+      cooldownTimerInterval = setInterval(() => {
+        remaining--;
+        const el = document.getElementById('cooldown-sec');
+        if (el) el.textContent = remaining;
+        if (remaining <= 0) {
+          clearInterval(cooldownTimerInterval);
+          loadNextLead();
+        }
+      }, 1000);
+    }
+
+    async function switchChannel() {
+      if (!currentLeadData) return;
+      await fetch('/api/outreach/switch-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: currentLeadData.lead.id })
+      });
+      loadNextLead();
+    }
+
+    async function addToStopList() {
+      if (!currentLeadData) return;
+      if (!confirm(`Добавить ${currentLeadData.lead.company_name} в постоянный стоп-лист?`)) return;
+
+      await fetch('/api/outreach/stop-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: currentLeadData.lead.id })
+      });
+      alert('Лид добавлен в стоп-лист и никогда больше не появится в очереди.');
+      loadNextLead();
+    }
+
+    async function openAnalyticsModal() {
+      const modal = document.getElementById('analytics-modal');
+      const content = document.getElementById('analytics-content');
+      modal.classList.add('open');
+
+      try {
+        const resp = await fetch('/api/outreach/analytics');
+        const data = await resp.json();
+        const s = data.summary;
+
+        content.innerHTML = `
+          <div class="funnel-row"><span>В очереди:</span><strong>${s.queued}</strong></div>
+          <div class="funnel-row"><span>Отправлено сообщений:</span><strong>${s.sent}</strong></div>
+          <div class="funnel-row"><span>Ответили:</span><strong>${s.replied} (${s.reply_rate})</strong></div>
+          <div class="funnel-row"><span>Проявили интерес:</span><strong>${s.interested}</strong></div>
+          <div class="funnel-row"><span>Согласились на пилот:</span><strong>${s.pilot} (${s.pilot_rate})</strong></div>
+          <div class="funnel-row"><span>Оплатили внедрение:</span><strong>${s.paid}</strong></div>
+          <div class="funnel-row"><span>Стоп-лист:</span><strong>${s.do_not_contact}</strong></div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<div>Ошибка загрузки аналитики</div>`;
+      }
+    }
+
+    function closeAnalyticsModal() {
+      document.getElementById('analytics-modal').classList.remove('open');
+    }
+
+    // Старт
+    loadNextLead();
+  </script>
+</body>
+</html>

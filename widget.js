@@ -36,6 +36,16 @@
     ]
   };
 
+  // Чтение параметров URL для персонализированного демо (?studio=<slug>)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const studioParam = urlParams.get('studio');
+    if (studioParam) {
+      STUDIO_CONFIG.studio_id = studioParam;
+    }
+  } catch(e) {}
+
+
   // ─── 2. СИСТЕМНЫЙ ПРОМПТ ДЛЯ ИИ-АДМИНИСТРАТОРА ────────────────────
   const SYSTEM_PROMPT = `
 Ты — вежливый, опытный и лаконичный администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».
@@ -1183,8 +1193,33 @@
     });
   } catch(e) {}
 
+  async function loadStudioPersonalization() {
+    if (!STUDIO_CONFIG.studio_id || STUDIO_CONFIG.studio_id === 'default') return;
+    try {
+      const resp = await fetch(`/api/config/${STUDIO_CONFIG.studio_id}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.company_name) {
+          STUDIO_CONFIG.company_name = data.company_name;
+          const titleEl = host && host.shadowRoot ? host.shadowRoot.querySelector('.ecm-title') : null;
+          if (titleEl) titleEl.textContent = data.company_name;
+          const pageTitle = document.getElementById('widgetStudioName');
+          if (pageTitle) pageTitle.textContent = data.company_name;
+        }
+        if (data.services) STUDIO_CONFIG.services = data.services;
+        if (data.city) STUDIO_CONFIG.city = data.city;
+        if (data.promo) STUDIO_CONFIG.promo = data.promo;
+        if (data.theme_color) {
+          window.EcmWidget.setTheme({ accent: data.theme_color });
+        }
+      }
+    } catch (e) {}
+  }
+
   // Старт
+  loadStudioPersonalization();
   initHoldTimer();
   runAutoplay();
+
   console.info('[ECM Widget] Workshop Order Edition initialized.');
 })();
