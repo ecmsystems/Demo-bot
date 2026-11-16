@@ -1025,10 +1025,6 @@
       -webkit-appearance: none;
       appearance: none;
       cursor: pointer;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-    .calc-range:hover {
-      border-color: var(--pad);
     }
     .calc-range::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -1037,36 +1033,35 @@
       height: 22px;
       border-radius: 50%;
       background: var(--pad);
-      border: 2.5px solid var(--card);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      border: 2px solid var(--card);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       cursor: grab;
-      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+      will-change: transform;
+      transition: transform 0.12s ease;
     }
     .calc-range:hover::-webkit-slider-thumb {
-      transform: scale(1.18);
-      box-shadow: 0 0 12px var(--pad);
+      transform: scale(1.15);
     }
     .calc-range:active::-webkit-slider-thumb {
-      transform: scale(1.3);
+      transform: scale(1.25);
       cursor: grabbing;
-      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25), 0 4px 16px rgba(0, 0, 0, 0.4);
     }
     .calc-range::-moz-range-thumb {
       width: 22px;
       height: 22px;
       border-radius: 50%;
       background: var(--pad);
-      border: 2.5px solid var(--card);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      border: 2px solid var(--card);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       cursor: grab;
-      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+      will-change: transform;
+      transition: transform 0.12s ease;
     }
     .calc-range:hover::-moz-range-thumb {
-      transform: scale(1.18);
-      box-shadow: 0 0 12px var(--pad);
+      transform: scale(1.15);
     }
     .calc-range:active::-moz-range-thumb {
-      transform: scale(1.3);
+      transform: scale(1.25);
       cursor: grabbing;
     }
 
@@ -1075,12 +1070,13 @@
       font-size: 19px;
       font-weight: 600;
       color: var(--ink);
-      transition: transform 0.15s ease, color 0.15s ease;
+      will-change: transform, color;
+      transition: transform 0.12s ease, color 0.12s ease;
       display: inline-block;
     }
     .calc-val-display.is-dragging {
       color: var(--pad);
-      transform: scale(1.12);
+      transform: scale(1.08);
     }
 
     .calc-summary-panel {
@@ -1091,11 +1087,6 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      transition: border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .calc-summary-panel.panel-pulse {
-      border-color: rgba(239, 68, 68, 0.4);
-      box-shadow: 0 0 24px rgba(239, 68, 68, 0.12);
     }
 
     .calc-metric-title {
@@ -1111,12 +1102,12 @@
       font-weight: 600;
       color: var(--bad);
       line-height: 1;
-      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), text-shadow 0.2s ease;
+      will-change: transform;
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
       display: inline-block;
     }
-    .calc-big-loss.calc-num-pulse {
+    .calc-big-loss.calc-pop {
       transform: scale(1.06);
-      text-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
     }
 
     .price-num-main {
@@ -1790,7 +1781,7 @@
               <span>Вечерних и ночных обращений в месяц:</span>
               <span class="calc-val-display" id="dispInquiries">15 обращений</span>
             </div>
-            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1" oninput="calculateLoss()">
+            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1" oninput="onSliderInputThrottled()">
           </div>
 
           <div class="calc-group">
@@ -1798,7 +1789,7 @@
               <span>Средний чек студии:</span>
               <span class="calc-val-display" id="dispCheck">35&nbsp;000&nbsp;₽</span>
             </div>
-            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000" oninput="calculateLoss()">
+            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000" oninput="onSliderInputThrottled()">
           </div>
 
           <div class="calc-group">
@@ -1806,7 +1797,7 @@
               <span>Доля уходящих к конкурентам при задержке:</span>
               <span class="calc-val-display" id="dispChurn">40%</span>
             </div>
-            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5" oninput="calculateLoss()">
+            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5" oninput="onSliderInputThrottled()">
           </div>
 
         </div>
@@ -2013,10 +2004,8 @@
 
   <!-- ─── СКРИПТЫ: КАЛЬКУЛЯТОР, ТАРИФЫ, ДЕМО-ИНТЕРАКТИВ ────────────────── -->
   <script>
-    // Живой счетчик чисел и анимация калькулятора
-    let currentLossValue = 210000;
-    let lossAnimFrame = null;
-    let panelPulseTimeout = null;
+    // Высокопроизводительный калькулятор (60-120 FPS без лагов)
+    let calcRafId = null;
 
     function updateSliderTrack(slider) {
       if (!slider) return;
@@ -2027,58 +2016,11 @@
       slider.style.background = `linear-gradient(to right, var(--pad) 0%, var(--pad) ${pct}%, var(--panel) ${pct}%, var(--panel) 100%)`;
     }
 
-    function animateLossResult(targetValue) {
-      const resultEl = document.getElementById('calcLossResult');
-      const panelEl = document.querySelector('.calc-summary-panel');
-      if (!resultEl) return;
-
-      const startValue = currentLossValue;
-      const change = targetValue - startValue;
-
-      // Пульсация плашки и цифры
-      resultEl.classList.add('calc-num-pulse');
-      if (panelEl) {
-        panelEl.classList.add('panel-pulse');
-        clearTimeout(panelPulseTimeout);
-        panelPulseTimeout = setTimeout(() => panelEl.classList.remove('panel-pulse'), 350);
-      }
-
-      if (change === 0) {
-        resultEl.textContent = targetValue.toLocaleString('ru-RU') + ' ₽';
-        setTimeout(() => resultEl.classList.remove('calc-num-pulse'), 120);
-        return;
-      }
-
-      if (lossAnimFrame) cancelAnimationFrame(lossAnimFrame);
-
-      const duration = 260;
-      const startTime = performance.now();
-
-      function tick(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        // Ease out cubic
-        const ease = 1 - Math.pow(1 - progress, 3);
-        const current = Math.round(startValue + change * ease);
-
-        resultEl.textContent = current.toLocaleString('ru-RU') + ' ₽';
-
-        if (progress < 1) {
-          lossAnimFrame = requestAnimationFrame(tick);
-        } else {
-          currentLossValue = targetValue;
-          resultEl.textContent = targetValue.toLocaleString('ru-RU') + ' ₽';
-          setTimeout(() => resultEl.classList.remove('calc-num-pulse'), 120);
-        }
-      }
-
-      lossAnimFrame = requestAnimationFrame(tick);
-    }
-
     function calculateLoss(isInitial) {
       const sInq = document.getElementById('inputInquiries');
       const sChk = document.getElementById('inputCheck');
       const sChr = document.getElementById('inputChurn');
+      if (!sInq || !sChk || !sChr) return;
 
       const inq = parseInt(sInq.value, 10);
       const chk = parseInt(sChk.value, 10);
@@ -2088,7 +2030,6 @@
       document.getElementById('dispCheck').textContent = chk.toLocaleString('ru-RU') + ' ₽';
       document.getElementById('dispChurn').textContent = chr + '%';
 
-      // Обновляем градиент заполнения дорожек
       updateSliderTrack(sInq);
       updateSliderTrack(sChk);
       updateSliderTrack(sChr);
@@ -2096,15 +2037,27 @@
       const lostClients = Math.round(inq * (chr / 100));
       const totalLoss = lostClients * chk;
 
-      if (isInitial) {
-        currentLossValue = totalLoss;
-        document.getElementById('calcLossResult').textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
-      } else {
-        animateLossResult(totalLoss);
+      const resultEl = document.getElementById('calcLossResult');
+      if (resultEl) {
+        resultEl.textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
+        if (!isInitial) {
+          resultEl.classList.add('calc-pop');
+          clearTimeout(resultEl._popTimer);
+          resultEl._popTimer = setTimeout(() => resultEl.classList.remove('calc-pop'), 160);
+        }
       }
     }
 
-    // Привязка событий перетягивания со свечением значений
+    // Троттлинг через requestAnimationFrame: мгновенный отклик без лагов
+    function onSliderInputThrottled() {
+      if (calcRafId) return;
+      calcRafId = requestAnimationFrame(() => {
+        calculateLoss(false);
+        calcRafId = null;
+      });
+    }
+
+    // Инициализация событий перетягивания (вызывается СТРОГО 1 РАЗ)
     function initSliderDragEffects() {
       const sliders = [
         { el: document.getElementById('inputInquiries'), disp: document.getElementById('dispInquiries') },
@@ -2114,24 +2067,20 @@
 
       sliders.forEach(({ el, disp }) => {
         if (!el || !disp) return;
-        const onStart = () => disp.classList.add('is-dragging');
-        const onEnd = () => disp.classList.remove('is-dragging');
 
-        el.addEventListener('pointerdown', onStart);
-        el.addEventListener('pointerup', onEnd);
-        el.addEventListener('blur', onEnd);
+        el.addEventListener('pointerdown', () => disp.classList.add('is-dragging'), { passive: true });
+        el.addEventListener('pointerup', () => disp.classList.remove('is-dragging'), { passive: true });
+        el.addEventListener('blur', () => disp.classList.remove('is-dragging'), { passive: true });
+
         el.addEventListener('input', () => {
           disp.classList.add('is-dragging');
-          calculateLoss(true);
-    initSliderDragEffects();
-    initSmoothNavScroll();
-        });
+          onSliderInputThrottled();
+        }, { passive: true });
+
         el.addEventListener('change', () => {
           disp.classList.remove('is-dragging');
-          calculateLoss(true);
-    initSliderDragEffects();
-    initSmoothNavScroll();
-        });
+          calculateLoss(false);
+        }, { passive: true });
       });
     }
 
