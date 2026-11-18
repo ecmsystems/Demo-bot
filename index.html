@@ -1767,51 +1767,11 @@
 
           <!-- Поток сообщений сметы -->
           <div class="widget-chat-body" id="widgetChatStream">
-            
-            <div class="chat-row user">
-              <div class="msg-user-bubble">
-                Сколько стоит полировка BMW F10?
+            <div class="chat-row bot">
+              <div class="msg-bot-bubble" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--r-btn); padding: 12px 14px; font-size: 14.5px; color: var(--ink); line-height: 1.45;">
+                Здравствуйте! Я ИИ-администратор студии ECM Detailing Lab.<br><br>Рассчитаю точную смету под ваш автомобиль, помогу с выбором комплекса (полировка, нанокерамика, оклейка PPF, химчистка) и забронирую свободный слот. Напишите марку авто или выберите вопрос ниже!
               </div>
             </div>
-
-            <div class="chat-row bot" id="botResponseCard">
-              <div class="estimate-order-card">
-                <div class="estimate-header">
-                  <span>Предварительный заказ-наряд</span>
-                  <span class="tabular">BMW F10 • Седан</span>
-                </div>
-
-                <table class="estimate-table">
-                  <tbody>
-                    <tr>
-                      <td>Комплексная восстановительная полировка кузова</td>
-                      <td class="col-price">18&nbsp;000&nbsp;₽</td>
-                    </tr>
-                    <tr class="highlight-upsell">
-                      <td>
-                        Нанокерамика 9H (2 слоя)
-                        <span class="upsell-tag">+25&nbsp;000&nbsp;₽ к заказу</span>
-                      </td>
-                      <td class="col-price">+25&nbsp;000&nbsp;₽</td>
-                    </tr>
-                    <tr>
-                      <td>Гидрофобный антидождь передней полусферы</td>
-                      <td class="col-price" style="color: var(--ok); font-size: 14px;">0&nbsp;₽ (в подарок)</td>
-                    </tr>
-                    <tr class="row-total">
-                      <td>Итого с допродажей:</td>
-                      <td class="col-price">43&nbsp;000&nbsp;₽</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                <div class="hold-timer-bar">
-                  <span>Свободный слот: суббота 14:00</span>
-                  <span class="tabular">Окно брони: 15:00</span>
-                </div>
-              </div>
-            </div>
-
           </div>
 
           <!-- Быстрые чипы -->
@@ -2948,6 +2908,6 @@
   </script>
 
   <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->
-  <script src="./widget.js?v=workshop_v1" data-studio="default"></script>
+  <script src="./widget.js?v=2.2.0" data-studio="default"></script>
 </body>
 </html>

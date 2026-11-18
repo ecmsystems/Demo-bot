@@ -968,25 +968,179 @@
 
   // ─── 11. ИНТЕЛЛЕКТУАЛЬНЫЙ AI-ОТВЕТЧИК ДЛЯ ЧАТА ─────────────────────
 
-  function parseAiReply(rawText) {
-    if (!rawText) return { text: '' };
-    const jsonMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const est = JSON.parse(jsonMatch[0]);
-        let cleanText = rawText.replace(jsonMatch[0], '').trim();
-        cleanText = cleanText.replace(/```json|```/g, '').trim();
-        return {
-          text: cleanText,
-          estimate: est
-        };
-      } catch (e) {}
+  function stripCodePieces(text) {
+    if (!text) return '';
+    let clean = text.replace(/```[a-z]*[\s\S]*?```/gi, '');
+    clean = clean.replace(/```[a-z]*/gi, '');
+    // Удаляем любые остатки JSON сметы из видимого сообщения
+    let idx = clean.indexOf('{"isEstimate"');
+    if (idx === -1) idx = clean.indexOf('{ "isEstimate"');
+    if (idx !== -1) clean = clean.substring(0, idx);
+    return clean.trim();
+  }
+
+  function extractEstimate(rawText, userText) {
+    if (!rawText && !userText) return null;
+
+    // 1. Полноценный JSON из ответа ИИ
+    if (rawText) {
+      const jsonMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed && (parsed.isEstimate || parsed.carModel)) {
+            return {
+              isEstimate: true,
+              carModel: parsed.carModel || 'Автомобиль',
+              carClass: parsed.carClass || 'Расчёт по прайсу',
+              serviceName: parsed.serviceName || 'Восстановительная полировка кузова',
+              basePrice: Number(parsed.basePrice) || 18000,
+              upsellName: parsed.upsellName || 'Нанокерамика 9H (2 слоя)',
+              upsellPrice: Number(parsed.upsellPrice) || 25000,
+              totalPrice: Number(parsed.totalPrice) || 43000,
+              slot: parsed.slot || 'суббота 14:00'
+            };
+          }
+        } catch (e) {}
+      }
+
+      // 2. Если JSON был обрезан нейросетью
+      const cutMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*/);
+      if (cutMatch) {
+        const cutStr = cutMatch[0];
+        const carM = cutStr.match(/"carModel":\s*"([^"]+)"/);
+        const clsM = cutStr.match(/"carClass":\s*"([^"]+)"/);
+        const srvM = cutStr.match(/"serviceName":\s*"([^"]+)"/);
+        const bpM = cutStr.match(/"basePrice":\s*(\d+)/);
+        const upM = cutStr.match(/"upsellPrice":\s*(\d+)/);
+        const tpM = cutStr.match(/"totalPrice":\s*(\d+)/);
+        const slotM = cutStr.match(/"slot":\s*"([^"]+)"/);
+
+        if (carM || bpM) {
+          const bp = bpM ? Number(bpM[1]) : 75000;
+          const up = upM ? Number(upM[1]) : 30000;
+          const tp = tpM ? Number(tpM[1]) : (bp + up);
+          return {
+            isEstimate: true,
+            carModel: carM ? carM[1] : 'Mercedes GLE',
+            carClass: clsM ? clsM[1] : 'Внедорожник',
+            serviceName: srvM ? srvM[1] : 'Оклейка зон риска пленкой PPF',
+            basePrice: bp,
+            upsellName: 'Нанокерамика 9H на кузов',
+            upsellPrice: up,
+            totalPrice: tp,
+            slot: slotM ? slotM[1] : 'суббота 14:00'
+          };
+        }
+      }
     }
-    return { text: rawText.replace(/```json|```/g, '').trim() };
+
+    // 3. Автоматический интеллектуальный расчёт сметы по автомобилю
+    const low = ((userText || '') + ' ' + (rawText || '')).toLowerCase();
+
+    // Чистые вопросы без машины не требуют принудительной сметы
+    if (low.includes('помоги') || low.includes('с выбором') || low.includes('где вы') || low.includes('адрес') || low.includes('как доехать')) {
+      return null;
+    }
+
+    const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || low.includes('брон');
+    const isClean = low.includes('химчист') || low.includes('салон');
+    const isEstimateQuery = isPPF || isClean || low.includes('полиров') || low.includes('керамик') || low.includes('царапин') || low.includes('глянец') || low.includes('цен') || low.includes('стоимост') || low.includes('расчет') || low.includes('сколько');
+
+    let carModel = null;
+    let carClass = 'Седан';
+
+    if (low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') || low.includes('land cruiser') || low.includes('крузак') || low.includes('prado') || low.includes('tahoe') || low.includes('escalade') || low.includes('defender') || low.includes('range rover') || low.includes('внедорожник') || low.includes('джип')) {
+      carClass = 'Внедорожник';
+      if (low.includes('gle')) carModel = 'Mercedes GLE';
+      else if (low.includes('gls')) carModel = 'Mercedes GLS';
+      else if (low.includes('x5')) carModel = 'BMW X5';
+      else if (low.includes('x7')) carModel = 'BMW X7';
+      else if (low.includes('land cruiser') || low.includes('крузак')) carModel = 'Toyota Land Cruiser';
+      else carModel = 'Внедорожник';
+    } else if (low.includes('macan') || low.includes('cayenne') || low.includes('x3') || low.includes('x4') || low.includes('q5') || low.includes('q7') || low.includes('glc') || low.includes('tiguan') || low.includes('rav4') || low.includes('monjaro') || low.includes('geely') || low.includes('haval') || low.includes('cheri') || low.includes('changan') || low.includes('sportage') || low.includes('tucson') || low.includes('кроссовер')) {
+      carClass = 'Кроссовер';
+      if (low.includes('macan')) carModel = 'Porsche Macan';
+      else if (low.includes('cayenne')) carModel = 'Porsche Cayenne';
+      else if (low.includes('x3')) carModel = 'BMW X3';
+      else if (low.includes('q5')) carModel = 'Audi Q5';
+      else if (low.includes('glc')) carModel = 'Mercedes GLC';
+      else if (low.includes('monjaro')) carModel = 'Geely Monjaro';
+      else if (low.includes('tiguan')) carModel = 'VW Tiguan';
+      else if (low.includes('rav4')) carModel = 'Toyota RAV4';
+      else carModel = 'Кроссовер';
+    } else if (low.includes('camry') || low.includes('f10') || low.includes('bmw') || low.includes('audi') || low.includes('mercedes') || low.includes('мерседес') || low.includes('solaris') || low.includes('rio') || low.includes('polo') || low.includes('k5') || low.includes('octavia') || low.includes('седан') || low.includes('купе')) {
+      carClass = 'Седан';
+      if (low.includes('camry')) carModel = 'Toyota Camry';
+      else if (low.includes('k5')) carModel = 'Kia K5';
+      else if (low.includes('octavia')) carModel = 'Skoda Octavia';
+      else if (low.includes('f10')) carModel = 'BMW F10';
+      else if (low.includes('bmw')) carModel = 'BMW (Седан)';
+      else if (low.includes('mercedes') || low.includes('мерседес')) carModel = 'Mercedes E-Class';
+      else carModel = 'Седан / Купе';
+    }
+
+    if (!carModel && !isEstimateQuery) {
+      return null;
+    }
+
+    carModel = carModel || 'Автомобиль клиента';
+
+    if (isPPF) {
+      const bp = (carClass === 'Седан') ? 65000 : 75000;
+      const up = (carClass === 'Седан') ? 25000 : 30000;
+      return {
+        isEstimate: true,
+        carModel: carModel,
+        carClass: carClass,
+        serviceName: 'Оклейка зон риска пленкой PPF',
+        basePrice: bp,
+        upsellName: 'Нанокерамика 9H на остальной кузов',
+        upsellPrice: up,
+        totalPrice: bp + up,
+        slot: 'суббота 14:00'
+      };
+    }
+
+    if (isClean) {
+      const bp = (carClass === 'Седан') ? 15000 : 18000;
+      return {
+        isEstimate: true,
+        carModel: carModel,
+        carClass: carClass,
+        serviceName: 'Полная химчистка салона',
+        basePrice: bp,
+        upsellName: 'Озонирование + защитная пропитка',
+        upsellPrice: 8000,
+        totalPrice: bp + 8000,
+        slot: 'суббота 14:00'
+      };
+    }
+
+    // Комплекс полировка + нанокерамика
+    const bp = (carClass === 'Внедорожник') ? 26000 : ((carClass === 'Кроссовер') ? 22000 : 18000);
+    const up = (carClass === 'Седан') ? 25000 : 30000;
+    return {
+      isEstimate: true,
+      carModel: carModel,
+      carClass: carClass,
+      serviceName: 'Комплексная восстановительная полировка кузова',
+      basePrice: bp,
+      upsellName: 'Нанокерамика 9H (2 слоя)',
+      upsellPrice: up,
+      totalPrice: bp + up,
+      slot: 'суббота 14:00'
+    };
   }
 
   function getSmartFallback(text) {
     const low = text.toLowerCase();
+    if (low.includes('gle') || low.includes('мерседес') || low.includes('mercedes') || low.includes('джип') || low.includes('внедорожник')) {
+      return {
+        text: 'Для внедорожников класса Mercedes GLE рекомендуем комплексную оклейку зон риска защитной пленкой PPF (75 000 ₽) с нанесением керамики на оставшийся кузов (+30 000 ₽). Нанесение гидрофобного антидождя на переднюю полусферу — бесплатно в подарок по акции!\n\nБлижайший свободный слот: суббота в 14:00.',
+        rawText: '{"isEstimate": true, "carModel": "Mercedes GLE", "carClass": "Внедорожник", "serviceName": "Оклейка зон риска пленкой PPF", "basePrice": 75000, "upsellName": "Нанокерамика 9H на остальной кузов", "upsellPrice": 30000, "totalPrice": 105000, "slot": "суббота 14:00"}'
+      };
+    }
     if (low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') || low.includes('что лучше')) {
       return {
         text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, пожалуйста:\n1. Марку и модель вашего автомобиля?\n2. Автомобиль новый из салона или с пробегом?\n3. Какую задачу в первую очередь хотите решить: защитить кузов от сколов (пленка PPF), убрать царапины и вернуть блеск (полировка + керамика) или обновить салон (химчистка)?'
@@ -1002,40 +1156,14 @@
         text: 'На ближайшую субботу доступен свободный слот в 14:00 (мастер второй смены). Напишите ваш номер телефона и модель автомобиля для фиксации брони на 15 минут.'
       };
     }
-    if (low.includes('gle') || low.includes('мерседес') || low.includes('mercedes') || low.includes('джип') || low.includes('внедорожник')) {
-      return {
-        text: 'Для внедорожников класса Mercedes GLE рекомендуем восстановительную полировку кузова либо оклейку зон риска антигравийной пленкой PPF с керамическим покрытием на остальной кузов (антидождь в подарок).',
-        estimate: {
-          isEstimate: true,
-          carModel: 'Mercedes GLE',
-          carClass: 'Внедорожник',
-          serviceName: 'Оклейка кузова PPF',
-          basePrice: 75000,
-          upsellName: 'Нанокерамика 9H на кузов',
-          upsellPrice: 30000,
-          totalPrice: 105000,
-          slot: 'понедельник 11:00'
-        }
-      };
-    }
     if (low.includes('f10') || low.includes('bmw') || low.includes('седан') || low.includes('полировк')) {
       return {
         text: 'Для седанов стоимость восстановительной полировки кузова — 18 000 ₽. Рекомендуем закрепить блеск 2 слоями нанокерамики 9H (+25 000 ₽), при этом гидрофобный антидождь идет в подарок по акции!',
-        estimate: {
-          isEstimate: true,
-          carModel: 'BMW / Седан',
-          carClass: 'Седан',
-          serviceName: 'Восстановительная полировка кузова',
-          basePrice: 18000,
-          upsellName: 'Нанокерамика 9H (2 слоя)',
-          upsellPrice: 25000,
-          totalPrice: 43000,
-          slot: 'суббота 14:00'
-        }
+        rawText: '{"isEstimate": true, "carModel": "BMW / Седан", "carClass": "Седан", "serviceName": "Комплексная восстановительная полировка кузова", "basePrice": 18000, "upsellName": "Нанокерамика 9H (2 слоя)", "upsellPrice": 25000, "totalPrice": 43000, "slot": "суббота 14:00"}'
       };
     }
     return {
-      text: 'Здравствуйте! Я онлайн-консультант детейлинг-центра. Подскажите марку и модель вашего автомобиля или интересующую услугу (полировка, керамика, оклейка PPF, химчистка), и я подробно проконсультирую и сделаю точный расчет сметы.'
+      text: 'Здравствуйте! Я онлайн-консультант детейлинг-центра. Подскажите марку и модель вашего автомобиля или интересующую услугу (полировка, нанокерамика, оклейка PPF, химчистка), и я подробно проконсультирую и сделаю точный расчет сметы.'
     };
   }
 
@@ -1060,7 +1188,10 @@
         if (res.ok) {
           const data = await res.json();
           if (data && data.reply) {
-            return parseAiReply(data.reply);
+            return {
+              text: stripCodePieces(data.reply),
+              rawText: data.reply
+            };
           }
         }
       }
@@ -1077,9 +1208,9 @@
 ТВОЙ ТОН: деловой, спокойный, лаконичный, стиль премиум-сервиса заказ-наряда. Без восклицаний и лишних эмодзи.
 
 УСЛУГИ И ПРАЙС:
-- Седан / Купе (BMW 3/5, Camry, Mercedes E/C, Audi A4/A6): Полировка 18 000 ₽, Керамика 9H (2 слоя) +25 000 ₽, Оклейка PPF от 65 000 ₽, Химчистка салона 15 000 ₽.
-- Кроссовер (BMW X3, Audi Q5, Mercedes GLC, Tiguan, Monjaro): Полировка 22 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
-- Внедорожник / Джип (BMW X5/X7, Mercedes GLE/GLS, Land Cruiser): Полировка 26 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
+- Седан / Купе (BMW 3/5, Camry, Mercedes E/C, Audi A4/A6, Polo, Solaris): Полировка 18 000 ₽, Керамика 9H (2 слоя) +25 000 ₽, Оклейка PPF от 65 000 ₽, Химчистка салона 15 000 ₽.
+- Кроссовер (BMW X3, Audi Q5, Mercedes GLC, Tiguan, Monjaro, Macan): Полировка 22 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
+- Внедорожник / Джип (BMW X5/X7, Mercedes GLE/GLS, Land Cruiser, Tahoe): Полировка 26 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
 АКЦИЯ И БОНУС:
 При заказе комплекса (полировка + керамика или оклейка PPF) — нанесение гидрофобного антидождя на переднюю полусферу бесплатно (0 ₽ в подарок).
 СВОБОДНЫЙ СЛОТ ДЛЯ ЗАПИСИ: суббота в 14:00 (удержание окна 15 минут).
@@ -1088,6 +1219,7 @@
 1. ПРИОРИТЕТ ТЕКУЩЕГО ЗАПРОСА (ГЛАВНОЕ ПРАВИЛО):
    - Отвечай СТРОГО на ПОСЛЕДНЕЕ сообщение клиента!
    - Если клиент спрашивает про Mercedes GLE — отвечай ИСКЛЮЧИТЕЛЬНО про Mercedes GLE!
+   - Если клиент спрашивает про Macan, Camry или любую другую машину — отвечай ИСКЛЮЧИТЕЛЬНО по ней!
    - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать BMW F10 или другие ранее упомянутые автомобили, если клиент о них не спрашивает в текущем сообщении.
    - Если клиент выбрал «Хочу PPF на Mercedes GLE»:
      * Класс: Внедорожник / Джип.
@@ -1139,7 +1271,7 @@
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${DEFAULT_KEY}`;
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 6500);
+        const tid = setTimeout(() => ctrl.abort(), 7500);
         const res = await fetch(geminiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1148,7 +1280,7 @@
             contents: contents,
             generationConfig: {
               temperature: 0.25,
-              maxOutputTokens: 600
+              maxOutputTokens: 1200
             }
           }),
           signal: ctrl.signal
@@ -1160,7 +1292,11 @@
           const cand = gData.candidates && gData.candidates[0];
           const textPart = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
           if (textPart) {
-            return parseAiReply(textPart.trim());
+            const cleanT = stripCodePieces(textPart.trim());
+            return {
+              text: cleanT,
+              rawText: textPart.trim()
+            };
           }
         }
       } catch (e) {
@@ -1196,30 +1332,32 @@
     showTyping();
 
     // Запрос к AI (Gemini / Backend)
-    const aiResult = await queryAi(trimmed, messages);
+    const rawResult = await queryAi(trimmed, messages);
     hideTyping();
 
-    if (aiResult.text) {
+    const cleanText = stripCodePieces(rawResult.text);
+    const estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed) || rawResult.estimate;
+
+    if (cleanText) {
       messages.push({
         role: 'bot',
         isEstimate: false,
-        text: aiResult.text
+        text: cleanText
       });
     }
 
-    if (aiResult.estimate) {
-      const est = aiResult.estimate;
+    if (estimate) {
       messages.push({
         role: 'bot',
         isEstimate: true,
-        carModel: est.carModel || 'Автомобиль',
-        carClass: est.carClass || 'Расчёт по прайсу',
-        serviceName: est.serviceName || 'Восстановительная полировка кузова',
-        basePrice: Number(est.basePrice) || 18000,
-        upsellName: est.upsellName || 'Нанокерамика 9H (2 слоя)',
-        upsellPrice: Number(est.upsellPrice) || 25000,
-        totalPrice: Number(est.totalPrice) || 43000,
-        slot: est.slot || 'суббота 14:00'
+        carModel: estimate.carModel || 'Автомобиль',
+        carClass: estimate.carClass || 'Расчёт по прайсу',
+        serviceName: estimate.serviceName || 'Комплексная восстановительная полировка кузова',
+        basePrice: Number(estimate.basePrice) || 18000,
+        upsellName: estimate.upsellName || 'Нанокерамика 9H (2 слоя)',
+        upsellPrice: Number(estimate.upsellPrice) || 25000,
+        totalPrice: Number(estimate.totalPrice) || 43000,
+        slot: estimate.slot || 'суббота 14:00'
       });
 
       try {
@@ -1227,9 +1365,9 @@
           detail: {
             client: 'Посетитель сайта',
             contact: 'Онлайн-диалог',
-            car: `${est.carModel} (${est.carClass})`,
-            service: `${est.serviceName || 'Полировка'} + ${est.upsellName || 'Керамика'}`,
-            cost: `${Number(est.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
+            car: `${estimate.carModel} (${estimate.carClass})`,
+            service: `${estimate.serviceName || 'Полировка'} + ${estimate.upsellName || 'Керамика'}`,
+            cost: `${Number(estimate.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
             source: 'Виджет на сайте',
             status: 'Новая заявка'
           }
