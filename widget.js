@@ -74,7 +74,7 @@
   const SESSION_KEY = `ecm_session_${STUDIO_CONFIG.studio_id}`;
   const MSGS_KEY = `ecm_msgs_${STUDIO_CONFIG.studio_id}`;
   const USAGE_KEY = `ecm_usage_${STUDIO_CONFIG.studio_id}`;
-  const MAX_DEMO_MESSAGES = 10;
+  const MAX_DEMO_MESSAGES = 50;
 
   function generateUUID() {
     return 'ecm-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9);
@@ -465,6 +465,9 @@
         padding: 9px 13px;
         font-size: 14.5px;
         color: var(--w-ink);
+        white-space: pre-wrap;
+        line-height: 1.45;
+        word-break: break-word;
       }
 
       /* Бланк Заказ-наряда */
@@ -678,7 +681,12 @@
   }
 
   // ─── 7. ГЕНЕРАЦИЯ HTML ДИАЛОГА ────────────────────────────────────
-  function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot) {
+  function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot, serviceName, upsellName) {
+    const sName = serviceName || 'Восстановительная полировка кузова';
+    const uName = upsellName || 'Нанокерамика 9H (2 слоя)';
+    const bPrice = Number(basePrice) || 18000;
+    const uPrice = Number(upsellPrice) || 25000;
+    const tPrice = Number(totalPrice) || (bPrice + uPrice);
     return `
       <div class="ecm-order-card">
         <div class="ecm-order-meta">
@@ -688,15 +696,15 @@
         <table class="ecm-order-table">
           <tbody>
             <tr>
-              <td>Восстановительная полировка кузова</td>
-              <td class="col-price">${basePrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+              <td>${sName}</td>
+              <td class="col-price">${bPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
             <tr class="ecm-row-upsell">
               <td>
-                Нанокерамика 9H (2 слоя)
-                <span class="ecm-upsell-tag">+${upsellPrice.toLocaleString('ru-RU')}&nbsp;₽ к заказу</span>
+                ${uName}
+                <span class="ecm-upsell-tag">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽ к заказу</span>
               </td>
-              <td class="col-price">+${upsellPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+              <td class="col-price">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
             <tr>
               <td>Гидрофобный антидождь передней полусферы</td>
@@ -704,7 +712,7 @@
             </tr>
             <tr class="ecm-row-total">
               <td>Итого с допродажей:</td>
-              <td class="col-price">${totalPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+              <td class="col-price">${tPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
           </tbody>
         </table>
@@ -773,9 +781,9 @@
       if (m.role === 'user') {
         msgRow.innerHTML = `<div class="ecm-user-text">${m.text}</div>`;
       } else if (m.isEstimate) {
-        msgRow.innerHTML = buildOrderCardHtml(m.carModel, m.carClass, m.basePrice, m.upsellPrice, m.totalPrice, m.slot);
+        msgRow.innerHTML = buildOrderCardHtml(m.carModel, m.carClass, m.basePrice, m.upsellPrice, m.totalPrice, m.slot, m.serviceName, m.upsellName);
       } else {
-        msgRow.innerHTML = `<div class="ecm-user-text" style="background:var(--w-card);">${m.text}</div>`;
+        msgRow.innerHTML = `<div class="ecm-user-text" style="background:var(--w-card); white-space:pre-wrap; line-height:1.45;">${m.text}</div>`;
       }
       containerEl.appendChild(msgRow);
     });
@@ -951,6 +959,10 @@
   }
 
   function resetConversation() {
+    try {
+      localStorage.removeItem(USAGE_KEY);
+      localStorage.removeItem(MSGS_KEY);
+    } catch(e) {}
     messages = [
       { role: 'user', text: 'Сколько стоит полировка BMW F10?' },
       {
@@ -958,7 +970,9 @@
         isEstimate: true,
         carModel: 'BMW F10',
         carClass: 'Седан',
+        serviceName: 'Восстановительная полировка кузова',
         basePrice: 18000,
+        upsellName: 'Нанокерамика 9H (2 слоя)',
         upsellPrice: 25000,
         totalPrice: 43000,
         slot: 'суббота 14:00'
@@ -967,19 +981,199 @@
     renderAllStreams();
   }
 
-  // ─── 11. ЛОГИКА ОТВЕТОВ БОТА В ФОРМАТЕ СМЕТЫ ──────────────────────
+  // ─── 11. ИНТЕЛЛЕКТУАЛЬНЫЙ AI-ОТВЕТЧИК ДЛЯ ЧАТА ─────────────────────
+
+  function parseAiReply(rawText) {
+    if (!rawText) return { text: '' };
+    const jsonMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const est = JSON.parse(jsonMatch[0]);
+        let cleanText = rawText.replace(jsonMatch[0], '').trim();
+        cleanText = cleanText.replace(/```json|```/g, '').trim();
+        return {
+          text: cleanText,
+          estimate: est
+        };
+      } catch (e) {}
+    }
+    return { text: rawText.replace(/```json|```/g, '').trim() };
+  }
+
+  function getSmartFallback(text) {
+    const low = text.toLowerCase();
+    if (low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') || low.includes('что лучше')) {
+      return {
+        text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, пожалуйста:\n1. Марку и модель вашего автомобиля?\n2. Автомобиль новый из салона или с пробегом?\n3. Какую задачу в первую очередь хотите решить: защитить кузов от сколов (пленка PPF), убрать царапины и вернуть блеск (полировка + керамика) или обновить салон (химчистка)?'
+      };
+    }
+    if (low.includes('где') || low.includes('адрес') || low.includes('находит') || low.includes('город') || low.includes('как доехать')) {
+      return {
+        text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать по услугам или подобрать время?`
+      };
+    }
+    if (low.includes('суббот') || low.includes('запис') || low.includes('окно') || low.includes('время') || low.includes('брон') || low.includes('свобод')) {
+      return {
+        text: 'На ближайшую субботу доступен свободный слот в 14:00 (мастер второй смены). Напишите ваш номер телефона и модель автомобиля для фиксации брони на 15 минут.'
+      };
+    }
+    if (low.includes('gle') || low.includes('мерседес') || low.includes('mercedes') || low.includes('джип') || low.includes('внедорожник')) {
+      return {
+        text: 'Для внедорожников класса Mercedes GLE рекомендуем восстановительную полировку кузова либо оклейку зон риска антигравийной пленкой PPF с керамическим покрытием на остальной кузов (антидождь в подарок).',
+        estimate: {
+          isEstimate: true,
+          carModel: 'Mercedes GLE',
+          carClass: 'Внедорожник',
+          serviceName: 'Оклейка кузова PPF',
+          basePrice: 75000,
+          upsellName: 'Нанокерамика 9H на кузов',
+          upsellPrice: 30000,
+          totalPrice: 105000,
+          slot: 'понедельник 11:00'
+        }
+      };
+    }
+    if (low.includes('f10') || low.includes('bmw') || low.includes('седан') || low.includes('полировк')) {
+      return {
+        text: 'Для седанов стоимость восстановительной полировки кузова — 18 000 ₽. Рекомендуем закрепить блеск 2 слоями нанокерамики 9H (+25 000 ₽), при этом гидрофобный антидождь идет в подарок по акции!',
+        estimate: {
+          isEstimate: true,
+          carModel: 'BMW / Седан',
+          carClass: 'Седан',
+          serviceName: 'Восстановительная полировка кузова',
+          basePrice: 18000,
+          upsellName: 'Нанокерамика 9H (2 слоя)',
+          upsellPrice: 25000,
+          totalPrice: 43000,
+          slot: 'суббота 14:00'
+        }
+      };
+    }
+    return {
+      text: 'Здравствуйте! Я онлайн-консультант детейлинг-центра. Подскажите марку и модель вашего автомобиля или интересующую услугу (полировка, керамика, оклейка PPF, химчистка), и я подробно проконсультирую и сделаю точный расчет сметы.'
+    };
+  }
+
+  async function queryAi(promptText, chatHistory) {
+    // 1. Попытка запроса через бэкенд FastAPI (/api/chat), если запущен локально
+    try {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocal) {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studio_id: STUDIO_CONFIG.studio_id || 'default',
+            session_id: SESSION_KEY,
+            message: promptText
+          }),
+          signal: ctrl.signal
+        });
+        clearTimeout(tid);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.reply) {
+            return parseAiReply(data.reply);
+          }
+        }
+      }
+    } catch (e) {
+      // Игнорируем и переходим к прямому вызову Gemini
+    }
+
+    // 2. Прямой вызов Google Gemini API через DEFAULT_KEY (работает и на GitHub Pages, и локально)
+    if (DEFAULT_KEY) {
+      try {
+        const sysInstruction = `
+Ты — опытный, вежливый и профессиональный старший администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».
+Адрес студии: ${STUDIO_CONFIG.city}.
+ТВОЙ ТОН: деловой, спокойный, лаконичный, стиль премиум-сервиса заказ-наряда. Без восклицаний и лишних эмодзи.
+
+УСЛУГИ И ПРАЙС:
+- Седан / Купе (BMW 3/5, Camry, Mercedes E/C, Audi A4/A6): Полировка 18 000 ₽, Керамика 9H (2 слоя) +25 000 ₽, Оклейка PPF от 65 000 ₽, Химчистка салона 15 000 ₽.
+- Кроссовер (BMW X3, Audi Q5, Mercedes GLC, Tiguan, Monjaro): Полировка 22 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
+- Внедорожник / Джип (BMW X5/X7, Mercedes GLE/GLS, Land Cruiser): Полировка 26 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
+АКЦИЯ И БОНУС:
+При заказе комплекса (полировка + керамика или оклейка PPF) — нанесение гидрофобного антидождя на переднюю полусферу бесплатно (0 ₽ в подарок).
+СВОБОДНЫЙ СЛОТ ДЛЯ ЗАПИСИ: суббота в 14:00 (удержание окна 15 минут).
+
+СТРОГИЕ ПРАВИЛА:
+1. КОНСУЛЬТАЦИЯ И ВЫБОР:
+   Если клиент просит помочь с выбором («помоги мне с выбором», «что посоветуете», «какие услуги», «что лучше пленка или керамика»):
+   - Спокойно и по-человечески проконсультируй!
+   - Уточни марку/модель авто, состояние (новое или с пробегом), и какую главную задачу хочет решить клиент.
+   - СТРОГО: НЕ выдавай бланк сметы на 43 000 ₽, пока клиент не спросит конкретный расчет на конкретный автомобиль!
+2. РАСЧЁТ НА КОНКРЕТНОЕ АВТО:
+   Если клиент спрашивает стоимость на конкретную модель (например: BMW, Mercedes, GLE, Camry, Polo и т.д.):
+   - Назови класс, стоимость полировки или оклейки, предложи керамику с подарком-антидождем, назови свободный слот суббота 14:00.
+   - В самом конце ответа добавь строго одну строчку JSON:
+     {"isEstimate": true, "carModel": "Модель авто", "carClass": "Класс (Седан/Кроссовер/Внедорожник)", "serviceName": "Восстановительная полировка кузова", "basePrice": 18000, "upsellName": "Нанокерамика 9H (2 слоя)", "upsellPrice": 25000, "totalPrice": 43000, "slot": "суббота 14:00"}
+3. АДРЕС И ВОПРОСЫ:
+   Если клиент спрашивает адрес или как доехать — назови адрес (${STUDIO_CONFIG.city}).
+4. ЗАПИСЬ:
+   Если клиент пишет номер телефона или просит записать — подтверди бронь на 15 минут.
+`.trim();
+
+        const contents = [];
+        const recent = (chatHistory || []).slice(-6);
+        for (const m of recent) {
+          if (m.role === 'user' && m.text) {
+            contents.push({ role: 'user', parts: [{ text: m.text }] });
+          } else if (m.role === 'bot' && m.text && !m.isEstimate) {
+            contents.push({ role: 'model', parts: [{ text: m.text }] });
+          }
+        }
+        contents.push({ role: 'user', parts: [{ text: promptText }] });
+
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${DEFAULT_KEY}`;
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 6500);
+        const res = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: sysInstruction }] },
+            contents: contents,
+            generationConfig: {
+              temperature: 0.25,
+              maxOutputTokens: 600
+            }
+          }),
+          signal: ctrl.signal
+        });
+        clearTimeout(tid);
+
+        if (res.ok) {
+          const gData = await res.json();
+          const cand = gData.candidates && gData.candidates[0];
+          const textPart = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
+          if (textPart) {
+            return parseAiReply(textPart.trim());
+          }
+        }
+      } catch (e) {
+        console.warn('[ECM Widget] Gemini direct call notice:', e);
+      }
+    }
+
+    // 3. Умный контекстный оффлайн-фоллбэк
+    return getSmartFallback(promptText);
+  }
+
   async function handleUserSend(text) {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    // Лимит сообщений
+    // Лимит сообщений в демо
     const count = incrementMessageCount();
     if (count > MAX_DEMO_MESSAGES) {
       messages.push({ role: 'user', text: trimmed });
       messages.push({
         role: 'bot',
         isEstimate: false,
-        text: 'В демо доступно 10 сообщений. Для полноценного подключения напишите основателю: @godblessed77'
+        text: 'В демо доступно 50 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
       });
       renderAllStreams();
       return;
@@ -991,94 +1185,41 @@
     // Показываем индикатор набора
     showTyping();
 
-    // Естественная задержка
-    await new Promise(r => setTimeout(r, 1200));
+    // Запрос к AI (Gemini / Backend)
+    const aiResult = await queryAi(trimmed, messages);
     hideTyping();
 
-    // Анализ запроса
-    const low = trimmed.toLowerCase();
+    if (aiResult.text) {
+      messages.push({
+        role: 'bot',
+        isEstimate: false,
+        text: aiResult.text
+      });
+    }
 
-    if (low.includes('gle') || low.includes('мерседес') || low.includes('mercedes') || low.includes('ppf') || low.includes('пленк') || low.includes('оклейк')) {
+    if (aiResult.estimate) {
+      const est = aiResult.estimate;
       messages.push({
         role: 'bot',
         isEstimate: true,
-        carModel: 'Mercedes GLE',
-        carClass: 'Внедорожник',
-        basePrice: 75000,
-        upsellPrice: 30000,
-        totalPrice: 105000,
-        slot: 'понедельник 11:00'
+        carModel: est.carModel || 'Автомобиль',
+        carClass: est.carClass || 'Расчёт по прайсу',
+        serviceName: est.serviceName || 'Восстановительная полировка кузова',
+        basePrice: Number(est.basePrice) || 18000,
+        upsellName: est.upsellName || 'Нанокерамика 9H (2 слоя)',
+        upsellPrice: Number(est.upsellPrice) || 25000,
+        totalPrice: Number(est.totalPrice) || 43000,
+        slot: est.slot || 'суббота 14:00'
       });
+
       try {
         window.dispatchEvent(new CustomEvent('ecm-lead-created', {
           detail: {
             client: 'Посетитель сайта',
             contact: 'Онлайн-диалог',
-            car: 'Mercedes GLE (Внедорожник)',
-            service: 'Оклейка кузова PPF + керамика',
-            cost: '105 000 ₽',
-            source: 'Виджет на сайте',
-            status: 'Новая заявка'
-          }
-        }));
-      } catch (e) {}
-    } else if (low.includes('воскресень') || low.includes('завтра')) {
-      messages.push({
-        role: 'bot',
-        isEstimate: false,
-        text: 'На ближайшие сутки боксы полностью загружены. Ближайший свободный слот — суббота в 14:00. Закрепить за вами?'
-      });
-      try {
-        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
-          detail: {
-            client: 'Посетитель сайта',
-            contact: 'Запрос записи',
-            car: 'Автомобиль клиента',
-            service: 'Подбор слота: суббота 14:00',
-            cost: 'Уточняется',
-            source: 'Виджет на сайте',
-            status: 'Диалог в чате'
-          }
-        }));
-      } catch (e) {}
-    } else if (low.includes('суббот') || low.includes('запис') || low.includes('окно') || low.includes('время')) {
-      messages.push({
-        role: 'bot',
-        isEstimate: false,
-        text: 'На субботу свободно окно в 14:00 (мастер второй смены). Напишите номер телефона для фиксации брони на 15 минут.'
-      });
-      try {
-        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
-          detail: {
-            client: 'Посетитель сайта',
-            contact: 'Фиксация брони 15 мин',
-            car: 'Автомобиль клиента',
-            service: 'Бронь слота суббота 14:00',
-            cost: '43 000 ₽',
-            source: 'Виджет на сайте',
-            status: 'Слот забронирован'
-          }
-        }));
-      } catch (e) {}
-    } else {
-      messages.push({
-        role: 'bot',
-        isEstimate: true,
-        carModel: 'Седан / Купе',
-        carClass: 'Расчёт по прайсу',
-        basePrice: 18000,
-        upsellPrice: 25000,
-        totalPrice: 43000,
-        slot: 'суббота 14:00'
-      });
-      try {
-        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
-          detail: {
-            client: 'Посетитель сайта',
-            contact: 'Онлайн-расчёт сметы',
-            car: trimmed.length < 25 ? trimmed : 'BMW / Седан',
-            service: 'Восстановительная полировка + керамика 9H',
-            cost: '43 000 ₽',
+            car: `${est.carModel} (${est.carClass})`,
+            service: `${est.serviceName || 'Полировка'} + ${est.upsellName || 'Керамика'}`,
+            cost: `${Number(est.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
             source: 'Виджет на сайте',
             status: 'Новая заявка'
           }
