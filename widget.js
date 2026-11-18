@@ -30,8 +30,9 @@
     ),
     promo: 'Бесплатный замер толщины ЛКП и гидрофобный антидождь передней полусферы в подарок при заказе комплекса.',
     quick_prompts: [
-      'Сколько стоит полировка BMW F10?',
       'Хочу PPF на Mercedes GLE',
+      'Сколько стоит полировка кузова?',
+      'Помоги мне с выбором',
       'Запишите на субботу'
     ]
   };
@@ -756,19 +757,17 @@
   shadow.appendChild(wrapper);
 
   // ─── 9. ЛОГИКА ДИАЛОГА И СМЕТЫ ────────────────────────────────────
-  let messages = [
-    { role: 'user', text: 'Сколько стоит полировка BMW F10?' },
-    {
-      role: 'bot',
-      isEstimate: true,
-      carModel: 'BMW F10',
-      carClass: 'Седан',
-      basePrice: 18000,
-      upsellPrice: 25000,
-      totalPrice: 43000,
-      slot: 'суббота 14:00'
-    }
-  ];
+  function getInitialMessages() {
+    return [
+      {
+        role: 'bot',
+        isEstimate: false,
+        text: `Здравствуйте! Я ИИ-администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».\n\nРассчитаю точную смету под ваш автомобиль, помогу с выбором комплекса (полировка, нанокерамика, оклейка PPF, химчистка) и забронирую свободный слот. Напишите вашу модель авто или выберите вопрос ниже!`
+      }
+    ];
+  }
+
+  let messages = getInitialMessages();
 
   function renderMessagesInto(containerEl) {
     if (!containerEl) return;
@@ -963,21 +962,7 @@
       localStorage.removeItem(USAGE_KEY);
       localStorage.removeItem(MSGS_KEY);
     } catch(e) {}
-    messages = [
-      { role: 'user', text: 'Сколько стоит полировка BMW F10?' },
-      {
-        role: 'bot',
-        isEstimate: true,
-        carModel: 'BMW F10',
-        carClass: 'Седан',
-        serviceName: 'Восстановительная полировка кузова',
-        basePrice: 18000,
-        upsellName: 'Нанокерамика 9H (2 слоя)',
-        upsellPrice: 25000,
-        totalPrice: 43000,
-        slot: 'суббота 14:00'
-      }
-    ];
+    messages = getInitialMessages();
     renderAllStreams();
   }
 
@@ -1100,32 +1085,57 @@
 СВОБОДНЫЙ СЛОТ ДЛЯ ЗАПИСИ: суббота в 14:00 (удержание окна 15 минут).
 
 СТРОГИЕ ПРАВИЛА:
-1. КОНСУЛЬТАЦИЯ И ВЫБОР:
-   Если клиент просит помочь с выбором («помоги мне с выбором», «что посоветуете», «какие услуги», «что лучше пленка или керамика»):
+1. ПРИОРИТЕТ ТЕКУЩЕГО ЗАПРОСА (ГЛАВНОЕ ПРАВИЛО):
+   - Отвечай СТРОГО на ПОСЛЕДНЕЕ сообщение клиента!
+   - Если клиент спрашивает про Mercedes GLE — отвечай ИСКЛЮЧИТЕЛЬНО про Mercedes GLE!
+   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать BMW F10 или другие ранее упомянутые автомобили, если клиент о них не спрашивает в текущем сообщении.
+   - Если клиент выбрал «Хочу PPF на Mercedes GLE»:
+     * Класс: Внедорожник / Джип.
+     * Стоимость оклейки зон риска PPF: 75 000 ₽.
+     * Допродажа: нанокерамика 9H на остальной кузов +30 000 ₽ (антидождь передней полусферы 0 ₽ в подарок). Итого: 105 000 ₽.
+     * Бланк JSON в конце строки строй СТРОГО на Mercedes GLE:
+       {"isEstimate": true, "carModel": "Mercedes GLE", "carClass": "Внедорожник", "serviceName": "Оклейка зон риска пленкой PPF", "basePrice": 75000, "upsellName": "Нанокерамика 9H на кузов", "upsellPrice": 30000, "totalPrice": 105000, "slot": "суббота 14:00"}
+2. КОНСУЛЬТАЦИЯ И ВЫБОР:
+   Если клиент просит помочь с выбором («помоги мне с выбором», «что посоветуете», «какие услуги»):
    - Спокойно и по-человечески проконсультируй!
    - Уточни марку/модель авто, состояние (новое или с пробегом), и какую главную задачу хочет решить клиент.
-   - СТРОГО: НЕ выдавай бланк сметы на 43 000 ₽, пока клиент не спросит конкретный расчет на конкретный автомобиль!
-2. РАСЧЁТ НА КОНКРЕТНОЕ АВТО:
-   Если клиент спрашивает стоимость на конкретную модель (например: BMW, Mercedes, GLE, Camry, Polo и т.д.):
-   - Назови класс, стоимость полировки или оклейки, предложи керамику с подарком-антидождем, назови свободный слот суббота 14:00.
-   - В самом конце ответа добавь строго одну строчку JSON:
-     {"isEstimate": true, "carModel": "Модель авто", "carClass": "Класс (Седан/Кроссовер/Внедорожник)", "serviceName": "Восстановительная полировка кузова", "basePrice": 18000, "upsellName": "Нанокерамика 9H (2 слоя)", "upsellPrice": 25000, "totalPrice": 43000, "slot": "суббота 14:00"}
-3. АДРЕС И ВОПРОСЫ:
+   - СТРОГО: НЕ выдавай бланк сметы, пока клиент не спросит конкретный расчет на конкретный автомобиль!
+3. РАСЧЁТ НА ДРУГИЕ АВТО:
+   Если клиент спрашивает стоимость на другую модель — определи её класс, назови цены и в самом конце ответа добавь одну строчку JSON сметы строго на эту модель.
+4. АДРЕС И ВОПРОСЫ:
    Если клиент спрашивает адрес или как доехать — назови адрес (${STUDIO_CONFIG.city}).
-4. ЗАПИСЬ:
+5. ЗАПИСЬ:
    Если клиент пишет номер телефона или просит записать — подтверди бронь на 15 минут.
 `.trim();
 
         const contents = [];
+        let lastRole = null;
         const recent = (chatHistory || []).slice(-6);
         for (const m of recent) {
-          if (m.role === 'user' && m.text) {
-            contents.push({ role: 'user', parts: [{ text: m.text }] });
-          } else if (m.role === 'bot' && m.text && !m.isEstimate) {
-            contents.push({ role: 'model', parts: [{ text: m.text }] });
+          if (m.role === 'user' && m.text && !m.text.includes('BMW F10')) {
+            if (lastRole === 'user') {
+              contents[contents.length - 1].parts[0].text += '\n' + m.text;
+            } else {
+              contents.push({ role: 'user', parts: [{ text: m.text }] });
+              lastRole = 'user';
+            }
+          } else if (m.role === 'bot') {
+            const bText = m.text || (m.isEstimate ? `[Смета: ${m.carModel} (${m.carClass}), ${m.serviceName} ${m.basePrice} ₽, ${m.upsellName} ${m.upsellPrice} ₽, Итого ${m.totalPrice} ₽]` : '');
+            if (bText && !bText.includes('BMW F10')) {
+              if (lastRole === 'model') {
+                contents[contents.length - 1].parts[0].text += '\n' + bText;
+              } else if (contents.length > 0) {
+                contents.push({ role: 'model', parts: [{ text: bText }] });
+                lastRole = 'model';
+              }
+            }
           }
         }
-        contents.push({ role: 'user', parts: [{ text: promptText }] });
+        if (lastRole === 'user') {
+          contents[contents.length - 1].parts[0].text += '\n' + promptText;
+        } else {
+          contents.push({ role: 'user', parts: [{ text: promptText }] });
+        }
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${DEFAULT_KEY}`;
         const ctrl = new AbortController();
@@ -1265,35 +1275,8 @@
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function runAutoplay() {
-    if (prefersReduced) {
-      renderAllStreams();
-      return;
-    }
-
-    // Очищаем и воспроизводим первый диалог
-    messages = [];
+    messages = getInitialMessages();
     renderAllStreams();
-
-    setTimeout(() => {
-      messages.push({ role: 'user', text: 'Сколько стоит полировка BMW F10?' });
-      renderAllStreams();
-      showTyping();
-
-      setTimeout(() => {
-        hideTyping();
-        messages.push({
-          role: 'bot',
-          isEstimate: true,
-          carModel: 'BMW F10',
-          carClass: 'Седан',
-          basePrice: 18000,
-          upsellPrice: 25000,
-          totalPrice: 43000,
-          slot: 'суббота 14:00'
-        });
-        renderAllStreams();
-      }, 1200);
-    }, 400);
   }
 
   // ─── 13. ПУБЛИЧНЫЙ API WINDOW.ECMWIDGET ────────────────────────────

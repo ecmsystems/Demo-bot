@@ -1816,11 +1816,14 @@
 
           <!-- Быстрые чипы -->
           <div class="widget-chips-strip">
-            <button class="widget-chip-btn" onclick="injectDemoMessage('Сколько стоит полировка BMW F10?')">
-              Сколько стоит полировка BMW F10?
-            </button>
             <button class="widget-chip-btn" onclick="injectDemoMessage('Хочу PPF на Mercedes GLE')">
               Хочу PPF на Mercedes GLE
+            </button>
+            <button class="widget-chip-btn" onclick="injectDemoMessage('Сколько стоит полировка кузова?')">
+              Сколько стоит полировка кузова?
+            </button>
+            <button class="widget-chip-btn" onclick="injectDemoMessage('Помоги мне с выбором')">
+              Помоги мне с выбором
             </button>
             <button class="widget-chip-btn" onclick="injectDemoMessage('Запишите на субботу')">
               Запишите на субботу
@@ -2913,9 +2916,9 @@
         time: timeStr,
         client: detail.client || 'Посетитель сайта',
         contact: detail.contact || 'Онлайн-диалог в виджете',
-        car: detail.car || 'BMW F10 (Седан)',
-        service: detail.service || 'Восстановительная полировка + керамика',
-        price: detail.cost || '43 000 ₽',
+        car: detail.car || 'Автомобиль клиента',
+        service: detail.service || 'Детейлинг-комплекс',
+        price: detail.cost || 'По прайсу',
         source: detail.source || 'Виджет на сайте',
         sourceType: 'widget',
         status: detail.status || 'Новая заявка',
