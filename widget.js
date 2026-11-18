@@ -762,7 +762,21 @@
       {
         role: 'bot',
         isEstimate: false,
-        text: `Здравствуйте! Я ИИ-администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».\n\nРассчитаю точную смету под ваш автомобиль, помогу с выбором комплекса (полировка, нанокерамика, оклейка PPF, химчистка) и забронирую свободный слот. Напишите вашу модель авто или выберите вопрос ниже!`
+        isInitialSample: true,
+        text: `Здравствуйте! Я ИИ-администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».\n\nНиже — образец готового заказ-наряда со сметой и бронью слота. Назовите вашу модель авто или выберите вопрос ниже — сделаю точный расчет под ваш автомобиль и запишу вас на удобное время!`
+      },
+      {
+        role: 'bot',
+        isEstimate: true,
+        isInitialSample: true,
+        carModel: 'BMW 5 / Седан',
+        carClass: 'Образец сметы',
+        serviceName: 'Комплексная восстановительная полировка кузова',
+        basePrice: 18000,
+        upsellName: 'Нанокерамика 9H (2 слоя)',
+        upsellPrice: 25000,
+        totalPrice: 43000,
+        slot: 'суббота 14:00'
       }
     ];
   }
@@ -968,14 +982,44 @@
 
   // ─── 11. ИНТЕЛЛЕКТУАЛЬНЫЙ AI-ОТВЕТЧИК ДЛЯ ЧАТА ─────────────────────
 
+  let activeOrderState = {
+    carModel: null,
+    carClass: 'Седан',
+    serviceName: 'Комплексная восстановительная полировка кузова',
+    basePrice: 18000,
+    upsellName: 'Нанокерамика 9H (2 слоя)',
+    upsellPrice: 25000,
+    totalPrice: 43000,
+    slot: 'суббота 14:00'
+  };
+
+  function isBookingIntent(text) {
+    if (!text) return false;
+    const low = text.toLowerCase();
+    const hasPhone = /\+?[78][-\s(]?\d{3}[-\s)]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/.test(text) || /\d{10,11}/.test(text);
+    const hasKeyword = low.includes('запис') || low.includes('забронир') || low.includes('брон') ||
+                       low.includes('подходит') || low.includes('согласен') || low.includes('давайте') ||
+                       low.includes('зафиксир') || low.includes('слот');
+    return hasPhone || hasKeyword;
+  }
+
   function stripCodePieces(text) {
     if (!text) return '';
     let clean = text.replace(/```[a-z]*[\s\S]*?```/gi, '');
     clean = clean.replace(/```[a-z]*/gi, '');
-    // Удаляем любые остатки JSON сметы из видимого сообщения
-    let idx = clean.indexOf('{"isEstimate"');
-    if (idx === -1) idx = clean.indexOf('{ "isEstimate"');
-    if (idx !== -1) clean = clean.substring(0, idx);
+
+    // Удаляем любые остатки JSON со сметой из видимого сообщения (включая многострочные)
+    const jsonStartMatch = clean.match(/\{[\s\r\n]*"(?:isEstimate|carModel|serviceName|basePrice|totalPrice|carClass)"/i);
+    if (jsonStartMatch && typeof jsonStartMatch.index === 'number') {
+      clean = clean.substring(0, jsonStartMatch.index);
+    }
+
+    // Если в конце строки осталась открывающая фигурная скобка или неполный JSON
+    clean = clean.replace(/\{[\s\S]*$/g, '');
+
+    // Убираем любые незакрытые markdown бэктики
+    clean = clean.replace(/`+/g, '');
+
     return clean.trim();
   }
 
@@ -984,28 +1028,32 @@
 
     // 1. Полноценный JSON из ответа ИИ
     if (rawText) {
-      const jsonMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*\}/);
+      const jsonMatch = rawText.match(/\{[\s\S]*"(?:isEstimate|carModel)"[\s\S]*\}/);
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed && (parsed.isEstimate || parsed.carModel)) {
-            return {
+            const bp = Number(parsed.basePrice) || 18000;
+            const up = Number(parsed.upsellPrice) || 25000;
+            const res = {
               isEstimate: true,
               carModel: parsed.carModel || 'Автомобиль',
               carClass: parsed.carClass || 'Расчёт по прайсу',
-              serviceName: parsed.serviceName || 'Восстановительная полировка кузова',
-              basePrice: Number(parsed.basePrice) || 18000,
+              serviceName: parsed.serviceName || 'Комплексная восстановительная полировка кузова',
+              basePrice: bp,
               upsellName: parsed.upsellName || 'Нанокерамика 9H (2 слоя)',
-              upsellPrice: Number(parsed.upsellPrice) || 25000,
-              totalPrice: Number(parsed.totalPrice) || 43000,
+              upsellPrice: up,
+              totalPrice: Number(parsed.totalPrice) || (bp + up),
               slot: parsed.slot || 'суббота 14:00'
             };
+            activeOrderState = Object.assign({}, activeOrderState, res);
+            return res;
           }
         } catch (e) {}
       }
 
       // 2. Если JSON был обрезан нейросетью
-      const cutMatch = rawText.match(/\{[\s\S]*"isEstimate"[\s\S]*/);
+      const cutMatch = rawText.match(/\{[\s\S]*"(?:isEstimate|carModel)"[\s\S]*/);
       if (cutMatch) {
         const cutStr = cutMatch[0];
         const carM = cutStr.match(/"carModel":\s*"([^"]+)"/);
@@ -1019,18 +1067,19 @@
         if (carM || bpM) {
           const bp = bpM ? Number(bpM[1]) : 75000;
           const up = upM ? Number(upM[1]) : 30000;
-          const tp = tpM ? Number(tpM[1]) : (bp + up);
-          return {
+          const res = {
             isEstimate: true,
-            carModel: carM ? carM[1] : 'Mercedes GLE',
+            carModel: carM ? carM[1] : (activeOrderState.carModel || 'Mercedes GLE'),
             carClass: clsM ? clsM[1] : 'Внедорожник',
             serviceName: srvM ? srvM[1] : 'Оклейка зон риска пленкой PPF',
             basePrice: bp,
             upsellName: 'Нанокерамика 9H на кузов',
             upsellPrice: up,
-            totalPrice: tp,
+            totalPrice: tpM ? Number(tpM[1]) : (bp + up),
             slot: slotM ? slotM[1] : 'суббота 14:00'
           };
+          activeOrderState = Object.assign({}, activeOrderState, res);
+          return res;
         }
       }
     }
@@ -1038,10 +1087,13 @@
     // 3. Автоматический интеллектуальный расчёт сметы по автомобилю
     const low = ((userText || '') + ' ' + (rawText || '')).toLowerCase();
 
-    // Чистые вопросы без машины не требуют принудительной сметы
+    // Чистые вопросы-консультации без машины не требуют сметы
     if (low.includes('помоги') || low.includes('с выбором') || low.includes('где вы') || low.includes('адрес') || low.includes('как доехать')) {
       return null;
     }
+
+    const hasPhone = /\+?[78][-\s(]?\d{3}[-\s)]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/.test(userText || '') || /\d{10,11}/.test(userText || '');
+    const isBooking = hasPhone || low.includes('запис') || low.includes('брон') || low.includes('подходит') || low.includes('согласен') || low.includes('давайте');
 
     const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || low.includes('брон');
     const isClean = low.includes('химчист') || low.includes('салон');
@@ -1080,16 +1132,18 @@
       else carModel = 'Седан / Купе';
     }
 
-    if (!carModel && !isEstimateQuery) {
+    if (!carModel && !isEstimateQuery && !isBooking) {
       return null;
     }
 
-    carModel = carModel || 'Автомобиль клиента';
+    carModel = carModel || activeOrderState.carModel || 'Автомобиль клиента';
+    if (!carModel && isBooking) carModel = 'Автомобиль клиента';
 
+    let res;
     if (isPPF) {
       const bp = (carClass === 'Седан') ? 65000 : 75000;
       const up = (carClass === 'Седан') ? 25000 : 30000;
-      return {
+      res = {
         isEstimate: true,
         carModel: carModel,
         carClass: carClass,
@@ -1100,11 +1154,9 @@
         totalPrice: bp + up,
         slot: 'суббота 14:00'
       };
-    }
-
-    if (isClean) {
+    } else if (isClean) {
       const bp = (carClass === 'Седан') ? 15000 : 18000;
-      return {
+      res = {
         isEstimate: true,
         carModel: carModel,
         carClass: carClass,
@@ -1115,22 +1167,25 @@
         totalPrice: bp + 8000,
         slot: 'суббота 14:00'
       };
+    } else {
+      // Комплекс полировка + нанокерамика
+      const bp = (carClass === 'Внедорожник') ? 26000 : ((carClass === 'Кроссовер') ? 22000 : 18000);
+      const up = (carClass === 'Седан') ? 25000 : 30000;
+      res = {
+        isEstimate: true,
+        carModel: carModel,
+        carClass: carClass,
+        serviceName: 'Комплексная восстановительная полировка кузова',
+        basePrice: bp,
+        upsellName: 'Нанокерамика 9H (2 слоя)',
+        upsellPrice: up,
+        totalPrice: bp + up,
+        slot: 'суббота 14:00'
+      };
     }
 
-    // Комплекс полировка + нанокерамика
-    const bp = (carClass === 'Внедорожник') ? 26000 : ((carClass === 'Кроссовер') ? 22000 : 18000);
-    const up = (carClass === 'Седан') ? 25000 : 30000;
-    return {
-      isEstimate: true,
-      carModel: carModel,
-      carClass: carClass,
-      serviceName: 'Комплексная восстановительная полировка кузова',
-      basePrice: bp,
-      upsellName: 'Нанокерамика 9H (2 слоя)',
-      upsellPrice: up,
-      totalPrice: bp + up,
-      slot: 'суббота 14:00'
-    };
+    activeOrderState = Object.assign({}, activeOrderState, res);
+    return res;
   }
 
   function getSmartFallback(text) {
@@ -1151,9 +1206,10 @@
         text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать по услугам или подобрать время?`
       };
     }
-    if (low.includes('суббот') || low.includes('запис') || low.includes('окно') || low.includes('время') || low.includes('брон') || low.includes('свобод')) {
+    if (low.includes('запис') || low.includes('брон') || low.includes('суббот') || low.includes('номер') || low.includes('тел')) {
       return {
-        text: 'На ближайшую субботу доступен свободный слот в 14:00 (мастер второй смены). Напишите ваш номер телефона и модель автомобиля для фиксации брони на 15 минут.'
+        text: 'Отлично! Забронировал за вами свободный слот на субботу в 14:00. Окно брони удерживается 15 минут. Мастер подготовит бокс к вашему приезду. Ниже сформирован ваш итоговый заказ-наряд:',
+        rawText: `{"isEstimate": true, "carModel": "${activeOrderState.carModel || 'Автомобиль клиента'}", "carClass": "${activeOrderState.carClass || 'Седан'}", "serviceName": "${activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова'}", "basePrice": ${activeOrderState.basePrice || 18000}, "upsellName": "${activeOrderState.upsellName || 'Нанокерамика 9H (2 слоя)'}", "upsellPrice": ${activeOrderState.upsellPrice || 25000}, "totalPrice": ${activeOrderState.totalPrice || 43000}, "slot": "суббота 14:00"}`
       };
     }
     if (low.includes('f10') || low.includes('bmw') || low.includes('седан') || low.includes('полировк')) {
@@ -1225,25 +1281,32 @@
      * Класс: Внедорожник / Джип.
      * Стоимость оклейки зон риска PPF: 75 000 ₽.
      * Допродажа: нанокерамика 9H на остальной кузов +30 000 ₽ (антидождь передней полусферы 0 ₽ в подарок). Итого: 105 000 ₽.
-     * Бланк JSON в конце строки строй СТРОГО на Mercedes GLE:
+     * В конце одной строчкой сформируй JSON:
        {"isEstimate": true, "carModel": "Mercedes GLE", "carClass": "Внедорожник", "serviceName": "Оклейка зон риска пленкой PPF", "basePrice": 75000, "upsellName": "Нанокерамика 9H на кузов", "upsellPrice": 30000, "totalPrice": 105000, "slot": "суббота 14:00"}
 2. КОНСУЛЬТАЦИЯ И ВЫБОР:
    Если клиент просит помочь с выбором («помоги мне с выбором», «что посоветуете», «какие услуги»):
    - Спокойно и по-человечески проконсультируй!
    - Уточни марку/модель авто, состояние (новое или с пробегом), и какую главную задачу хочет решить клиент.
-   - СТРОГО: НЕ выдавай бланк сметы, пока клиент не спросит конкретный расчет на конкретный автомобиль!
+   - СТРОГО: НЕ выдавай бланк сметы и JSON, пока клиент не спросит конкретный расчет на конкретный автомобиль!
 3. РАСЧЁТ НА ДРУГИЕ АВТО:
    Если клиент спрашивает стоимость на другую модель — определи её класс, назови цены и в самом конце ответа добавь одну строчку JSON сметы строго на эту модель.
-4. АДРЕС И ВОПРОСЫ:
+4. ФИНАЛЬНАЯ ЗАПИСЬ (БРОНИРОВАНИЕ):
+   Если клиент просит записать («запишите на субботу», «запишите меня»), подтверждает время или пишет номер телефона:
+   - Подтверди бронь слота на субботу в 14:00 с удержанием 15 минут.
+   - В самом конце ответа добавь строчку JSON итоговой сметы для забронированного авто.
+5. АДРЕС И ВОПРОСЫ:
    Если клиент спрашивает адрес или как доехать — назови адрес (${STUDIO_CONFIG.city}).
-5. ЗАПИСЬ:
-   Если клиент пишет номер телефона или просит записать — подтверди бронь на 15 минут.
+6. ЧИСТОТА ТЕКСТА:
+   Никогда не выводи в тексте для клиента технические теги, разметку JSON или куски кода.
 `.trim();
 
         const contents = [];
         let lastRole = null;
         const recent = (chatHistory || []).slice(-6);
         for (const m of recent) {
+          if (m.isInitialSample) {
+            continue; // КАТЕГОРИЧЕСКИ НЕ передаем приветственный образец в историю Gemini!
+          }
           if (m.role === 'user' && m.text && !m.text.includes('BMW F10')) {
             if (lastRole === 'user') {
               contents[contents.length - 1].parts[0].text += '\n' + m.text;
@@ -1336,7 +1399,23 @@
     hideTyping();
 
     const cleanText = stripCodePieces(rawResult.text);
-    const estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed) || rawResult.estimate;
+    let estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed) || rawResult.estimate;
+    const bookingMode = isBookingIntent(trimmed);
+
+    // Если клиент готов записаться (финальное сообщение), обязательно выводим итоговую смету!
+    if (bookingMode && !estimate) {
+      estimate = {
+        isEstimate: true,
+        carModel: activeOrderState.carModel || 'Автомобиль клиента',
+        carClass: activeOrderState.carClass || 'Премиум',
+        serviceName: activeOrderState.serviceName || 'Комплексный детейлинг (Полировка + Керамика)',
+        basePrice: activeOrderState.basePrice || 18000,
+        upsellName: activeOrderState.upsellName || 'Нанокерамика 9H (2 слоя)',
+        upsellPrice: activeOrderState.upsellPrice || 25000,
+        totalPrice: activeOrderState.totalPrice || 43000,
+        slot: 'суббота 14:00'
+      };
+    }
 
     if (cleanText) {
       messages.push({
@@ -1361,15 +1440,16 @@
       });
 
       try {
+        const phoneMatch = trimmed.match(/\+?[78][-\s(]?\d{3}[-\s)]?\d{3}[-\s]?\d{2}[-\s]?\d{2}/) || trimmed.match(/\d{10,11}/);
         window.dispatchEvent(new CustomEvent('ecm-lead-created', {
           detail: {
             client: 'Посетитель сайта',
-            contact: 'Онлайн-диалог',
+            contact: bookingMode ? (phoneMatch ? phoneMatch[0] : 'Онлайн-бронь слота') : 'Онлайн-диалог',
             car: `${estimate.carModel} (${estimate.carClass})`,
             service: `${estimate.serviceName || 'Полировка'} + ${estimate.upsellName || 'Керамика'}`,
             cost: `${Number(estimate.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
             source: 'Виджет на сайте',
-            status: 'Новая заявка'
+            status: bookingMode ? 'Бронь подтверждена' : 'Новая заявка'
           }
         }));
       } catch (e) {}
