@@ -426,7 +426,8 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      min-height: 520px;
+      height: 600px;
+      max-height: 600px;
     }
 
     .widget-bar {
@@ -2950,38 +2951,53 @@
       });
     }
 
-    // Интерактивная связка с виджетом: при любом расчёте или сообщении создаём новую запись
+    // Интерактивная связка с виджетом: при любом расчёте или сообщении создаём или обновляем запись текущей сессии
     window.addEventListener('ecm-lead-created', (e) => {
       const detail = e.detail || {};
       const now = new Date();
       const timeStr = `Сегодня, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const newId = `lead-live-${Date.now()}`;
+      const sessionLeadId = 'lead-live-current-session';
 
-      const newLead = {
-        id: newId,
-        time: timeStr,
-        client: detail.client || 'Посетитель сайта',
-        contact: detail.contact || 'Онлайн-диалог в виджете',
-        car: detail.car || 'Автомобиль клиента',
-        service: detail.service || 'Детейлинг-комплекс',
-        price: detail.cost || 'По прайсу',
-        source: detail.source || 'Виджет на сайте',
-        sourceType: 'widget',
-        status: detail.status || 'Новая заявка',
-        statusType: 'new'
-      };
+      const existingIndex = currentLeadsList.findIndex(l => l.id === sessionLeadId);
 
-      // Добавляем в начало таблицы
-      currentLeadsList.unshift(newLead);
-      if (currentLeadsList.length > 10) currentLeadsList.pop();
+      if (existingIndex !== -1) {
+        // Обновляем текущую строку посетителя вместо бесконечного раздувания таблицы
+        currentLeadsList[existingIndex].time = timeStr;
+        currentLeadsList[existingIndex].car = detail.car || currentLeadsList[existingIndex].car;
+        currentLeadsList[existingIndex].service = detail.service || currentLeadsList[existingIndex].service;
+        currentLeadsList[existingIndex].price = detail.cost || currentLeadsList[existingIndex].price;
+        currentLeadsList[existingIndex].status = detail.status || currentLeadsList[existingIndex].status;
+        currentLeadsList[existingIndex].statusType = /подтвержд|забронирован/i.test(detail.status || '') ? 'confirmed' : 'new';
+        if (detail.contact && !/онлайн-диалог/i.test(detail.contact)) {
+          currentLeadsList[existingIndex].contact = detail.contact;
+        }
+        renderSheetsTable(currentLeadsList, new Set([sessionLeadId]));
+      } else {
+        const newLead = {
+          id: sessionLeadId,
+          time: timeStr,
+          client: detail.client || 'Посетитель сайта',
+          contact: detail.contact || 'Онлайн-диалог в виджете',
+          car: detail.car || 'Автомобиль клиента',
+          service: detail.service || 'Детейлинг-комплекс',
+          price: detail.cost || 'По прайсу',
+          source: detail.source || 'Виджет на сайте',
+          sourceType: 'widget',
+          status: detail.status || 'Новая заявка',
+          statusType: /подтвержд|забронирован/i.test(detail.status || '') ? 'confirmed' : 'new'
+        };
 
-      const newSet = new Set([newId]);
-      renderSheetsTable(currentLeadsList, newSet);
+        // Добавляем в начало таблицы и строго ограничиваем 7 записями
+        currentLeadsList.unshift(newLead);
+        while (currentLeadsList.length > 7) currentLeadsList.pop();
+
+        renderSheetsTable(currentLeadsList, new Set([sessionLeadId]));
+      }
 
       // Уведомление в статусной строке
       const statusText = document.getElementById('sheetsStatusText');
       if (statusText) {
-        statusText.textContent = '⚡ Новая заявка моментально зафиксирована в таблице!';
+        statusText.textContent = '⚡ Данные заказ-наряда моментально синхронизированы в таблице!';
         setTimeout(() => {
           statusText.textContent = 'Синхронизация с Google Sheets • Обновляется автоматически';
         }, 4500);
@@ -2994,6 +3010,6 @@
   </script>
 
   <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->
-  <script src="./widget.js?v=2.3.0" data-studio="default"></script>
+  <script src="./widget.js?v=2.4.0" data-studio="default"></script>
 </body>
 </html>

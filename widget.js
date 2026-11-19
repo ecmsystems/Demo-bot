@@ -95,7 +95,7 @@
   const SESSION_KEY = `ecm_session_${STUDIO_CONFIG.studio_id}`;
   const MSGS_KEY = `ecm_msgs_${STUDIO_CONFIG.studio_id}`;
   const USAGE_KEY = `ecm_usage_${STUDIO_CONFIG.studio_id}`;
-  const MAX_DEMO_MESSAGES = 50;
+  const MAX_DEMO_MESSAGES = 500;
 
   function generateUUID() {
     return 'ecm-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9);
@@ -1836,8 +1836,32 @@
 
     const isExcl = isUpsellExclusionQuery(norm) || !!(baseState && baseState.upsellExcluded);
 
-    const isPPF = norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('оклейк') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон') || ((baseState && baseState.serviceName && (baseState.serviceName.includes('PPF') || baseState.serviceName.includes('пленк'))));
-    const isClean = norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('пропитк') || norm.includes('сиден') || ((baseState && baseState.serviceName && (baseState.serviceName.includes('химчист') || baseState.serviceName.includes('салон'))));
+    const hasPPFInText = norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон');
+    const hasCleanInText = norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('пропитк') || norm.includes('сиден');
+    const hasPolishingInText = norm.includes('полировк') || norm.includes('палировк') || norm.includes('глянец') || norm.includes('блеск') || norm.includes('паутинк') || norm.includes('царапин');
+
+    let isPPF = false;
+    let isClean = false;
+    let isPolishing = false;
+
+    if (hasCleanInText) {
+      isClean = true;
+    } else if (hasPPFInText) {
+      isPPF = true;
+    } else if (hasPolishingInText) {
+      isPolishing = true;
+    } else if (baseState && (baseState.serviceCategory || baseState.serviceName)) {
+      if (baseState.serviceCategory === 'clean' || (baseState.serviceName && baseState.serviceName.includes('химчист'))) {
+        isClean = true;
+      } else if (baseState.serviceCategory === 'ppf' || (baseState.serviceName && (baseState.serviceName.includes('PPF') || baseState.serviceName.includes('пленк')))) {
+        isPPF = true;
+      } else {
+        isPolishing = true;
+      }
+    } else {
+      isPolishing = true;
+    }
+
     const curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'на ваш выбор (по согласованию)';
 
     if (isPPF) {
@@ -2081,8 +2105,8 @@
         const est = computeEstimateForCar(text, activeOrderState);
         if (est) {
           activeOrderState = Object.assign({}, activeOrderState, est);
-          const isPPF = (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
-          const isClean = (est.serviceName || '').includes('химчист') || (est.serviceName || '').includes('салон');
+          const isPPF = est.serviceCategory === 'ppf' || (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
+          const isClean = est.serviceCategory === 'clean' || (est.serviceName || '').includes('химчист') || (est.serviceName || '').includes('салон');
 
           let serviceDesc = `стоимость оклейки зон риска полиуретановой пленкой PPF составляет ${est.basePrice.toLocaleString('ru-RU')} ₽`;
           if (isClean) {
@@ -2097,7 +2121,7 @@
 
           let switchComment = '';
           if (isSwitchWithActiveService) {
-            switchComment = `Отлично, зафиксировал ${est.carModel} (${est.carClass})! ${expertNote}\n\n`;
+            switchComment = `Отлично, пересчитал смету на ${est.carModel} (${est.carClass})! ${expertNote}\n\n`;
           } else {
             switchComment = `Для ${est.carModel} (${est.carClass}): ${expertNote}\n\n`;
           }
@@ -2122,6 +2146,41 @@
 
       return {
         text: `Отличный выбор — ${cModel} (${cClass})! ${expertNote}\n\nДля вашего кузова чаще всего выбирают:\n1. 🛡 Оклейка зон риска полиуретановой пленкой PPF — ${ppfPrice}\n2. ✨ Восстановительная полировка кузова — ${polPrice} (акция: антидождь в подарок!)\n3. 🧼 Комплексная детейлинг-химчистка салона — ${cleanPrice}\n\nКакая задача сейчас в приоритете: защитить кузов от сколов, вернуть идеальный зеркальный глянец или обновить салон?`
+      };
+    }
+
+    // 5.1. ОБЩИЙ ВОПРОС ПО УСЛУГАМ («какие у вас услуги», «что делаете», «список услуг», «какой прайс»)
+    const isServiceInquiry = (norm.includes('какие') && (norm.includes('услуг') || norm.includes('работ') || norm.includes('делает') || norm.includes('предлагает'))) ||
+      norm.includes('список услуг') || norm.includes('весь прайс') || norm.includes('что вы делаете') || norm.includes('чем занимаетесь');
+
+    if (isServiceInquiry) {
+      return {
+        text: `В детейлинг-центре «${STUDIO_CONFIG.company_name}» мы выполняем полный комплекс премиального ухода и защиты:\n\n` +
+          `1. 🛡 Бронирование полиуретановой пленкой PPF (200 мкм) — защита зон риска или всего кузова от гравия, сколов и царапин (от 65 000 ₽);\n` +
+          `2. ✨ Восстановительная детейлинг-полировка — удаление паутинки и голограмм, глубокий заводской глянец (от 18 000 ₽);\n` +
+          `3. 💎 Нанокерамика 9H (в 2–3 слоя) — стойкий гидрофобный щит и зеркальный блеск на 18 месяцев;\n` +
+          `4. 🧼 Комплексная химчистка салона — очистка кожи, алькантары и текстиля с озонированием и защитной консервацией (от 15 000 ₽);\n` +
+          `5. 🌧 Нанесение антидождя на переднюю полусферу — 0 ₽ в подарок по действующей акции!\n\n` +
+          `Подскажите, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов и сориентирую по свободным окнам!`
+      };
+    }
+
+    // 5.2. УТОЧНЯЮЩИЕ ВОПРОСЫ («только эти?», «а еще что?», «это все?»)
+    if (norm.includes('только эти') || norm.includes('это все') || norm.includes('что еще') || norm.includes('а еще') || norm.includes('другие услуги')) {
+      return {
+        text: `Также мы выполняем шумоизоляцию премиум-материалами (Comfort Mat), полировку и бронирование оптики, локальную полировку царапин, удаление вмятин без покраски (PDR) и реставрацию кожи салона.\n\nКакая задача для вашего авто сейчас в приоритете? Напишите модель автомобиля — подберем лучшее решение!`
+      };
+    }
+
+    // 5.3. КОРОТКИЕ ПОДТВЕРЖДЕНИЯ («ак», «ок», «хорошо», «понял», «ладно», «ясно», «договорились»)
+    if (norm === 'ак' || norm === 'ок' || norm === 'хорошо' || norm === 'понял' || norm === 'ясно' || norm === 'ладно' || norm === 'договорились' || norm === 'угу') {
+      if (activeOrderState.carModel) {
+        return {
+          text: `Договорились! По вашему ${activeOrderState.carModel} предварительный заказ-наряд зафиксирован. На какой день и время вам удобно записаться в студию?`
+        };
+      }
+      return {
+        text: `Отлично! Напишите марку и модель вашего автомобиля — сразу рассчитаю точную смету под ваш кузов и подскажу свободное время для визита.`
       };
     }
 
@@ -2346,6 +2405,22 @@
     }
   }
 
+  function stripCodePieces(text) {
+    if (!text) return '';
+    let clean = String(text).replace(/```[a-z]*[\s\S]*?```/gi, '');
+    clean = clean.replace(/```[a-z]*/gi, '');
+
+    // Удаляем любые остатки JSON со сметой из видимого сообщения (включая многострочные)
+    const jsonStartMatch = clean.match(/\{[\s\r\n]*"(?:isEstimate|carModel|serviceName|basePrice|totalPrice|carClass|slot)"/i);
+    if (jsonStartMatch && typeof jsonStartMatch.index === 'number') {
+      clean = clean.substring(0, jsonStartMatch.index);
+    }
+
+    // Удаляем [CONFIRM_LEAD:...] и другие системные теги
+    clean = clean.replace(/\[(?:PENDING_BOOKING|CONFIRM_LEAD|CANCEL_LEAD|RESCHEDULE_LEAD):[^\]]*\]/gi, '');
+    return clean.trim();
+  }
+
   async function queryAi(promptText, chatHistory, contactInfo) {
     // 1. Попытка запроса через бэкенд FastAPI (/api/chat), если запущен локально
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -2397,7 +2472,7 @@
         messages.push({
           role: 'bot',
           isEstimate: false,
-          text: 'В демо доступно 50 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
+          text: 'В демо доступно 500 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
         });
         renderAllStreams();
         return;
@@ -2458,7 +2533,7 @@
           ? Number(estimate.totalPrice) : (estBasePrice + estUpsellPrice);
         const estSlot = estimate.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)';
 
-        messages.push({
+        const newEstCard = {
           role: 'bot',
           isEstimate: true,
           carModel: estimate.carModel || 'Автомобиль',
@@ -2469,7 +2544,14 @@
           upsellPrice: estUpsellPrice,
           totalPrice: estTotalPrice,
           slot: estSlot
-        });
+        };
+
+        // Заменяем предыдущую карточку сметы, чтобы в ленте чата не копились бесконечные дубли заказ-нарядов
+        const prevEstIdx = messages.findIndex(m => m.isEstimate);
+        if (prevEstIdx !== -1) {
+          messages.splice(prevEstIdx, 1);
+        }
+        messages.push(newEstCard);
 
         try {
           const contactStr = contactInfo ? contactInfo.display : (bookingMode ? 'Онлайн-бронь слота' : 'Онлайн-диалог');
