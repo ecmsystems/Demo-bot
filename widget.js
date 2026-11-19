@@ -83,6 +83,11 @@
 
 БРОНИРОВАНИЕ:
 Не назначай время сам. Всегда спрашивай: «На какой день и время вам удобно приехать?». Для закрепления брони уточни имя и номер телефона (или Telegram @никнейм).
+
+ПРАВИЛО «НИКОГДА НЕ ПЕРЕСПРАШИВАЙ ТО, ЧТО КЛИЕНТ УЖЕ НАПИСАЛ»:
+Если клиент уже указал автомобиль, услугу или день визита (например: «можно завтра будет заехать на прадик 200 химчистку сделать»):
+- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО слать общий прайс-лист по всем классам и переспрашивать марку!
+- Сразу подтверди, что на завтра свободные окна есть, назови точную цену для Toyota Land Cruiser Prado (18 000 ₽ + антидождь в подарок), зафиксируй смету и спроси точное время визита и контакт для закрепления брони.
 `.trim();
 
   // ─── 3. ДЕМО-КЛЮЧ И СЕССИЯ ────────────────────────────────────────
@@ -1278,9 +1283,12 @@
     if (isUpsellExclusionQuery(low)) {
       return false;
     }
-    return low.includes('запис') || low.includes('забронир') || low.includes('брон') ||
-           low.includes('подходит') || low.includes('согласен') || (low.startsWith('давайте') && !low.includes('без')) ||
-           low.includes('зафиксир') || low.includes('слот');
+    const bookingWords = [
+      'запис', 'забронир', 'брон', 'подходит', 'согласен', 'зафиксир', 'слот',
+      'заехать', 'приехать', 'сделать', 'можно к вам', 'привезу', 'подъехать',
+      'заскочить', 'загнать', 'окна', 'свободно'
+    ];
+    return bookingWords.some(w => low.includes(w)) || (low.startsWith('давайте') && !low.includes('без'));
   }
 
   function isRefusal(userText, botText) {
@@ -1338,9 +1346,100 @@
       .trim();
   }
 
+  function parseDateIntent(text) {
+    const norm = normalizeCarText(text || '');
+    let hasDate = false;
+    let display = null;
+    let time = null;
+
+    if (norm.includes('завтра')) {
+      hasDate = true;
+      display = 'завтра';
+    } else if (norm.includes('послезавтра')) {
+      hasDate = true;
+      display = 'послезавтра';
+    } else if (norm.includes('сегодня')) {
+      hasDate = true;
+      display = 'сегодня';
+    } else if (norm.includes('суббот')) {
+      hasDate = true;
+      display = 'эту субботу';
+    } else if (norm.includes('воскресень')) {
+      hasDate = true;
+      display = 'это воскресенье';
+    } else if (norm.includes('пятниц')) {
+      hasDate = true;
+      display = 'эту пятницу';
+    } else if (norm.includes('четверг')) {
+      hasDate = true;
+      display = 'этот четверг';
+    } else if (norm.includes('сред')) {
+      hasDate = true;
+      display = 'эту среду';
+    } else if (norm.includes('вторник')) {
+      hasDate = true;
+      display = 'этот вторник';
+    } else if (norm.includes('понедельник')) {
+      hasDate = true;
+      display = 'этот понедельник';
+    } else if (norm.includes('выходн')) {
+      hasDate = true;
+      display = 'эти выходные';
+    }
+
+    const timeMatch = (text || '').match(/\b(?:в\s+)?([01]?\d|2[0-3])[:.]([0-5]\d)\b/i);
+    if (timeMatch) {
+      time = `${timeMatch[1]}:${timeMatch[2]}`;
+    } else if (norm.includes('утром') || norm.includes('с утра')) {
+      time = 'утреннее время';
+    } else if (norm.includes('вечером')) {
+      time = 'вечернее время';
+    } else if (norm.includes('днем')) {
+      time = 'дневное время';
+    }
+
+    return { hasDate, display, time };
+  }
+
+  function parseBookingIntent(text) {
+    const norm = normalizeCarText(text || '');
+    const words = [
+      'заехать', 'приехать', 'записаться', 'записат', 'запись', 'свободно',
+      'окна', 'окон', 'можно к вам', 'сделать', 'забронировать', 'бронь',
+      'привезу', 'подъехать', 'заскочить', 'загнать', 'подходит', 'согласен'
+    ];
+    return words.some(w => norm.includes(w));
+  }
+
+  function parseServiceIntent(text) {
+    const norm = normalizeCarText(text || '');
+    if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('чистк') || norm.includes('салон') || norm.includes('почистит')) {
+      return { category: 'clean', name: 'Полная химчистка салона' };
+    }
+    if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('брон') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('зоны риска')) {
+      return { category: 'ppf', name: 'Оклейка зон риска пленкой PPF' };
+    }
+    if (norm.includes('полиров') || norm.includes('палиров') || norm.includes('глянец') || norm.includes('блеск') || norm.includes('паутинк') || norm.includes('царапин')) {
+      return { category: 'polishing', name: 'Комплексная восстановительная полировка кузова' };
+    }
+    if (norm.includes('керамик') || norm.includes('9h') || norm.includes('жидкое стекло')) {
+      return { category: 'ceramic', name: 'Нанокерамика 9H (2 слоя)' };
+    }
+    if (norm.includes('шумк') || norm.includes('шумоизоляц')) {
+      return { category: 'noise', name: 'Премиальная шумоизоляция' };
+    }
+    if (norm.includes('антидожд')) {
+      return { category: 'antirain', name: 'Гидрофобный антидождь' };
+    }
+    if (norm.includes('мойк')) {
+      return { category: 'wash', name: 'Детейлинг-мойка' };
+    }
+    return { category: null, name: null };
+  }
+
   function detectCar(text) {
     const norm = normalizeCarText(text);
-    if (!norm) return { carModel: null, carClass: null, brand: null, isDomestic: false };
+    if (!norm) return { carModel: null, carClass: null, brand: null, isDomestic: false, rawMention: null };
 
     function hasRx(pattern) {
       const rx = new RegExp('(?:^|\\s)(?:' + pattern + ')(?:\\s|$)', 'i');
@@ -1348,401 +1447,279 @@
     }
 
     // 1. Отечественные авто (ВАЗ / Лада / УАЗ / Жигули)
-    if (hasRx('жигул[иейяь]?|жигуле|жигуль|ваз|таз|девятк[аеуоы]|четырк[аеуоы]|сем[ее]рк[аеуоы]|сем[ее]рк[аеуоы]\\s*ваз|приор[аеуоы]|priora|грант[аеуоы]|granta|вест[аеуоы]|vesta|лада|lada')) {
+    if (hasRx('жигул[иейяь]?|жигуле|жигуль|ваз|таз|девятк[аеуоы]|четырк[аеуоы]|сем[ее]рк[аеуоы]|приор[аеуоы]|priora|грант[аеуоы]|granta|вест[аеуоы]|vesta|лада|lada')) {
       if (hasRx('нив[аеуоы]|niva')) {
-        return { carModel: 'Lada Niva', carClass: 'Внедорожник', brand: 'Lada', isDomestic: true };
+        return { carModel: 'Lada Niva', carClass: 'Внедорожник', brand: 'Lada', isDomestic: true, rawMention: null };
       }
-      return { carModel: 'Lada / Жигули', carClass: 'Седан', brand: 'Lada', isDomestic: true };
+      return { carModel: 'Lada / Жигули', carClass: 'Седан', brand: 'Lada', isDomestic: true, rawMention: null };
     }
     if (hasRx('уаз|патриот[аеуом]?|patriot|хантер[аеуом]?')) {
-      return { carModel: 'УАЗ Патриот', carClass: 'Внедорожник', brand: 'UAZ', isDomestic: true };
+      return { carModel: 'УАЗ Патриот', carClass: 'Внедорожник', brand: 'UAZ', isDomestic: true, rawMention: null };
     }
 
-    // 2. Tank (300, 400, 500, 700)
-    if (hasRx('танк[аеуом]?\\s*(?:300|триста)|tank\\s*300')) {
-      return { carModel: 'Tank 300', carClass: 'Внедорожник', brand: 'Tank', isDomestic: false };
-    }
-    if (hasRx('танк[аеуом]?\\s*(?:400|четыреста)|tank\\s*400')) {
-      return { carModel: 'Tank 400', carClass: 'Внедорожник', brand: 'Tank', isDomestic: false };
-    }
-    if (hasRx('танк[аеуом]?\\s*(?:500|пятьсот)|tank\\s*500')) {
-      return { carModel: 'Tank 500', carClass: 'Внедорожник', brand: 'Tank', isDomestic: false };
-    }
-    if (hasRx('танк[аеуом]?\\s*(?:700|семьсот)|tank\\s*700')) {
-      return { carModel: 'Tank 700', carClass: 'Внедорожник', brand: 'Tank', isDomestic: false };
-    }
-    if (hasRx('танк[аеуом]?|tank')) {
-      return { carModel: 'Tank', carClass: 'Внедорожник', brand: 'Tank', isDomestic: false };
-    }
+    // 2. Toyota / Lexus (Прадо / Прадик / Крузак / Двухсотка / Трехсотка / LC 200 / LC 300 / 200 / 300)
+    const hasPradoWord = hasRx('прад(?:ик[аеуом]?|[оеауы]|ом)?|prado');
+    const hasCruiserWord = hasRx('крузак[аеуом]?|крузер[аеуом]?|двухсотк[аеуоы]?|трехсотк[аеуоы]?|land\\s*cruiser|тлк|lc\\s*(?:200|300)?|лс\\s*(?:200|300)?');
+    const has200or300 = hasRx('(?:200|300|150|120|100)(?:\\s*(?:ка|ку|ке))?');
 
-    // 3. LiXiang / Li Auto (L9, L8, L7, L6)
-    if (hasRx('(?:li\\s*auto|lixiang|лисян[аеуом]?|ли\\s*сянг|ли)\\s*(?:l|л)?\\s*9|л\\s*9|l\\s*9')) {
-      return { carModel: 'Li Auto L9', carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false };
-    }
-    if (hasRx('(?:li\\s*auto|lixiang|лисян[аеуом]?|ли\\s*сянг|ли)\\s*(?:l|л)?\\s*8|л\\s*8|l\\s*8')) {
-      return { carModel: 'Li Auto L8', carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false };
-    }
-    if (hasRx('(?:li\\s*auto|lixiang|лисян[аеуом]?|ли\\s*сянг|ли)\\s*(?:l|л)?\\s*7|л\\s*7|l\\s*7')) {
-      return { carModel: 'Li Auto L7', carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false };
-    }
-    if (hasRx('(?:li\\s*auto|lixiang|лисян[аеуом]?|ли\\s*сянг|ли)\\s*(?:l|л)?\\s*6|л\\s*6|l\\s*6')) {
-      return { carModel: 'Li Auto L6', carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false };
-    }
-    if (hasRx('lixiang|лисян[аеуом]?|ли\\s*авто|ли\\s*сянг')) {
-      return { carModel: 'Li Auto', carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false };
-    }
-
-    // 4. Zeekr (001, 009, 7X, X, 007)
-    if (hasRx('(?:zeekr|зикр)[аеуом]?\\s*001')) {
-      return { carModel: 'Zeekr 001', carClass: 'Бизнес-седан / Лифтбек', brand: 'Zeekr', isDomestic: false };
-    }
-    if (hasRx('(?:zeekr|зикр)[аеуом]?\\s*009')) {
-      return { carModel: 'Zeekr 009', carClass: 'Микроавтобус', brand: 'Zeekr', isDomestic: false };
-    }
-    if (hasRx('(?:zeekr|зикр)[аеуом]?\\s*(?:7x|7х)')) {
-      return { carModel: 'Zeekr 7X', carClass: 'Кроссовер', brand: 'Zeekr', isDomestic: false };
-    }
-    if (hasRx('(?:zeekr|зикр)[аеуом]?\\s*(?:x|х)')) {
-      return { carModel: 'Zeekr X', carClass: 'Кроссовер', brand: 'Zeekr', isDomestic: false };
-    }
-    if (hasRx('(?:zeekr|зикр)[аеуом]?\\s*007')) {
-      return { carModel: 'Zeekr 007', carClass: 'Седан', brand: 'Zeekr', isDomestic: false };
-    }
-    if (hasRx('zeekr|зикр[аеуом]?')) {
-      return { carModel: 'Zeekr 001', carClass: 'Бизнес-седан / Лифтбек', brand: 'Zeekr', isDomestic: false };
-    }
-
-    // 5. Geely
-    if (hasRx('монжар[оеауы]?|monjaro')) {
-      return { carModel: 'Geely Monjaro', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('тугелл[аеуоы]?|tugella')) {
-      return { carModel: 'Geely Tugella', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('атлас[аеуом]?|atlas')) {
-      return { carModel: 'Geely Atlas', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('кулре[йияею]|coolray')) {
-      return { carModel: 'Geely Coolray', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('окаванг[оеауы]?|okavango')) {
-      return { carModel: 'Geely Okavango', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('префейс[аеуом]?|preface')) {
-      return { carModel: 'Geely Preface', carClass: 'Седан', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('эмгранд[аеуом]?|emgrand')) {
-      return { carModel: 'Geely Emgrand', carClass: 'Седан', brand: 'Geely', isDomestic: false };
-    }
-    if (hasRx('geely|джили')) {
-      return { carModel: 'Geely', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false };
-    }
-
-    // 6. Haval
-    if (hasRx('дарг[оеауы]?|dargo')) {
-      return { carModel: 'Haval Dargo', carClass: 'Внедорожник', brand: 'Haval', isDomestic: false };
-    }
-    if (hasRx('(?:haval|хавейл|хавал)?\\s*(?:h\\s*9|н\\s*9)')) {
-      return { carModel: 'Haval H9', carClass: 'Внедорожник', brand: 'Haval', isDomestic: false };
-    }
-    if (hasRx('джолион[аеуом]?|джулион[аеуом]?|jolion')) {
-      return { carModel: 'Haval Jolion', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false };
-    }
-    if (hasRx('(?:haval|хавейл|хавал)?\\s*(?:f\\s*7\\s*x?|ф\\s*7\\s*х?)')) {
-      return { carModel: 'Haval F7', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false };
-    }
-    if (hasRx('(?:haval|хавейл|хавал)?\\s*(?:m\\s*6|м\\s*6)')) {
-      return { carModel: 'Haval M6', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false };
-    }
-    if (hasRx('haval|хавал|хавейл')) {
-      return { carModel: 'Haval', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false };
-    }
-
-    // 7. Другие китайские бренды
-    if (hasRx('тигг[оеауы]\\s*(?:4|7|8|9)(?:\\s*(?:про|макс|pro|max))?|tiggo')) {
-      return { carModel: 'Chery Tiggo', carClass: 'Кроссовер', brand: 'Chery', isDomestic: false };
-    }
-    if (hasRx('арриз[оеауы]|arrizo')) {
-      return { carModel: 'Chery Arrizo', carClass: 'Седан', brand: 'Chery', isDomestic: false };
-    }
-    if (hasRx('чери|chery')) {
-      return { carModel: 'Chery', carClass: 'Кроссовер', brand: 'Chery', isDomestic: false };
-    }
-
-    if (hasRx('тхл|txl')) {
-      return { carModel: 'Exeed TXL', carClass: 'Кроссовер', brand: 'Exeed', isDomestic: false };
-    }
-    if (hasRx('vx|вх')) {
-      return { carModel: 'Exeed VX', carClass: 'Внедорожник', brand: 'Exeed', isDomestic: false };
-    }
-    if (hasRx('rx|рх\\s*эксид')) {
-      return { carModel: 'Exeed RX', carClass: 'Кроссовер', brand: 'Exeed', isDomestic: false };
-    }
-    if (hasRx('эксид[аеуом]?|exeed')) {
-      return { carModel: 'Exeed', carClass: 'Кроссовер', brand: 'Exeed', isDomestic: false };
-    }
-
-    if (hasRx('т\\s*2|t\\s*2')) {
-      return { carModel: 'Jetour T2', carClass: 'Внедорожник', brand: 'Jetour', isDomestic: false };
-    }
-    if (hasRx('дашинг[аеуом]?|dashing|x\\s*70|х\\s*70|x\\s*90|х\\s*90')) {
-      return { carModel: 'Jetour Dashing', carClass: 'Кроссовер', brand: 'Jetour', isDomestic: false };
-    }
-    if (hasRx('джетур[аеуом]?|jetour')) {
-      return { carModel: 'Jetour', carClass: 'Кроссовер', brand: 'Jetour', isDomestic: false };
-    }
-
-    if (hasRx('c\\s*5|с\\s*5')) {
-      return { carModel: 'Omoda C5', carClass: 'Кроссовер', brand: 'Omoda', isDomestic: false };
-    }
-    if (hasRx('s\\s*5|с\\s*5\\s*гт')) {
-      return { carModel: 'Omoda S5', carClass: 'Седан', brand: 'Omoda', isDomestic: false };
-    }
-    if (hasRx('омод[аеуоы]?|omoda')) {
-      return { carModel: 'Omoda', carClass: 'Кроссовер', brand: 'Omoda', isDomestic: false };
-    }
-
-    if (hasRx('j\\s*7|j\\s*8|джейку')) {
-      return { carModel: 'Jaecoo J7', carClass: 'Кроссовер', brand: 'Jaecoo', isDomestic: false };
-    }
-
-    if (hasRx('uni\\s*k|юни\\s*к')) {
-      return { carModel: 'Changan UNI-K', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false };
-    }
-    if (hasRx('uni\\s*t|юни\\s*т')) {
-      return { carModel: 'Changan UNI-T', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false };
-    }
-    if (hasRx('uni\\s*v|юни\\s*в|lamore|ламор')) {
-      return { carModel: 'Changan UNI-V', carClass: 'Седан', brand: 'Changan', isDomestic: false };
-    }
-    if (hasRx('cs\\s*(?:35|55|75|95)|цс\\s*(?:35|55|75|95)|чанган[аеуом]?|changan')) {
-      return { carModel: 'Changan', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false };
-    }
-
-    if (hasRx('voyah\\s*free|воя\\s*фри|фри')) {
-      return { carModel: 'Voyah Free', carClass: 'Кроссовер', brand: 'Voyah', isDomestic: false };
-    }
-    if (hasRx('voyah\\s*dream(?:er)?|воя\\s*дрим|дрим')) {
-      return { carModel: 'Voyah Dream', carClass: 'Микроавтобус', brand: 'Voyah', isDomestic: false };
-    }
-    if (hasRx('voyah|воя')) {
-      return { carModel: 'Voyah Free', carClass: 'Кроссовер', brand: 'Voyah', isDomestic: false };
-    }
-
-    if (hasRx('аито|айто|aito|seres\\s*m[579]')) {
-      return { carModel: 'Aito M7', carClass: 'Внедорожник', brand: 'Aito', isDomestic: false };
-    }
-    if (hasRx('аватр|аватар|avatr')) {
-      return { carModel: 'Avatr 11', carClass: 'Кроссовер', brand: 'Avatr', isDomestic: false };
-    }
-
-    if (hasRx('gs\\s*8|гс\\s*8')) {
-      return { carModel: 'GAC GS8', carClass: 'Внедорожник', brand: 'GAC', isDomestic: false };
-    }
-    if (hasRx('m\\s*8|м\\s*8')) {
-      return { carModel: 'GAC M8', carClass: 'Микроавтобус', brand: 'GAC', isDomestic: false };
-    }
-    if (hasRx('гак|gac')) {
-      return { carModel: 'GAC GS8', carClass: 'Внедорожник', brand: 'GAC', isDomestic: false };
-    }
-
-    // 8. Audi
-    if (hasRx('(?:audi|ауди)?\\s*(?:sq\\s*8|rs\\s*q\\s*8|rsq\\s*8|q\\s*8|ку\\s*8|кю\\s*8)')) {
-      return { carModel: 'Audi Q8', carClass: 'Внедорожник', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:sq\\s*7|q\\s*7|ку\\s*7|кю\\s*7)')) {
-      return { carModel: 'Audi Q7', carClass: 'Внедорожник', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:e-tron|етрон|е\\s*трон)')) {
-      return { carModel: 'Audi e-tron', carClass: 'Внедорожник', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:sq\\s*5|q\\s*5|ку\\s*5|кю\\s*5)')) {
-      return { carModel: 'Audi Q5', carClass: 'Кроссовер', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:q\\s*3|ку\\s*3|кю\\s*3)')) {
-      return { carModel: 'Audi Q3', carClass: 'Кроссовер', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*8|а\\s*8|s\\s*8)')) {
-      return { carModel: 'Audi A8', carClass: 'Бизнес-седан', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*7|а\\s*7|s\\s*7|rs\\s*7)')) {
-      return { carModel: 'Audi A7', carClass: 'Бизнес-седан / Лифтбек', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*6|а\\s*6|s\\s*6|rs\\s*6)')) {
-      return { carModel: 'Audi A6', carClass: 'Бизнес-седан', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*5|а\\s*5|s\\s*5|rs\\s*5)')) {
-      return { carModel: 'Audi A5', carClass: 'Седан / Купе', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*4|а\\s*4|s\\s*4|rs\\s*4)')) {
-      return { carModel: 'Audi A4', carClass: 'Седан', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('(?:audi|ауди)?\\s*(?:a\\s*3|а\\s*3|s\\s*3)')) {
-      return { carModel: 'Audi A3', carClass: 'Седан', brand: 'Audi', isDomestic: false };
-    }
-    if (hasRx('audi|ауди')) {
-      return { carModel: 'Audi', carClass: 'Седан', brand: 'Audi', isDomestic: false };
-    }
-
-    // 9. BMW
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*7|х\\s*7)')) {
-      return { carModel: 'BMW X7', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*6|х\\s*6)(?:\\s*m|м)?')) {
-      return { carModel: 'BMW X6', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*5|х\\s*5)(?:\\s*m|м)?')) {
-      return { carModel: 'BMW X5', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв)?\\s*(?:xm|хм)')) {
-      return { carModel: 'BMW XM', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*4|х\\s*4)')) {
-      return { carModel: 'BMW X4', carClass: 'Кроссовер', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*3|х\\s*3)')) {
-      return { carModel: 'BMW X3', carClass: 'Кроссовер', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('(?:bmw|бмв|бумер|бэх[аеуоы])?\\s*(?:x\\s*1|х\\s*1|x\\s*2|х\\s*2)')) {
-      return { carModel: 'BMW X1', carClass: 'Кроссовер', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('7\\s*сери[яиею]|семерк[аеуоы]|сем[ее]рк[аеуоы]|g70|g11|g12')) {
-      return { carModel: 'BMW 7 серии', carClass: 'Бизнес-седан', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('5\\s*сери[яиею]|пятерк[аеуоы]|пят[ее]рк[аеуоы]|f10|ф10|g30|g60|e60|e39')) {
-      return { carModel: 'BMW 5 серии', carClass: 'Бизнес-седан', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('3\\s*сери[яиею]|тройк[аеуоы]|f30|ф30|g20|e90|e46')) {
-      return { carModel: 'BMW 3 серии', carClass: 'Седан', brand: 'BMW', isDomestic: false };
-    }
-    if (hasRx('бмв|bmw|бэх[аеуоы]|бумер[аеуом]?')) {
-      return { carModel: 'BMW', carClass: 'Седан', brand: 'BMW', isDomestic: false };
-    }
-
-    // 10. Mercedes
-    if (hasRx('гелик[аеуом]?|g\\s*63|g\\s*500|г63|г500|g\\s*класс|g\\s*class')) {
-      return { carModel: 'Mercedes-Benz G-Class (Гелик)', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('gls|глс|gl|гл')) {
-      return { carModel: 'Mercedes GLS', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('gle|гле|ml|мл|емэль')) {
-      return { carModel: 'Mercedes GLE', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('glc|глк|глик')) {
-      return { carModel: 'Mercedes GLC', carClass: 'Кроссовер', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('gla|гла|glb|глб')) {
-      return { carModel: 'Mercedes GLA', carClass: 'Кроссовер', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('v\\s*класс|v\\s*class|viano|виано|vito|вито')) {
-      return { carModel: 'Mercedes V-Class', carClass: 'Микроавтобус', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('s\\s*класс|s\\s*class|эск[аеуоы]|w222|w223|майбах|maybach')) {
-      return { carModel: 'Mercedes S-Class', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('e\\s*класс|e\\s*class|ешк[аеуоы]|w213|w212')) {
-      return { carModel: 'Mercedes E-Class', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('c\\s*класс|c\\s*class|цэшк[аеуоы]|w205|w206')) {
-      return { carModel: 'Mercedes C-Class', carClass: 'Седан', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('cla|cls')) {
-      return { carModel: 'Mercedes CLS', carClass: 'Бизнес-седан / Купе', brand: 'Mercedes', isDomestic: false };
-    }
-    if (hasRx('мерседес[аеуом]?|mercedes|мерс[аеуом]?')) {
-      return { carModel: 'Mercedes-Benz', carClass: 'Седан', brand: 'Mercedes', isDomestic: false };
-    }
-
-    // 11. Porsche
-    if (hasRx('кайен[аеуом]?|каен[аеуом]?|cayenne')) {
-      return { carModel: 'Porsche Cayenne', carClass: 'Внедорожник', brand: 'Porsche', isDomestic: false };
-    }
-    if (hasRx('макан[аеуом]?|macan')) {
-      return { carModel: 'Porsche Macan', carClass: 'Кроссовер', brand: 'Porsche', isDomestic: false };
-    }
-    if (hasRx('панамер[аеуоы]?|panamera')) {
-      return { carModel: 'Porsche Panamera', carClass: 'Бизнес-седан', brand: 'Porsche', isDomestic: false };
-    }
-    if (hasRx('тайкан[аеуом]?|taycan')) {
-      return { carModel: 'Porsche Taycan', carClass: 'Бизнес-седан', brand: 'Porsche', isDomestic: false };
-    }
-    if (hasRx('911|порш|порше|porsche')) {
-      return { carModel: 'Porsche', carClass: 'Бизнес-седан / Купе', brand: 'Porsche', isDomestic: false };
-    }
-
-    // 12. Toyota / Lexus
-    if (hasRx('крузак[аеуом]?|крузер[аеуом]?|land\\s*cruiser|лс\\s*200|лс\\s*300|lc\\s*200|lc\\s*300|тлк\\s*(?:200|300)?')) {
-      return { carModel: 'Toyota Land Cruiser', carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false };
-    }
-    if (hasRx('прад[оеауы]?|prado')) {
-      return { carModel: 'Toyota Land Cruiser Prado', carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false };
-    }
-    if (hasRx('lx\\s*(?:570|600)?|лх\\s*(?:570|600)?|gx\\s*(?:460|550)?|гх')) {
-      return { carModel: 'Lexus LX/GX', carClass: 'Внедорожник', brand: 'Lexus', isDomestic: false };
+    if (hasPradoWord || (hasCruiserWord && hasRx('прад')) || (has200or300 && hasRx('прад(?:ик[аеуом]?|[оеауы]|ом)?'))) {
+      const model = 'Toyota Land Cruiser Prado';
+      return { carModel: model, carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false, rawMention: null };
+    }
+    if (hasCruiserWord || (has200or300 && (hasRx('тойот|круз|крузак|тлк|lc|лс') || norm.includes('круз')))) {
+      const model = hasRx('300|трехсотк') ? 'Toyota Land Cruiser 300' : 'Toyota Land Cruiser 200';
+      return { carModel: model, carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
     if (hasRx('хайлендер[аеуом]?|highlander')) {
-      return { carModel: 'Toyota Highlander', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false };
+      return { carModel: 'Toyota Highlander', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
-    if (hasRx('рав\\s*4|rav\\s*4|rx\\s*(?:350|300)?|рх|nx|нх')) {
-      return { carModel: 'Toyota RAV4 / Lexus RX', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false };
+    if (hasRx('равчик[аеуом]?|рав\\s*4|rav\\s*4|рав4|rav4')) {
+      return { carModel: 'Toyota RAV4', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
-    if (hasRx('камр[иеяю]|камрюх[аеуоы]|camry')) {
-      return { carModel: 'Toyota Camry', carClass: 'Седан', brand: 'Toyota', isDomestic: false };
+    if (hasRx('камр[иеяю]|камрюх[аеуоы]|камрюш[аеуоы]|camry')) {
+      return { carModel: 'Toyota Camry', carClass: 'Бизнес-седан', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
-    if (hasRx('королл[аеуоы]|corolla|es|ес|is|ис|ls|лс')) {
-      return { carModel: 'Toyota / Lexus', carClass: 'Седан', brand: 'Toyota', isDomestic: false };
+    if (hasRx('альфард[аеуом]?|alphard')) {
+      return { carModel: 'Toyota Alphard', carClass: 'Микроавтобус', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
-    if (hasRx('альфард|alphard')) {
-      return { carModel: 'Toyota Alphard', carClass: 'Микроавтобус', brand: 'Toyota', isDomestic: false };
+    if (hasRx('королл[аеуоы]|corolla')) {
+      return { carModel: 'Toyota Corolla', carClass: 'Седан', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
-    if (hasRx('тойот[аеуоы]|toyota|лексус[аеуом]?|lexus')) {
-      return { carModel: 'Toyota / Lexus', carClass: 'Седан', brand: 'Toyota', isDomestic: false };
+    if (hasRx('lx\\s*(?:570|600|470)?|лх\\s*(?:570|600)?|gx\\s*(?:460|550|470)?|гх|570|460|470')) {
+      if (hasRx('lx|лх|gx|гх|лех|лексус|lexus|570|460|470')) {
+        return { carModel: 'Lexus LX/GX', carClass: 'Внедорожник', brand: 'Lexus', isDomestic: false, rawMention: null };
+      }
+    }
+    if (hasRx('rx\\s*(?:350|300|500)?|рх|nx\\s*(?:200|250|300)?|нх')) {
+      return { carModel: 'Lexus RX/NX', carClass: 'Кроссовер', brand: 'Lexus', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('es|ес|is|ис|ls|лс')) {
+      if (hasRx('лех|лексус|lexus|тойот')) {
+        return { carModel: 'Lexus ES/LS', carClass: 'Бизнес-седан', brand: 'Lexus', isDomestic: false, rawMention: null };
+      }
+    }
+    if (hasRx('лех[аеуоы]|лехус[аеуом]?|лексус[аеуом]?|lexus')) {
+      return { carModel: 'Lexus', carClass: 'Внедорожник', brand: 'Lexus', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('тойот[аеуоы]|toyota')) {
+      return { carModel: 'Toyota', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false, rawMention: null };
+    }
+
+    // 3. Mercedes-Benz
+    if (hasRx('гелик[аеуом]?|гелендваген[аеуом]?|g\\s*class|г\\s*класс|g\\s*63|g\\s*500|g63|g500')) {
+      return { carModel: 'Mercedes G-Class (Гелик)', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('глс|gls|гле|gle')) {
+      return { carModel: 'Mercedes GLE/GLS', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('глц|glc|гла|gla|глб|glb')) {
+      return { carModel: 'Mercedes GLC/GLA', carClass: 'Кроссовер', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('ешк[аеуоы]|e\\s*class|е\\s*класс|e200|e300|e350|e400|e53|e63')) {
+      return { carModel: 'Mercedes E-Class', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('цэшк[аеуоы]|c\\s*class|с\\s*класс|c180|c200|c300')) {
+      return { carModel: 'Mercedes C-Class', carClass: 'Седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('эск[аеуоы]|s\\s*class|s\\s*класс|майбах[аеуом]?|maybach|s350|s500|s580')) {
+      return { carModel: 'Mercedes S-Class / Maybach', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('v\\s*class|v\\s*класс|вито|vito|виан[ое]|viano')) {
+      return { carModel: 'Mercedes V-Class', carClass: 'Микроавтобус', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('мерин[аеуом]?|мерс[аеуом]?|мерседес[аеуом]?|mercedes')) {
+      return { carModel: 'Mercedes-Benz', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+
+    // 4. BMW
+    if (hasRx('х\\s*[567]|x\\s*[567]|икс\\s*[567]|xm|хм|х5|х6|х7|x5|x6|x7')) {
+      return { carModel: 'BMW X5/X6/X7', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('х\\s*[1234]|x\\s*[1234]|икс\\s*[1234]|х1|х2|х3|х4|x1|x2|x3|x4')) {
+      return { carModel: 'BMW X1–X4', carClass: 'Кроссовер', brand: 'BMW', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('тройк[аеуоы]|пятерк[аеуоы]|семерк[аеуоы]|f10|f30|g30|g20|[357]\\s*сери[яиею]')) {
+      return { carModel: 'BMW 3/5/7 серии', carClass: 'Седан', brand: 'BMW', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('бэх[аеуоы]|бумер[аеуом]?|бмв|bmw')) {
+      return { carModel: 'BMW', carClass: 'Седан', brand: 'BMW', isDomestic: false, rawMention: null };
+    }
+
+    // 5. Audi
+    if (hasRx('ку\\s*[78]|q\\s*[78]|ку7|ку8|q7|q8|e\\s*tron|етрон')) {
+      return { carModel: 'Audi Q7/Q8', carClass: 'Внедорожник', brand: 'Audi', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('ку\\s*[35]|q\\s*[35]|ку3|ку5|q3|q5')) {
+      return { carModel: 'Audi Q3/Q5', carClass: 'Кроссовер', brand: 'Audi', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('аудюх[аеуоы]|ауди|audi')) {
+      if (hasRx('а\\s*[3-8]|a\\s*[3-8]|а3|а4|а5|а6|а7|а8|a3|a4|a5|a6|a7|a8')) {
+        return { carModel: 'Audi A-серии', carClass: 'Седан', brand: 'Audi', isDomestic: false, rawMention: null };
+      }
+      return { carModel: 'Audi', carClass: 'Седан', brand: 'Audi', isDomestic: false, rawMention: null };
+    }
+
+    // 6. Porsche
+    if (hasRx('кай|кайен[аеуом]?|cayenne')) {
+      return { carModel: 'Porsche Cayenne', carClass: 'Внедорожник', brand: 'Porsche', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('макан[аеуом]?|macan')) {
+      return { carModel: 'Porsche Macan', carClass: 'Кроссовер', brand: 'Porsche', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('панам[аеуоы]|панамер[аеуоы]|panamera|тайкан[аеуом]?|taycan|911')) {
+      return { carModel: 'Porsche Panamera/Taycan', carClass: 'Бизнес-седан / Купе', brand: 'Porsche', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('порш[аеуом]?|порше|porsche')) {
+      return { carModel: 'Porsche', carClass: 'Внедорожник', brand: 'Porsche', isDomestic: false, rawMention: null };
+    }
+
+    // 7. Tank (300, 400, 500, 700)
+    if (hasRx('танк[аеуом]?|tank')) {
+      let model = 'Tank 300';
+      if (hasRx('500|пятьсот')) model = 'Tank 500';
+      else if (hasRx('400|четыреста')) model = 'Tank 400';
+      else if (hasRx('700|семьсот')) model = 'Tank 700';
+      return { carModel: model, carClass: 'Внедорожник', brand: 'Tank', isDomestic: false, rawMention: null };
+    }
+
+    // 8. LiXiang / Li Auto (L6, L7, L8, L9)
+    if (hasRx('лисян[аеуом]?|ли\\s*сян|li\\s*auto|lixiang|ли\\s*[6789]|li\\s*[6789]|l[6789]|л[6789]')) {
+      let model = 'Li Auto L9';
+      if (hasRx('8|л8|l8')) model = 'Li Auto L8';
+      else if (hasRx('7|л7|l7')) model = 'Li Auto L7';
+      else if (hasRx('6|л6|l6')) model = 'Li Auto L6';
+      return { carModel: model, carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false, rawMention: null };
+    }
+
+    // 9. Zeekr (001, 009, 7X, X, 007)
+    if (hasRx('зикр[аеуом]?|zeekr')) {
+      if (hasRx('009')) return { carModel: 'Zeekr 009', carClass: 'Микроавтобус', brand: 'Zeekr', isDomestic: false, rawMention: null };
+      if (hasRx('7x|7х|x|х|икс')) return { carModel: 'Zeekr X/7X', carClass: 'Кроссовер', brand: 'Zeekr', isDomestic: false, rawMention: null };
+      return { carModel: 'Zeekr 001', carClass: 'Бизнес-седан / Лифтбек', brand: 'Zeekr', isDomestic: false, rawMention: null };
+    }
+
+    // 10. Geely (Monjaro, Tugella, Atlas, Coolray, Preface, Emgrand)
+    if (hasRx('монжар[оеауы]?|монж[аеуом]?|monjaro')) {
+      return { carModel: 'Geely Monjaro', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('тугелл?[аеуоы]?|tugella')) {
+      return { carModel: 'Geely Tugella', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('атлас[аеуом]?|atlas|кулрей[аеуом]?|coolray|окаванго|okavango')) {
+      return { carModel: 'Geely Atlas / Coolray', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('префейс[аеуом]?|preface|эмгранд[аеуом]?|emgrand')) {
+      return { carModel: 'Geely Preface / Emgrand', carClass: 'Седан', brand: 'Geely', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('джили|geely')) {
+      return { carModel: 'Geely', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    }
+
+    // 11. Haval (Dargo, H9, Jolion, F7, M6)
+    if (hasRx('дарг[оеауы]?|dargo|h\\s*9|н\\s*9')) {
+      return { carModel: 'Haval Dargo / H9', carClass: 'Внедорожник', brand: 'Haval', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('джолион[аеуом]?|jolion|f\\s*7|ф\\s*7|m\\s*6|м\\s*6')) {
+      return { carModel: 'Haval Jolion / F7', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('хавал[аеуом]?|хавейл[аеуом]?|haval')) {
+      return { carModel: 'Haval', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
+    }
+
+    // 12. Chery / Exeed / Jetour / Omoda / Jaecoo / Changan / Voyah
+    if (hasRx('тигг[оеауы]?|tiggo|аризз[оеауы]|arrizo|черей|chery')) {
+      if (hasRx('аризз|arrizo')) return { carModel: 'Chery Arrizo', carClass: 'Седан', brand: 'Chery', isDomestic: false, rawMention: null };
+      return { carModel: 'Chery Tiggo', carClass: 'Кроссовер', brand: 'Chery', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('эксид[аеуом]?|exeed')) {
+      if (hasRx('vx|вх')) return { carModel: 'Exeed VX', carClass: 'Внедорожник', brand: 'Exeed', isDomestic: false, rawMention: null };
+      return { carModel: 'Exeed TXL/RX', carClass: 'Кроссовер', brand: 'Exeed', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('джетур[аеуом]?|jetour|т\\s*2|t\\s*2|дашинг|dashing')) {
+      return { carModel: 'Jetour T2 / Dashing', carClass: 'Внедорожник', brand: 'Jetour', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('омод[аеуоы]|omoda|с\\s*5|c\\s*5|s\\s*5|с5|c5|s5|джейк[уо]|jaecoo|j\\s*7|j7')) {
+      return { carModel: 'Omoda C5 / Jaecoo J7', carClass: 'Кроссовер', brand: 'Omoda', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('чанган[аеуом]?|changan|юни|uni|cs\\s*55|cs\\s*75')) {
+      return { carModel: 'Changan UNI / CS', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('воях[аеуом]?|вой[яеи]|voyah')) {
+      if (hasRx('дрим|dream')) return { carModel: 'Voyah Dream', carClass: 'Микроавтобус', brand: 'Voyah', isDomestic: false, rawMention: null };
+      return { carModel: 'Voyah Free', carClass: 'Кроссовер', brand: 'Voyah', isDomestic: false, rawMention: null };
     }
 
     // 13. VW / Skoda
     if (hasRx('туарег[аеуом]?|touareg|терамонт[аеуом]?|teramont')) {
-      return { carModel: 'VW Touareg', carClass: 'Внедорожник', brand: 'VW', isDomestic: false };
+      return { carModel: 'VW Touareg', carClass: 'Внедорожник', brand: 'VW', isDomestic: false, rawMention: null };
     }
-    if (hasRx('тигуан[аеуом]?|tiguan|кодиак[аеуом]?|kodiaq|карок[аеуом]?|karoq|таос|taos')) {
-      return { carModel: 'VW Tiguan / Skoda Kodiaq', carClass: 'Кроссовер', brand: 'VW', isDomestic: false };
+    if (hasRx('тиг[аеуоы]|тигуан[аеуом]?|tiguan|кодиак[аеуом]?|kodiaq|карок[аеуом]?|karoq|таос|taos')) {
+      return { carModel: 'VW Tiguan / Skoda Kodiaq', carClass: 'Кроссовер', brand: 'VW', isDomestic: false, rawMention: null };
     }
-    if (hasRx('поло|polo|пассат[аеуом]?|passat|октави[яиею]|octavia|суперб[аеуом]?|superb|рапид[аеуом]?|rapid|джетт[аеуоы]|jetta|гольф|golf')) {
-      return { carModel: 'VW / Skoda', carClass: 'Седан', brand: 'VW', isDomestic: false };
+    if (hasRx('октах[аеуоы]?|октави[яиею]|octavia|суперб[аеуом]?|superb|рапид[аеуом]?|rapid|поло|polo|пассат[аеуом]?|passat|джетт[аеуоы]|jetta|гольф|golf')) {
+      return { carModel: 'Skoda / VW', carClass: 'Седан', brand: 'VW', isDomestic: false, rawMention: null };
     }
     if (hasRx('мультивен|multivan|каравелл[аеуоы]|caravelle')) {
-      return { carModel: 'VW Multivan', carClass: 'Микроавтобус', brand: 'VW', isDomestic: false };
+      return { carModel: 'VW Multivan', carClass: 'Микроавтобус', brand: 'VW', isDomestic: false, rawMention: null };
     }
 
     // 14. Kia / Hyundai
     if (hasRx('сорент[оеауы]|sorento|мохав[еауы]?|mohave|палисад[аеуом]?|palisade|санта\\s*фе|santa\\s*fe')) {
-      return { carModel: 'Kia Sorento / Hyundai Palisade', carClass: 'Внедорожник', brand: 'Kia', isDomestic: false };
+      return { carModel: 'Kia Sorento / Hyundai Palisade', carClass: 'Внедорожник', brand: 'Kia', isDomestic: false, rawMention: null };
     }
-    if (hasRx('спортейдж[аеуом]?|спортидж[аеуом]?|sportage|туссан[аеуом]?|tucson|крет[аеуоы]|creta|селтос[аеуом]?|seltos')) {
-      return { carModel: 'Kia Sportage / Hyundai Tucson', carClass: 'Кроссовер', brand: 'Kia', isDomestic: false };
+    if (hasRx('спортейдж[аеуом]?|спортидж[аеуом]?|sportage|туссан[аеуом]?|тусон|tucson|крет[аеуоы]|creta|селтос[аеуом]?|seltos')) {
+      return { carModel: 'Kia Sportage / Hyundai Tucson', carClass: 'Кроссовер', brand: 'Kia', isDomestic: false, rawMention: null };
     }
     if (hasRx('карнивал[аеуом]?|carnival|стари[яиею]|staria')) {
-      return { carModel: 'Kia Carnival / Hyundai Staria', carClass: 'Микроавтобус', brand: 'Kia', isDomestic: false };
+      return { carModel: 'Kia Carnival / Hyundai Staria', carClass: 'Микроавтобус', brand: 'Kia', isDomestic: false, rawMention: null };
     }
-    if (hasRx('солярис[аеуом]?|solaris|рио|rio|к\\s*5|k\\s*5|оптим[аеуоы]|optima|сонат[аеуоы]|sonata|элантр[аеуоы]|elantra|генезис|genesis')) {
-      return { carModel: 'Kia / Hyundai', carClass: 'Седан', brand: 'Kia', isDomestic: false };
+    if (hasRx('солярис[аеуом]?|соляр[аеуоы]?|solaris|рио|rio|к\\s*5|k\\s*5|к5|k5|оптим[аеуоы]|optima|сонат[аеуоы]|sonata|церато|cerato|элантр[аеуоы]|elantra|круз[аеуом]?|cruze|генезис|genesis')) {
+      return { carModel: 'Kia / Hyundai / Chevrolet', carClass: 'Седан', brand: 'Kia', isDomestic: false, rawMention: null };
     }
 
     // 15. Общие родовые термины кузова
     if (hasRx('внедорожник[аеуом]?|джип[аеуом]?|рамник[аеуом]?|пикап[аеуом]?')) {
-      return { carModel: 'Внедорожник', carClass: 'Внедорожник', brand: null, isDomestic: false };
+      return { carModel: 'Внедорожник', carClass: 'Внедорожник', brand: null, isDomestic: false, rawMention: null };
     }
     if (hasRx('кроссовер[аеуом]?|паркетник[аеуом]?')) {
-      return { carModel: 'Кроссовер', carClass: 'Кроссовер', brand: null, isDomestic: false };
+      return { carModel: 'Кроссовер', carClass: 'Кроссовер', brand: null, isDomestic: false, rawMention: null };
     }
     if (hasRx('микроавтобус[аеуом]?|минивэн[аеуом]?|минивен[аеуом]?|бус[аеуом]?')) {
-      return { carModel: 'Микроавтобус', carClass: 'Микроавтобус', brand: null, isDomestic: false };
+      return { carModel: 'Микроавтобус', carClass: 'Микроавтобус', brand: null, isDomestic: false, rawMention: null };
     }
     if (hasRx('седан[аеуом]?|хэтчбек[аеуом]?|универсал[аеуом]?|купе|лифтбек[аеуом]?')) {
-      return { carModel: 'Седан', carClass: 'Седан', brand: null, isDomestic: false };
+      return { carModel: 'Седан', carClass: 'Седан', brand: null, isDomestic: false, rawMention: null };
     }
 
-    return { carModel: null, carClass: null, brand: null, isDomestic: false };
+    // 16. Извлечение незнакомой модели («на [X]», «у меня [X]»)
+    const rawMatch = norm.match(/(?:^|\s)(?:на|у меня|для|машин[аеу]|авто|автомобил[еяь])\s+([a-zа-я0-9\s]{2,25}?)(?=\s+(?:химчист|полиров|оклейк|пленк|брон|керамик|сделать|заехать|приехать|записат|почистит|покрыт|$))/i);
+    if (rawMatch) {
+      const candidate = rawMatch[1].trim();
+      const skipWords = ['завтра', 'сегодня', 'днях', 'выходных', 'этой', 'следующей', 'неделе', 'время', 'час', 'утро', 'вечер', 'день', 'мойку', 'полировку', 'химчистку'];
+      if (!skipWords.includes(candidate) && candidate.length > 1) {
+        return { carModel: null, carClass: null, brand: null, isDomestic: false, rawMention: candidate };
+      }
+    }
+
+    return { carModel: null, carClass: null, brand: null, isDomestic: false, rawMention: null };
+  }
+
+  function parseMessageEntities(text, activeOrderState) {
+    const norm = normalizeCarText(text || '');
+    const detectedCar = detectCar(text);
+    const service = parseServiceIntent(text);
+    const dateIntent = parseDateIntent(text);
+    const bookingIntent = parseBookingIntent(text);
+    const contactInfo = extractContactInfo(text);
+
+    return {
+      norm: norm,
+      car: detectedCar,
+      service: service,
+      dateIntent: dateIntent,
+      bookingIntent: bookingIntent,
+      contactInfo: contactInfo
+    };
   }
 
   // Алиас для обратной совместимости
@@ -1752,6 +1729,9 @@
     const low = (carModel || '').toLowerCase();
     const cClass = carClass || '';
 
+    if (low.includes('prado') || low.includes('прадо') || low.includes('прадик') || low.includes('land cruiser') || low.includes('крузак')) {
+      return 'У Land Cruiser и Prado крупный рамный кузов и просторный салон, для которого профессиональный уход сохраняет идеальное состояние кожи, велюра и пластика.';
+    }
     if (low.includes('tank') || low.includes('танк')) {
       return 'У Танка массивный рамный кузов, выразительные расширители арок и плоское вертикальное лобовое стекло, которое на трассе особенно подвержено сколам от гравия.';
     }
@@ -1862,7 +1842,11 @@
       isPolishing = true;
     }
 
-    const curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'на ваш выбор (по согласованию)';
+    const dateIntent = parseDateIntent(userText);
+    let curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'на ваш выбор (по согласованию)';
+    if (dateIntent && dateIntent.hasDate) {
+      curSlot = dateIntent.display + (dateIntent.time ? (' в ' + dateIntent.time) : ' (время на ваш выбор)');
+    }
 
     if (isPPF) {
       let bp = 65000;
@@ -1997,129 +1981,184 @@
   }
 
   function getSmartFallback(text, contactInfo) {
-    const norm = normalizeCarText(text || '');
+    const norm = normalizeCarText(text || "");
     const low = norm;
+    const entities = parseMessageEntities(text, activeOrderState);
 
     // 0. Вопросы о руководителе, директоре, приобретении бота под ключ или партнерстве (B2B)
     if (isLeadershipOrB2bQuery(text)) {
       return {
-        text: 'Здравствуйте! Данный сервис — демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.\n\nПриобрести такого умного ИИ-бота и интерактивный виджет расчета сметы на сайт с установкой под ключ можно напрямую у нашего основателя и разработчика в Telegram: @godblessed77 (https://t.me/godblessed77).\n\n• Виджет встраивается в любой сайт в 1 строчку кода с полной адаптацией под ваш бренд.\n• CRM-таблица (Google Sheets) ведет учет всех заявок + мгновенные пуши в Telegram.\n• Тест-драйв 24 часа без предоплаты. Напишите основателю: @godblessed77'
+        text: "Здравствуйте! Данный сервис — демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.\n\nПриобрести такого умного ИИ-бота и интерактивный виджет расчета сметы на сайт с установкой под ключ можно напрямую у нашего основателя и разработчика в Telegram: @godblessed77 (https://t.me/godblessed77).\n\n• Виджет встраивается в любой сайт в 1 строчку кода с полной адаптацией под ваш бренд.\n• CRM-таблица (Google Sheets) ведет учет всех заявок + мгновенные пуши в Telegram.\n• Тест-драйв 24 часа без предоплаты. Напишите основателю: @godblessed77"
       };
     }
 
     // 1. Проверка на непрофильные отечественные автомобили (ВАЗ / Лада / Жигули / УАЗ)
-    const detectedCar = detectCar(text);
-    if (detectedCar.isDomestic) {
+    if (entities.car && entities.car.isDomestic) {
       return {
-        text: `Здравствуйте! Автомобили марки ${detectedCar.carModel || 'отечественного производства'} не входят в список моделей нашего профильного сегмента (мы специализируемся на комплексном обслуживании, защите и уходе за современными иномарками бизнес- и премиум-класса: BMW, Mercedes, Audi, Porsche, LiXiang, Zeekr, Tank, Geely, Haval и др.).\n\nК сожалению, мы не сможем предложить обслуживание для данного автомобиля. Благодарим за интерес к нашему детейлинг-центру!`
+        text: `Здравствуйте! Автомобили марки ${entities.car.carModel || "отечественного производства"} не входят в список моделей нашего профильного сегмента (мы специализируемся на комплексном обслуживании, защите и уходе за современными иномарками бизнес- и премиум-класса: BMW, Mercedes, Audi, Porsche, LiXiang, Zeekr, Tank, Geely, Haval и др.).\n\nК сожалению, мы не сможем предложить обслуживание для данного автомобиля. Благодарим за интерес к нашему детейлинг-центру!`
       };
     }
 
     // 2. ОТКАЗ КЛИЕНТА ОТ ДИАЛОГА («спасибо, не надо», «я передумал», «нет, пока не нужно»)
-    if (norm.includes('не надо') || norm.includes('не нужн') || norm.includes('передумал') || norm.includes('отмена') || norm.includes('отбой') || (norm.includes('нет') && norm.includes('спасибо'))) {
+    if (norm.includes("не надо") || norm.includes("не нужн") || norm.includes("передумал") || norm.includes("отмена") || norm.includes("отбой") || (norm.includes("нет") && norm.includes("спасибо"))) {
       return {
-        text: 'Понял вас! Если появятся вопросы по защите или уходу за автомобилем — я всегда на связи. Будем рады видеть вас в нашем детейлинг-центре!'
+        text: "Понял вас! Если появятся вопросы по защите или уходу за автомобилем — я всегда на связи. Будем рады видеть вас в нашем детейлинг-центре!"
       };
     }
 
     // 3. ЕСЛИ КЛИЕНТ ОСТАВИЛ КОНТАКТ (ТЕЛЕФОН, ТЕЛЕГРАМ, ВК)
-    if (contactInfo) {
-      const timePref = extractTimePreference(text);
+    const effContact = contactInfo || entities.contactInfo;
+    if (effContact) {
+      const timePref = extractTimePreference(text) || (entities.dateIntent.hasDate ? (entities.dateIntent.display + (entities.dateIntent.time ? (" в " + entities.dateIntent.time) : "")) : null);
       if (timePref) activeOrderState.slot = timePref;
 
-      const car = activeOrderState.carModel || 'ваш автомобиль';
-      const slot = activeOrderState.slot || 'в удобное для вас время';
+      const car = activeOrderState.carModel || "ваш автомобиль";
+      const slot = activeOrderState.slot || "в удобное для вас время";
 
-      let receiptSummary = '';
+      let receiptSummary = "";
       if (activeOrderState.carModel && activeOrderState.serviceName && activeOrderState.basePrice) {
-        receiptSummary = ` предварительно закрепили предварительную смету по вашему ${car} (${activeOrderState.serviceName}: ${activeOrderState.totalPrice.toLocaleString('ru-RU')} ₽) и`;
+        receiptSummary = ` предварительно закрепили предварительную смету по вашему ${car} (${activeOrderState.serviceName}: ${activeOrderState.totalPrice.toLocaleString("ru-RU")} ₽) и`;
       }
 
       return {
-        text: `Отлично! Мы${receiptSummary} забронировали для вас временной интервал на ${slot}.\n\nОкно зафиксировано за вами на 15 минут! Наш старший мастер уже получил заявку и свяжется с вами по указанному контакту (${contactInfo.display}) для подтверждения времени и согласования деталей.`
+        text: `Отлично! Мы${receiptSummary} забронировали для вас временной интервал на ${slot}.\n\nОкно зафиксировано за вами на 15 минут! Наш старший мастер уже получил заявку и свяжется с вами по указанному контакту (${effContact.display}) для подтверждения времени и согласования деталей.`
       };
     }
 
-    // 4. ИСКЛЮЧЕНИЕ ДОПРОДАЖИ: «Можно без керамики», «давайте без допов», «только химчистка»
+    // 4. ИСКЛЮЧЕНИЕ ДОПРОДАЖИ: «Можно без керамики», «давайте без допов», «только химчистка», «без защитной пропитки»
     if (isUpsellExclusionQuery(norm)) {
-      const car = activeOrderState.carModel || 'вашего автомобиля';
-      const cClass = activeOrderState.carClass || 'Внедорожник';
-      let sName = activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
+      const car = activeOrderState.carModel || (entities.car && entities.car.carModel) || "автомобиля";
+      const cClass = activeOrderState.carClass || (entities.car && entities.car.carClass) || "Внедорожник";
+      let sName = activeOrderState.serviceName || "Комплексная восстановительная полировка кузова";
       let bPrice = 18000;
-      let uName = 'Без дополнительных опций';
-      let replyServiceWord = 'базовый комплекс';
+      let uName = "Без дополнительных опций";
+      let replyServiceWord = "базовый комплекс";
 
-      const isClean = norm.includes('химчист') || (activeOrderState.serviceName && activeOrderState.serviceName.includes('химчист'));
-      const isPPF = norm.includes('ppf') || norm.includes('пленк') || (activeOrderState.serviceName && activeOrderState.serviceName.includes('PPF'));
+      const isClean = norm.includes("химчист") || (activeOrderState.serviceName && activeOrderState.serviceName.includes("химчист"));
+      const isPPF = norm.includes("ppf") || norm.includes("пленк") || (activeOrderState.serviceName && activeOrderState.serviceName.includes("PPF"));
 
       if (isClean) {
-        sName = 'Полная химчистка салона';
-        bPrice = (cClass === 'Седан') ? 15000 : 18000;
-        uName = 'Без защитной пропитки (только базовая химчистка)';
-        replyServiceWord = 'полную химчистку салона';
+        sName = "Полная химчистка салона";
+        bPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? 15000 : 18000;
+        uName = "Без защитной пропитки (только базовая химчистка)";
+        replyServiceWord = "полную химчистку салона";
       } else if (isPPF) {
-        sName = 'Оклейка зон риска пленкой PPF';
-        bPrice = (cClass === 'Седан') ? 65000 : 75000;
-        uName = 'Без нанокерамики (только базовый комплекс PPF)';
-        replyServiceWord = 'оклейку зон риска пленкой PPF';
+        sName = "Оклейка зон риска пленкой PPF";
+        bPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? 65000 : 75000;
+        uName = "Без нанокерамики (только базовый комплекс PPF)";
+        replyServiceWord = "оклейку зон риска пленкой PPF";
       } else {
-        sName = 'Комплексная восстановительная полировка кузова';
-        bPrice = (cClass === 'Внедорожник') ? 26000 : ((cClass === 'Кроссовер') ? 22000 : 18000);
-        uName = 'Без нанокерамики (только восстановительная полировка)';
-        replyServiceWord = 'восстановительную полировку кузова';
+        sName = "Комплексная восстановительная полировка кузова";
+        bPrice = (cClass === "Внедорожник") ? 26000 : ((cClass === "Кроссовер") ? 22000 : 18000);
+        uName = "Без нанокерамики (только восстановительная полировка)";
+        replyServiceWord = "восстановительную полировку кузова";
       }
 
       const est = {
         isEstimate: true,
         carModel: car,
         carClass: cClass,
-        serviceCategory: isClean ? 'clean' : (isPPF ? 'ppf' : 'polishing'),
+        serviceCategory: isClean ? "clean" : (isPPF ? "ppf" : "polishing"),
         serviceName: sName,
         basePrice: bPrice,
         upsellName: uName,
         upsellPrice: 0,
         totalPrice: bPrice,
-        slot: activeOrderState.slot || 'по согласованию (на ваш выбор)',
+        slot: activeOrderState.slot || "по согласованию (на ваш выбор)",
         upsellExcluded: true
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
 
       return {
-        text: `Да, конечно! Мы с радостью выполним только ${replyServiceWord} для вашего ${car} без дополнительных опций.\n\nВ этом случае стоимость составит ровно ${bPrice.toLocaleString('ru-RU')} ₽. Специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
+        text: `Да, конечно! Мы с радостью выполним только ${replyServiceWord} для вашего ${car} без дополнительных опций.\n\nВ этом случае стоимость составит ровно ${bPrice.toLocaleString("ru-RU")} ₽. Специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
     }
 
-    // 5. РАСПОЗНАН АВТОМОБИЛЬ ИЗ ТЕКСТА КЛИЕНТА (Смена авто или первичное указание)
+    // 5. РАСПОЗНАН АВТОМОБИЛЬ ИЛИ НЕЗНАКОМАЯ МОДЕЛЬ
+    const detectedCar = entities.car;
     const isCarMentioned = !!(detectedCar.carModel || detectedCar.carClass);
-    const hasServiceInText = norm.includes('полировк') || norm.includes('палировк') || norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('керамик') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит');
+    const hasActiveCar = !!(activeOrderState.carModel && activeOrderState.carClass);
+
+    // 5.0. Незнакомая модель («на эклэир», «у меня [X]»)
+    if (detectedCar.rawMention && !detectedCar.carClass && !hasActiveCar) {
+      const rawCar = detectedCar.rawMention;
+      let sName = "детейлинг-комплекс";
+      if (entities.service.category === "clean" || norm.includes("химчист")) {
+        sName = "полную химчистку салона";
+      } else if (entities.service.category === "ppf" || norm.includes("пленк") || norm.includes("ppf")) {
+        sName = "оклейку зон риска пленкой PPF";
+      } else if (entities.service.category === "polishing" || norm.includes("полиров")) {
+        sName = "восстановительную полировку кузова";
+      }
+      const datePart = entities.dateIntent.hasDate
+        ? `На ${entities.dateIntent.display} в нашей студии свободные окна есть.`
+        : "Свободные окна на этой неделе есть.";
+      return {
+        text: `Понял вас! На ${rawCar} с удовольствием сделаем ${sName}! ${datePart}\n\nПодскажите только, какой у вас тип кузова — седан или кроссовер/внедорожник, чтобы назвать точную сумму сметы и закрепить бокс?`
+      };
+    }
+
+    // 5.1. Автомобиль распознан (или уже был сохранен ранее)
+    const hasServiceInMsg = !!entities.service.category;
+    const hasServiceActive = !!activeOrderState.serviceName;
     const isPriceQuery = isEstimateRequest(text);
 
-    if (isCarMentioned) {
-      const expertNote = getCarExpertDetail(detectedCar.carModel, detectedCar.carClass, detectedCar.brand);
-      const isSwitchWithActiveService = !!activeOrderState.serviceName && !hasServiceInText;
+    if (isCarMentioned || hasActiveCar) {
+      if (detectedCar.carModel) {
+        activeOrderState.carModel = detectedCar.carModel;
+        activeOrderState.carClass = detectedCar.carClass;
+        activeOrderState.brand = detectedCar.brand;
+      }
 
-      // Если в тексте названа услуга ИЛИ услуга уже была выбрана ранее в диалоге
-      if (hasServiceInText || isSwitchWithActiveService || isPriceQuery) {
+      const currentCarModel = activeOrderState.carModel || detectedCar.carModel;
+      const currentCarClass = activeOrderState.carClass || detectedCar.carClass || "Внедорожник";
+      const expertNote = getCarExpertDetail(currentCarModel, currentCarClass, activeOrderState.brand || detectedCar.brand);
+
+      // А. Названа услуга ИЛИ был запрос цены ИЛИ идет смена авто при активной услуге
+      if (hasServiceInMsg || hasServiceActive || isPriceQuery) {
         const est = computeEstimateForCar(text, activeOrderState);
         if (est) {
           activeOrderState = Object.assign({}, activeOrderState, est);
-          const isPPF = est.serviceCategory === 'ppf' || (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
-          const isClean = est.serviceCategory === 'clean' || (est.serviceName || '').includes('химчист') || (est.serviceName || '').includes('салон');
 
-          let serviceDesc = `стоимость оклейки зон риска полиуретановой пленкой PPF составляет ${est.basePrice.toLocaleString('ru-RU')} ₽`;
+          if (entities.dateIntent.hasDate) {
+            const dateSlot = entities.dateIntent.display + (entities.dateIntent.time ? (" в " + entities.dateIntent.time) : " (время на ваш выбор)");
+            est.slot = dateSlot;
+            activeOrderState.slot = dateSlot;
+          }
+
+          const isClean = est.serviceCategory === "clean" || (est.serviceName || "").includes("химчист") || (est.serviceName || "").includes("салон");
+          const isPPF = est.serviceCategory === "ppf" || (est.serviceName || "").includes("PPF") || (est.serviceName || "").includes("пленк");
+
+          let serviceDesc = `стоимость оклейки зон риска полиуретановой пленкой PPF составляет ${est.basePrice.toLocaleString("ru-RU")} ₽. В комплекс входит бронирование капота, бампера, передних крыльев, фар, зеркал и стоек премиальным оптическим полиуретаном 200 мкм`;
           if (isClean) {
-            serviceDesc = `стоимость комплексной детейлинг-химчистки салона составляет ${est.basePrice.toLocaleString('ru-RU')} ₽`;
+            serviceDesc = `стоимость комплексной детейлинг-химчистки салона с глубокой чисткой кожи/текстиля, пола, потолка, багажника и озонированием составляет ровно ${est.basePrice.toLocaleString("ru-RU")} ₽`;
           } else if (!isPPF) {
-            serviceDesc = `стоимость комплексной восстановительной полировки кузова составляет ${est.basePrice.toLocaleString('ru-RU')} ₽`;
+            serviceDesc = `стоимость комплексной восстановительной полировки кузова с удалением паутинки и возвратом глубокого заводского глянца составляет ${est.basePrice.toLocaleString("ru-RU")} ₽`;
           }
 
           let upsellDesc = est.upsellPrice > 0
-            ? `Рекомендуем дополнить защитным комплексом: ${est.upsellName.toLowerCase()} (+${est.upsellPrice.toLocaleString('ru-RU')} ₽).`
-            : `Выбран базовый комплекс без дополнительных опций.`;
+            ? `\n\nРекомендуем дополнить: ${est.upsellName.toLowerCase()} (+${est.upsellPrice.toLocaleString("ru-RU")} ₽).`
+            : `\n\nВыбран базовый комплекс без дополнительных опций.`;
 
-          let switchComment = '';
+          const giftDesc = `\nПо действующей акции нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!`;
+
+          // Если клиент сразу написал день/время визита (например, «можно завтра будет заехать на прадик 200 химчистку сделать»)
+          if (entities.dateIntent.hasDate) {
+            const dateGreeting = `Отлично! На ${entities.dateIntent.display} в нашей студии на Автозаводской, 23 есть свободные окна (например, на 11:30, 14:00 и 16:30).\n\n`;
+            const cta = `\n\nПодскажите, на какое конкретно время на ${entities.dateIntent.display} вам удобнее заехать, и оставьте ваше имя с номером телефона (или Telegram @никнейм), чтобы старший мастер закрепил бокс за вами!`;
+
+            return {
+              text: `${dateGreeting}Для вашего ${est.carModel} (${est.carClass}): ${serviceDesc}.${upsellDesc}${giftDesc}${cta}`,
+              estimate: est,
+              rawText: JSON.stringify(est)
+            };
+          }
+
+          // Если клиент сменил авто в процессе диалога
+          const isSwitchWithActiveService = hasServiceActive && !hasServiceInMsg && isCarMentioned;
+          let switchComment = "";
           if (isSwitchWithActiveService) {
             switchComment = `Отлично, пересчитал смету на ${est.carModel} (${est.carClass})! ${expertNote}\n\n`;
           } else {
@@ -2127,31 +2166,33 @@
           }
 
           return {
-            text: `${switchComment}По выбранной услуге ${serviceDesc}. ${upsellDesc} Нанесение гидрофобного антидождя на переднюю полусферу — 0 ₽ в подарок по действующей акции!\n\nПодскажите, на какой день и время вам удобно записаться в студию?`,
+            text: `${switchComment}По выбранной услуге ${serviceDesc}.${upsellDesc}${giftDesc}\n\nПодскажите, на какой день и время вам удобно записаться в студию?`,
             estimate: est,
             rawText: JSON.stringify(est)
           };
         }
       }
 
-      // Пользователь назвал ТОЛЬКО автомобиль, услуга еще не была выбрана
-      const cModel = detectedCar.carModel || 'ваш автомобиль';
-      const cClass = detectedCar.carClass || 'Внедорожник';
-      activeOrderState.carModel = cModel;
-      activeOrderState.carClass = cClass;
+      // Б. Пользователь назвал ТОЛЬКО автомобиль, услуга еще не была выбрана
+      if (isCarMentioned) {
+        const cModel = currentCarModel || "ваш автомобиль";
+        const cClass = currentCarClass || "Внедорожник";
 
-      const ppfPrice = (cClass === 'Седан') ? '65 000 ₽' : '75 000 ₽';
-      const polPrice = (cClass === 'Внедорожник') ? '26 000 ₽' : ((cClass === 'Кроссовер') ? '22 000 ₽' : '18 000 ₽');
-      const cleanPrice = (cClass === 'Седан') ? '15 000 ₽' : '18 000 ₽';
+        const ppfPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? "65 000 ₽" : "75 000 ₽";
+        const polPrice = (cClass === "Внедорожник") ? "26 000 ₽" : ((cClass === "Кроссовер") ? "22 000 ₽" : "18 000 ₽");
+        const cleanPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? "15 000 ₽" : "18 000 ₽";
 
-      return {
-        text: `Отличный выбор — ${cModel} (${cClass})! ${expertNote}\n\nДля вашего кузова чаще всего выбирают:\n1. 🛡 Оклейка зон риска полиуретановой пленкой PPF — ${ppfPrice}\n2. ✨ Восстановительная полировка кузова — ${polPrice} (акция: антидождь в подарок!)\n3. 🧼 Комплексная детейлинг-химчистка салона — ${cleanPrice}\n\nКакая задача сейчас в приоритете: защитить кузов от сколов, вернуть идеальный зеркальный глянец или обновить салон?`
-      };
+        const dateIntro = entities.dateIntent.hasDate ? `Свободные окна на ${entities.dateIntent.display} у нас есть!\n\n` : "";
+
+        return {
+          text: `Отличный выбор — ${cModel} (${cClass})! ${expertNote}\n\n${dateIntro}Стоимость ключевых услуг для вашего кузова:\n1. 🛡 Оклейка зон риска полиуретановой пленкой PPF — ${ppfPrice}\n2. ✨ Восстановительная полировка кузова — ${polPrice}\n3. 🧼 Комплексная химчистка салона — ${cleanPrice}\n\nПо действующей акции гидрофобный антидождь передней полусферы идет в подарок (0 ₽)!\n\nКакая задача сейчас в приоритете: защитить кузов от сколов (PPF), вернуть зеркальный глянец (полировка) или обновить салон (химчистка)?`
+        };
+      }
     }
 
-    // 5.1. ОБЩИЙ ВОПРОС ПО УСЛУГАМ («какие у вас услуги», «что делаете», «список услуг», «какой прайс»)
-    const isServiceInquiry = (norm.includes('какие') && (norm.includes('услуг') || norm.includes('работ') || norm.includes('делает') || norm.includes('предлагает'))) ||
-      norm.includes('список услуг') || norm.includes('весь прайс') || norm.includes('что вы делаете') || norm.includes('чем занимаетесь');
+    // 6. ОБЩИЙ ВОПРОС ПО УСЛУГАМ («какие у вас услуги», «что делаете», «список услуг», «какой прайс»)
+    const isServiceInquiry = (norm.includes("какие") && (norm.includes("услуг") || norm.includes("работ") || norm.includes("делает") || norm.includes("предлагает"))) ||
+      norm.includes("список услуг") || norm.includes("весь прайс") || norm.includes("что вы делаете") || norm.includes("чем занимаетесь");
 
     if (isServiceInquiry) {
       return {
@@ -2165,15 +2206,15 @@
       };
     }
 
-    // 5.2. УТОЧНЯЮЩИЕ ВОПРОСЫ («только эти?», «а еще что?», «это все?»)
-    if (norm.includes('только эти') || norm.includes('это все') || norm.includes('что еще') || norm.includes('а еще') || norm.includes('другие услуги')) {
+    // 6.1. УТОЧНЯЮЩИЕ ВОПРОСЫ («только эти?», «а еще что?», «это все?»)
+    if (norm.includes("только эти") || norm.includes("это все") || norm.includes("что еще") || norm.includes("а еще") || norm.includes("другие услуги")) {
       return {
         text: `Также мы выполняем шумоизоляцию премиум-материалами (Comfort Mat), полировку и бронирование оптики, локальную полировку царапин, удаление вмятин без покраски (PDR) и реставрацию кожи салона.\n\nКакая задача для вашего авто сейчас в приоритете? Напишите модель автомобиля — подберем лучшее решение!`
       };
     }
 
-    // 5.3. КОРОТКИЕ ПОДТВЕРЖДЕНИЯ («ак», «ок», «хорошо», «понял», «ладно», «ясно», «договорились»)
-    if (norm === 'ак' || norm === 'ок' || norm === 'хорошо' || norm === 'понял' || norm === 'ясно' || norm === 'ладно' || norm === 'договорились' || norm === 'угу') {
+    // 6.2. КОРОТКИЕ ПОДТВЕРЖДЕНИЯ («ак», «ок», «хорошо», «понял», «ладно», «ясно», «договорились»)
+    if (norm === "ак" || norm === "ок" || norm === "хорошо" || norm === "понял" || norm === "ясно" || norm === "ладно" || norm === "договорились" || norm === "угу") {
       if (activeOrderState.carModel) {
         return {
           text: `Договорились! По вашему ${activeOrderState.carModel} предварительный заказ-наряд зафиксирован. На какой день и время вам удобно записаться в студию?`
@@ -2184,67 +2225,31 @@
       };
     }
 
-    // 6. ХИМЧИСТКА САЛОНА (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('сиден')) {
-      if (activeOrderState.carModel) {
-        activeOrderState.serviceCategory = 'clean';
-        activeOrderState.serviceName = 'Полная химчистка салона';
-        const est = computeEstimateForCar(text, activeOrderState);
-        activeOrderState = Object.assign({}, activeOrderState, est);
-        return {
-          text: `Для вашего ${est.carModel} (${est.carClass}) стоимость комплексной детейлинг-химчистки салона составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. В комплекс входит глубокая чистка всех элементов интерьера, потолка, пола, багажника и озонирование салона.\n\nРекомендуем дополнить защитной гидрофобной пропиткой сидений (+${est.upsellPrice.toLocaleString('ru-RU')} ₽). Антидождь передней полусферы — 0 ₽ в подарок по акции!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
-          estimate: est,
-          rawText: JSON.stringify(est)
-        };
-      }
-      activeOrderState.serviceCategory = 'clean';
+    // 7. ХИМЧИСТКА САЛОНА (БЕЗ НАЗВАННОГО АВТО)
+    if (norm.includes("химчист") || norm.includes("химчиск") || norm.includes("салон") || norm.includes("почистит") || norm.includes("сиден")) {
       return {
-        text: 'Стоимость комплексной детейлинг-химчистки салона с глубокой чисткой кожи/текстиля и озонированием:\n• Седаны и купе (BMW 3/5, Audi A4/A6, Camry) — 15 000 ₽\n• Кроссоверы и внедорожники (Audi Q7/Q8, BMW X5/X7, Li Auto L9, Tank 300) — 18 000 ₽\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов!'
+        text: "Стоимость комплексной детейлинг-химчистки салона с глубокой чисткой кожи/текстиля и озонированием:\n• Седаны и купе (BMW 3/5, Audi A4/A6, Camry) — 15 000 ₽\n• Кроссоверы и внедорожники (Audi Q7/Q8, BMW X5/X7, Li Auto L9, Tank 300) — 18 000 ₽\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов!"
       };
     }
 
-    // 7. ПОЛИРОВКА КУЗОВА (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes('полировк') || norm.includes('палировк') || norm.includes('царапин') || norm.includes('глянец')) {
-      if (activeOrderState.carModel) {
-        activeOrderState.serviceCategory = 'polishing';
-        activeOrderState.serviceName = 'Комплексная восстановительная полировка кузова';
-        const est = computeEstimateForCar(text, activeOrderState);
-        activeOrderState = Object.assign({}, activeOrderState, est);
-        return {
-          text: `Для вашего ${est.carModel} (${est.carClass}) восстановительная полировка кузова составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. Рекомендуем закрепить результат 2 слоями нанокерамики 9H (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) для долговременной защиты от химии и царапин. Антидождь — в подарок по акции (0 ₽)!\n\nПодскажите, на какой день и время вам удобно записаться?`,
-          estimate: est,
-          rawText: JSON.stringify(est)
-        };
-      }
-      activeOrderState.serviceCategory = 'polishing';
+    // 8. ПОЛИРОВКА КУЗОВА (БЕЗ НАЗВАННОГО АВТО)
+    if (norm.includes("полировк") || norm.includes("палировк") || norm.includes("царапин") || norm.includes("глянец")) {
       return {
-        text: 'Стоимость восстановительной полировки кузова:\n• Седаны и купе — 18 000 ₽ (+ керамика 9H 25 000 ₽)\n• Кроссоверы — 22 000 ₽ (+ керамика 9H 30 000 ₽)\n• Внедорожники — 26 000 ₽ (+ керамика 9H 30 000 ₽)\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас модель автомобиля? Сделаю точный расчет под ваш кузов!'
+        text: "Стоимость восстановительной полировки кузова:\n• Седаны и купе — 18 000 ₽ (+ керамика 9H 25 000 ₽)\n• Кроссоверы — 22 000 ₽ (+ керамика 9H 30 000 ₽)\n• Внедорожники — 26 000 ₽ (+ керамика 9H 30 000 ₽)\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас модель автомобиля? Сделаю точный расчет под ваш кузов!"
       };
     }
 
-    // 8. ОКЛЕЙКА ПЛЕНКОЙ PPF (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон')) {
-      if (activeOrderState.carModel) {
-        activeOrderState.serviceCategory = 'ppf';
-        activeOrderState.serviceName = 'Оклейка зон риска пленкой PPF';
-        const est = computeEstimateForCar(text, activeOrderState);
-        activeOrderState = Object.assign({}, activeOrderState, est);
-        return {
-          text: `Оклейка зон риска премиальным оптическим полиуретаном PPF (капот, бампер, фары, зеркала, стойки) для вашего ${est.carModel} (${est.carClass}) составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. На оставшийся кузов рекомендуем нанести нанокерамику 9H (+${est.upsellPrice.toLocaleString('ru-RU')} ₽), а антидождь сделаем в подарок по акции!\n\nПодскажите, когда вам удобно заехать на оклейку?`,
-          estimate: est,
-          rawText: JSON.stringify(est)
-        };
-      }
-      activeOrderState.serviceCategory = 'ppf';
+    // 9. ОКЛЕЙКА ПЛЕНКОЙ PPF (БЕЗ НАЗВАННОГО АВТО)
+    if (norm.includes("ppf") || norm.includes("ппф") || norm.includes("пленк") || norm.includes("плёнк") || norm.includes("оклейк") || norm.includes("оклеить") || norm.includes("заклеит") || norm.includes("затянут") || norm.includes("закатат") || norm.includes("брон")) {
       return {
-        text: 'Оклейка зон риска полиуретановой пленкой PPF (капот, бампер, крылья, фары, зеркала, стойки):\n• Седаны — 65 000 ₽\n• Кроссоверы и внедорожники — 75 000 ₽\nИспользуем 100% оптический полиуретан 200 микрон с самозатягивающимся слоем Top Coat (гарантия 5–10 лет).\n\nПодскажите, какая у вас модель автомобиля? Автомобиль новый из салона или с пробегом?'
+        text: "Оклейка зон риска полиуретановой пленкой PPF (капот, бампер, передние крылья, фары, зеркала, стойки):\n• Седаны — 65 000 ₽\n• Кроссоверы и внедорожники — 75 000 ₽\nИспользуем 100% оптический полиуретан 200 микрон с самозатягивающимся слоем Top Coat (гарантия 5–10 лет).\n\nПодскажите, какая у вас модель автомобиля? Автомобиль новый из салона или с пробегом?"
       };
     }
 
-    // 9. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
-    if ((norm.includes('скольк') && norm.includes('времен')) || norm.includes('по времени') || norm.includes('сколько дней') || norm.includes('сколько часов') || norm.includes('когда готов') || norm.includes('когда забрать') || norm.includes('когда отдадите') || norm.includes('длится')) {
-      const car = activeOrderState.carModel || 'автомобиля';
-      const isPPF = (activeOrderState.serviceName || '').includes('PPF') || (activeOrderState.serviceName || '').includes('пленк');
+    // 10. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
+    if ((norm.includes("скольк") && norm.includes("времен")) || norm.includes("по времени") || norm.includes("сколько дней") || norm.includes("сколько часов") || norm.includes("когда готов") || norm.includes("когда забрать") || norm.includes("когда отдадите") || norm.includes("длится")) {
+      const car = activeOrderState.carModel || "автомобиля";
+      const isPPF = (activeOrderState.serviceName || "").includes("PPF") || (activeOrderState.serviceName || "").includes("пленк");
       const timing = isPPF
         ? `Оклейка зон риска для ${car} занимает от 1 до 2 рабочих дней. Пленке требуется технологическая просушка в теплом боксе и фиксация всех подворотов.`
         : `Комплексная полировка и защита для ${car} занимает 1 рабочий день (утром привозите, на следующий день забираете в идеальном состоянии).`;
@@ -2254,74 +2259,64 @@
       };
     }
 
-    // 10. ВОПРОС О ГАРАНТИИ
-    if (norm.includes('гарант') || norm.includes('сертифик') || norm.includes('надежн')) {
-      const car = activeOrderState.carModel || 'автомобиль';
+    // 11. ВОПРОС О ГАРАНТИИ
+    if (norm.includes("гарант") || norm.includes("сертифик") || norm.includes("надежн")) {
+      const car = activeOrderState.carModel || "автомобиль";
       return {
         text: `На все работы по ${car} предоставляется официальная гарантия:\n• На полиуретановую пленку — гарантия от производителя от 5 до 10 лет (не желтеет, не мутнеет, не трескается от мороза).\n• На монтаж и прилегание краев — гарантия студии 1 год.\n• На керамику 9H — гарантия гидрофобного эффекта до 18 месяцев.\n\nЧерез 10–14 дней после оклейки мы приглашаем вас на бесплатный контрольный осмотр мастера.`
       };
     }
 
-    // 11. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
-    if (norm.includes('материал') || (norm.includes('пленк') && (norm.includes('как') || norm.includes('бренд') || norm.includes('фирм') || norm.includes('производ'))) || norm.includes('какой состав')) {
+    // 12. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
+    if (norm.includes("материал") || (norm.includes("пленк") && (norm.includes("как") || norm.includes("бренд") || norm.includes("фирм") || norm.includes("производ"))) || norm.includes("какой состав")) {
       return {
-        text: `Мы работаем исключительно со 100% оптическим полиуретаном премиум-класса толщиной 195–215 микрон (бренды Stek, Llumar, SunTek).\n\nПленка имеет прочный верхний лаковый слой Top Coat — царапины от веток и песка самозатягиваются от тепла на солнце или горячей воды. Никакого дешевого винила или гибрида.`
+        text: "Мы работаем исключительно со 100% оптическим полиуретаном премиум-класса толщиной 195–215 микрон (бренды Stek, Llumar, SunTek).\n\nПленка имеет прочный верхний лаковый слой Top Coat — царапины от веток и песка самозатягиваются от тепла на солнце или горячей воды. Никакого дешевого винила или гибрида."
       };
     }
 
-    // 12. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
-    if ((norm.includes('зон') && norm.includes('риск')) || norm.includes('что входит') || norm.includes('какие детали')) {
-      const car = activeOrderState.carModel || 'автомобиля';
+    // 13. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
+    if ((norm.includes("зон") && norm.includes("риск")) || norm.includes("что входит") || norm.includes("какие детали")) {
+      const car = activeOrderState.carModel || "автомобиля";
       return {
         text: `В комплекс «Зоны риска» для ${car} входит оклейка самых уязвимых от гравия и сколов элементов:\n• Капот полностью;\n• Передний бампер целиком со всеми вставками;\n• Передние крылья полностью;\n• Корпуса боковых зеркал;\n• Оптика (фары и ПТФ);\n• Зоны под ручками дверей (от ногтей);\n• Полоса на крышу над лобовым стеклом;\n• Стойки лобового стекла.`
       };
     }
 
-    // 13. ВОПРОС О СКИДКАХ И ЦЕНЕ
-    if (norm.includes('скидк') || norm.includes('подешевл') || norm.includes('дорог') || norm.includes('торг') || norm.includes('уступ')) {
-      const car = activeOrderState.carModel || 'автомобиля';
+    // 14. ВОПРОС О СКИДКАХ И ЦЕНЕ
+    if (norm.includes("скидк") || norm.includes("подешевл") || norm.includes("дорог") || norm.includes("торг") || norm.includes("уступ")) {
+      const car = activeOrderState.carModel || "автомобиля";
       return {
         text: `В расчет для вашего ${car} уже включены максимальные бонусы по нашей акции:\n1. Антидождь передней полусферы в подарок — 0 ₽ (экономия 4 000 ₽);\n2. Бесплатный замер толщины ЛКП всего кузова высокоточным толщиномером;\n3. Детейлинг-мойка кузова перед началом работ.\n\nМы держим фиксированные честные цены с гарантией качества без скрытых наценок.`
       };
     }
 
-    // 14. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
-    if (norm.includes('оплат') || norm.includes('предоплат') || norm.includes('карт') || norm.includes('наличн') || norm.includes('сбп') || norm.includes('безнал')) {
+    // 15. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
+    if (norm.includes("оплат") || norm.includes("предоплат") || norm.includes("карт") || norm.includes("наличн") || norm.includes("сбп") || norm.includes("безнал")) {
       return {
-        text: `Предоплата для бронирования не требуется! Оплата производится строго по факту завершения работ после вашего личного осмотра автомобиля.\n\nПринимаем любые удобные способы: наличные, банковская карта, СБП, а также безналичный расчет для юридических лиц.`
+        text: "Предоплата для бронирования не требуется! Оплата производится строго по факту завершения работ после вашего личного осмотра автомобиля.\n\nПринимаем любые удобные способы: наличные, банковская карта, СБП, а также безналичный расчет для юридических лиц."
       };
     }
 
-    // 15. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
-    if (norm.includes('воскресень') || norm.includes('понедельник') || norm.includes('вторник') || norm.includes('сред') || norm.includes('четверг') || norm.includes('пятниц') || norm.includes('будн') || norm.includes('другой день') || norm.includes('другое время') || norm.includes('утром') || norm.includes('вечером')) {
+    // 16. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
+    if (norm.includes("воскресень") || norm.includes("понедельник") || norm.includes("вторник") || norm.includes("сред") || norm.includes("четверг") || norm.includes("пятниц") || norm.includes("будн") || norm.includes("другой день") || norm.includes("другое время") || norm.includes("утром") || norm.includes("вечером")) {
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: `Да, конечно! Мы с удовольствием примем вас в удобное для вас время${timePref ? ` (${timePref})` : ''}.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор закрепит бокс и свяжется для подтверждения деталей.`
+        text: `Да, конечно! Мы с удовольствием примем вас в удобное для вас время${timePref ? (" (" + timePref + ")") : ""}.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор закрепит бокс и свяжется для подтверждения деталей.`
       };
     }
 
-    // 16. СОГЛАСИЕ НА ЗАПИСЬ / ПОДТВЕРЖДЕНИЕ
-    if (norm === 'да' || norm === 'давайте' || norm === 'хорошо' || norm === 'согласен' || norm === 'подходит' || norm === 'бронируйте' || norm === 'ок' || norm === 'запишите' || norm.startsWith('да ') || norm.startsWith('давайте ')) {
-      const timePref = extractTimePreference(text);
-      if (timePref) activeOrderState.slot = timePref;
-      const car = activeOrderState.carModel || 'автомобиль';
-      return {
-        text: `Отлично! С удовольствием забронируем удобное для вас время для вашего ${car}.\n\nПодскажите, пожалуйста, на какой день и время вам удобнее всего приехать, а также ваше имя и номер телефона (или Telegram @никнейм) для закрепления брони?`
-      };
-    }
-
-    // 17. Запрос записи БЕЗ контакта
-    if (isBookingRequest(text)) {
+    // 17. Запрос записи / свободные окна (БЕЗ авто и услуги)
+    if (isBookingRequest(text) || norm.includes("записат") || norm.includes("заехать") || norm.includes("приехать") || norm.includes("окна") || norm.includes("свободно")) {
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: 'С удовольствием запишем вас в наш детейлинг-центр!\n\nПодскажите, пожалуйста, на какой день и время вам удобно приехать, а также ваше имя и номер телефона (или Telegram @никнейм), чтобы мастер закрепил бронь и связался с вами.'
+        text: "С удовольствием запишем вас в наш детейлинг-центр!\n\nПодскажите, какой у вас автомобиль и какая услуга интересует (полировка, нанокерамика, оклейка PPF, химчистка), чтобы я подобрал удобное время и сделал точный расчет сметы."
       };
     }
 
     // 18. Живая консультация мастера (БЕЗ роботизированных анкет)
-    if (norm.includes('выбор') || norm.includes('помог') || norm.includes('посовету') || norm.includes('подскаж') || norm.includes('что лучше')) {
+    if (norm.includes("выбор") || norm.includes("помог") || norm.includes("посовету") || norm.includes("подскаж") || norm.includes("что лучше")) {
       if (activeOrderState.carModel) {
         const car = activeOrderState.carModel;
         const expertNote = getCarExpertDetail(car, activeOrderState.carClass, activeOrderState.brand);
@@ -2330,33 +2325,33 @@
         };
       }
       return {
-        text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, какой у вас автомобиль и какую задачу в первую очередь хотелось бы решить: защитить кузов от гравия (пленка PPF), вернуть зеркальный блеск (полировка + керамика) или обновить салон?'
+        text: "С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, какой у вас автомобиль и какую задачу в первую очередь хотелось бы решить: защитить кузов от гравия (пленка PPF), вернуть зеркальный блеск (полировка + керамика) или обновить салон?"
       };
     }
 
     // 19. Адрес и локация
-    if (norm.includes('где') || norm.includes('адрес') || norm.includes('находит') || norm.includes('город') || norm.includes('как доехать')) {
+    if (norm.includes("где") || norm.includes("адрес") || norm.includes("находит") || norm.includes("город") || norm.includes("как доехать")) {
       return {
         text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать стоимость услуг или подобрать удобное время?`
       };
     }
 
     // 20. Короткие приветствия
-    if (norm === 'привет' || norm === 'здравствуйте' || norm === 'добрый день' || norm === 'добрый вечер' || norm === 'ку' || norm === 'салют') {
+    if (norm === "привет" || norm === "здравствуйте" || norm === "добрый день" || norm === "добрый вечер" || norm === "ку" || norm === "салют") {
       if (activeOrderState.carModel) {
         return {
           text: `Здравствуйте! По вашему автомобилю ${activeOrderState.carModel} заказ-наряд зафиксирован.\n\nПодскажите, на какой день и время вам удобно запланировать визит?`
         };
       }
       return {
-        text: 'Здравствуйте! Я на связи и готов подробно проконсультировать. Напишите марку и модель вашего автомобиля — и я сразу рассчитаю точную стоимость комплекса с подарком по акции!'
+        text: "Здравствуйте! Я на связи и готов подробно проконсультировать. Напишите марку и модель вашего автомобиля — и я сразу рассчитаю точную стоимость комплекса с подарком по акции!"
       };
     }
 
     // 21. ФОЛЛБЭК: Если автомобиль уже обсуждается в диалоге
     if (activeOrderState.carModel) {
       const car = activeOrderState.carModel;
-      const cClass = activeOrderState.carClass || 'Внедорожник';
+      const cClass = activeOrderState.carClass || "Внедорожник";
       return {
         text: `По вашему автомобилю ${car} (${cClass}) предварительный заказ-наряд зафиксирован.\n\nПодскажите, на какой день и время вам удобно приехать к нам, или хотите уточнить какие-либо детали по комплексу, материалам или срокам?`
       };
@@ -2364,11 +2359,11 @@
 
     // 22. ФОЛЛБЭК: Если диалог уже идет, но авто еще не названо
     return {
-      text: 'С удовольствием подробно проконсультирую по технологиям и помогу подобрать лучший комплекс!\n\nПодскажите, пожалуйста, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет стоимости и сориентирую по свободным окнам.'
+      text: "С удовольствием подробно проконсультирую по технологиям и помогу подобрать лучший комплекс!\n\nПодскажите, пожалуйста, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет стоимости и сориентирую по свободным окнам."
     };
   }
 
-    let isSending = false;
+  let isSending = false;
   let isGeminiReachable = true;
 
   function setControlsState(disabled) {
@@ -2623,6 +2618,7 @@
   window.EcmWidget = {
     detectCar: detectCar,
     detectCarDetails: detectCar,
+    parseMessageEntities: parseMessageEntities,
     getSmartFallback: getSmartFallback,
     isEstimateRequest: isEstimateRequest,
     computeEstimateForCar: computeEstimateForCar,
