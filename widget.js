@@ -72,11 +72,12 @@
 - Китайские авто (LiXiang, Zeekr, Geely, Exeed, Changan): деликатный заводской лак, требующий защиты полиуретаном или керамикой;
 - Седаны: акценты на передний бампер, капот, зеркала и глубокий глянец по бортам.
 
-ПРАВИЛО ДОПРОДАЖИ (UPSELL):
-К полировке ненавязчиво предлагай 2 слоя керамики 9H (+25 000 ₽ седан / +30 000 ₽ SUV), антидождь передней полусферы идет в подарок (0 ₽) по акции.
-К оклейке PPF зон риска предлагай керамику на остальной кузов или бронирование лобового стекла.
-К химчистке предлагай защитную гидрофобную пропитку сидений и озонирование (+8 000 ₽).
-Если клиент просит только базовую услугу или без допов — соглашайся и считай только базовую цену.
+ПРАВИЛО ДОПРОДАЖИ (UPSELL) И ОБЪЯСНЕНИЕ ЦЕННОСТИ:
+Никогда не предлагай услугу одной строчкой без объяснения, за что клиент платит и чем она полезна:
+- К химчистке: предлагай ТОЛЬКО защитную гидрофобную пропитку сидений и озонирование (+8 000 ₽) с пояснением: «Также, если вам интересно, можем дополнительно сделать озонирование и защитную гидрофобную пропитку сидений (+8 000 ₽) — пропитка создаст невидимый барьер, чтобы жидкости и грязь не впитывались в кожу и текстиль, а озонирование уничтожит бактерии и запахи». КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО предлагать нанокерамику для химчистки!
+- К полировке: предлагай нанокерамику 9H в 2 слоя, поясняя, что она защитит отполированный лак от реагентов и паутинки на 18 месяцев.
+- К оклейке PPF: предлагай нанокерамику на остальной кузов, поясняя, что она защитит открытые элементы и выровняет зеркальный глянец.
+- Если клиент просит только базовую услугу или без допов — соглашайся и считай только базовую цену.
 
 ОТЕЧЕСТВЕННЫЕ АВТО:
 Автомобили ВАЗ / Лада / УАЗ / Жигули не входят в профильный сегмент студии. Вежливо объясни, что мы специализируемся на современных иномарках бизнес- и премиум-класса.
@@ -923,23 +924,10 @@
 
   function renderMessagesInto(containerEl) {
     if (!containerEl) return;
-    const existing = containerEl.querySelectorAll('.ecm-msg:not(.typing-msg)');
-    const currentCount = existing.length;
-
-    // Полный рендер только если контейнер пуст или при сбросе диалога
-    if (currentCount === 0 || messages.length < currentCount) {
-      containerEl.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-      messages.forEach(m => fragment.appendChild(createMessageElement(m)));
-      containerEl.appendChild(fragment);
-    } else if (messages.length > currentCount) {
-      // Инкрементальное добавление только новых сообщений (0 мс задержки на мобильных!)
-      const fragment = document.createDocumentFragment();
-      for (let i = currentCount; i < messages.length; i++) {
-        fragment.appendChild(createMessageElement(messages[i]));
-      }
-      containerEl.appendChild(fragment);
-    }
+    containerEl.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    messages.forEach(m => fragment.appendChild(createMessageElement(m)));
+    containerEl.appendChild(fragment);
 
     requestAnimationFrame(() => {
       containerEl.scrollTop = containerEl.scrollHeight;
@@ -1413,13 +1401,13 @@
 
   function parseServiceIntent(text) {
     const norm = normalizeCarText(text || '');
-    if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('чистк') || norm.includes('салон') || norm.includes('почистит')) {
+    if (/хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|озонир|химк[аеуоы]/i.test(norm)) {
       return { category: 'clean', name: 'Полная химчистка салона' };
     }
-    if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('брон') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('зоны риска')) {
+    if (/ppf|ппф|пленк|плёнк|оклейк|оклеить|брон|заклеит|затянут|закатат|зоны риска/i.test(norm)) {
       return { category: 'ppf', name: 'Оклейка зон риска пленкой PPF' };
     }
-    if (norm.includes('полиров') || norm.includes('палиров') || norm.includes('глянец') || norm.includes('блеск') || norm.includes('паутинк') || norm.includes('царапин')) {
+    if (/полиров|палиров|глянец|блеск|паутинк|царапин/i.test(norm)) {
       return { category: 'polishing', name: 'Комплексная восстановительная полировка кузова' };
     }
     if (norm.includes('керамик') || norm.includes('9h') || norm.includes('жидкое стекло')) {
@@ -1508,6 +1496,12 @@
     // 3. Mercedes-Benz
     if (hasRx('гелик[аеуом]?|гелендваген[аеуом]?|g\\s*class|г\\s*класс|g\\s*63|g\\s*500|g63|g500')) {
       return { carModel: 'Mercedes G-Class (Гелик)', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
+    }
+    if (hasRx('63\\s*амг|амг\\s*63|amg\\s*63|63\\s*amg|амг|amg') && hasRx('мерс|мерин|мерседес|mercedes|63')) {
+      if (hasRx('гелик|г\\s*класс|g\\s*class|джип|внедорожник')) {
+        return { carModel: 'Mercedes-AMG G63', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
+      }
+      return { carModel: 'Mercedes-AMG 63', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
     }
     if (hasRx('глс|gls|гле|gle')) {
       return { carModel: 'Mercedes GLE/GLS', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
@@ -1785,11 +1779,8 @@
     if (isUpsellExclusionQuery(norm)) return true;
 
     // Услуга + автомобиль или намерение
-    const services = [
-      'ppf', 'ппф', 'пленк', 'плёнк', 'оклейк', 'оклеить', 'заклеить', 'затянуть', 'закатать',
-      'полировк', 'палировк', 'керамик', 'химчист', 'химчиск', 'почистить', 'салон', 'пропитк'
-    ];
-    const hasService = services.some(s => norm.includes(s));
+    const parsedSvc = parseServiceIntent(userText);
+    const hasService = !!parsedSvc.category || /ppf|ппф|пленк|оклейк|полиров|керамик|хим\s*чист|химчист|чистк|почист|салон/i.test(norm);
     const detectedCar = detectCar(userText);
     const hasCar = !!(detectedCar.carClass || detectedCar.carModel);
 
@@ -1816,9 +1807,10 @@
 
     const isExcl = isUpsellExclusionQuery(norm) || !!(baseState && baseState.upsellExcluded);
 
-    const hasPPFInText = norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон');
-    const hasCleanInText = norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('пропитк') || norm.includes('сиден');
-    const hasPolishingInText = norm.includes('полировк') || norm.includes('палировк') || norm.includes('глянец') || norm.includes('блеск') || norm.includes('паутинк') || norm.includes('царапин');
+    const svcIntent = parseServiceIntent(userText);
+    const hasPPFInText = svcIntent.category === 'ppf' || /ppf|ппф|пленк|плёнк|оклейк|оклеить|заклеит|затянут|закатат|брон/i.test(norm);
+    const hasCleanInText = svcIntent.category === 'clean' || /хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|кожа|пропитк|озонир|химк/i.test(norm);
+    const hasPolishingInText = svcIntent.category === 'polishing' || /полиров|палиров|глянец|блеск|паутинк|царапин/i.test(norm);
 
     let isPPF = false;
     let isClean = false;
@@ -2138,11 +2130,20 @@
             serviceDesc = `стоимость комплексной восстановительной полировки кузова с удалением паутинки и возвратом глубокого заводского глянца составляет ${est.basePrice.toLocaleString("ru-RU")} ₽`;
           }
 
-          let upsellDesc = est.upsellPrice > 0
-            ? `\n\nРекомендуем дополнить: ${est.upsellName.toLowerCase()} (+${est.upsellPrice.toLocaleString("ru-RU")} ₽).`
-            : `\n\nВыбран базовый комплекс без дополнительных опций.`;
+          let upsellDesc = "";
+          if (est.upsellPrice > 0) {
+            if (isClean) {
+              upsellDesc = `\n\nТакже, если вам интересно, мы можем дополнительно сделать озонирование и защитную гидрофобную пропитку сидений (+${est.upsellPrice.toLocaleString("ru-RU")} ₽) — она создаёт невидимый дышащий барьер на коже и текстиле, благодаря чему пролитый кофе или вода собираются каплями и не впитываются, а озонирование полностью уничтожает любые бактерии и въевшиеся запахи.`;
+            } else if (isPPF) {
+              upsellDesc = `\n\nТакже, если вам интересно, мы можем дополнительно нанести нанокерамику 9H в 2 слоя на остальные незаклеенные элементы кузова (+${est.upsellPrice.toLocaleString("ru-RU")} ₽) — это защитит заводской лак по всему периметру автомобиля и обеспечит равномерный глубокий зеркальный глянец.`;
+            } else {
+              upsellDesc = `\n\nТакже, если вам интересно, мы можем дополнительно защитить отполированный кузов нанокерамикой 9H в 2 слоя (+${est.upsellPrice.toLocaleString("ru-RU")} ₽) — она создаст мощный гидрофобный щит от реагентов, солей, выгорания на солнце и агрессивной химии на 18 месяцев, усилив глубину зеркального глянца.`;
+            }
+          } else {
+            upsellDesc = `\n\nВыбран базовый комплекс без дополнительных опций.`;
+          }
 
-          const giftDesc = `\nПо действующей акции нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!`;
+          const giftDesc = `\n\nПо действующей акции нанесение гидрофобного антидождя на переднюю полусферу мы сделаем вам в подарок (0 ₽)!`;
 
           // Если клиент сразу написал день/время визита (например, «можно завтра будет заехать на прадик 200 химчистку сделать»)
           if (entities.dateIntent.hasDate) {
