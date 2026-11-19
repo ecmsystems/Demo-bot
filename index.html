@@ -1011,9 +1011,15 @@
 
     .calc-val-display {
       font-family: 'Fira Sans Extra Condensed', sans-serif;
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 600;
       color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.15s ease;
+      display: inline-block;
+    }
+    .calc-val-display.is-dragging {
+      color: var(--pad);
     }
 
     .calc-range {
@@ -1026,58 +1032,43 @@
       -webkit-appearance: none;
       appearance: none;
       cursor: pointer;
+      touch-action: pan-y;
     }
     .calc-range::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: var(--pad);
       border: 2px solid var(--card);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
       cursor: grab;
-      will-change: transform;
-      transition: transform 0.12s ease;
+      transition: box-shadow 0.15s ease, background-color 0.15s ease;
     }
     .calc-range:hover::-webkit-slider-thumb {
-      transform: scale(1.15);
+      box-shadow: 0 0 0 3px rgba(224, 90, 43, 0.22), 0 2px 7px rgba(0, 0, 0, 0.35);
     }
     .calc-range:active::-webkit-slider-thumb {
-      transform: scale(1.25);
       cursor: grabbing;
+      box-shadow: 0 0 0 5px rgba(224, 90, 43, 0.32), 0 2px 9px rgba(0, 0, 0, 0.45);
     }
     .calc-range::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: var(--pad);
       border: 2px solid var(--card);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
       cursor: grab;
-      will-change: transform;
-      transition: transform 0.12s ease;
+      transition: box-shadow 0.15s ease, background-color 0.15s ease;
     }
     .calc-range:hover::-moz-range-thumb {
-      transform: scale(1.15);
+      box-shadow: 0 0 0 3px rgba(224, 90, 43, 0.22), 0 2px 7px rgba(0, 0, 0, 0.35);
     }
     .calc-range:active::-moz-range-thumb {
-      transform: scale(1.25);
       cursor: grabbing;
-    }
-
-    .calc-val-display {
-      font-family: 'Fira Sans Extra Condensed', sans-serif;
-      font-size: 19px;
-      font-weight: 600;
-      color: var(--ink);
-      will-change: transform, color;
-      transition: transform 0.12s ease, color 0.12s ease;
-      display: inline-block;
-    }
-    .calc-val-display.is-dragging {
-      color: var(--pad);
-      transform: scale(1.08);
+      box-shadow: 0 0 0 5px rgba(224, 90, 43, 0.32), 0 2px 9px rgba(0, 0, 0, 0.45);
     }
 
     .calc-summary-panel {
@@ -1103,12 +1094,12 @@
       font-weight: 600;
       color: var(--bad);
       line-height: 1;
-      will-change: transform;
-      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-variant-numeric: tabular-nums;
       display: inline-block;
+      transition: color 0.15s ease, text-shadow 0.2s ease;
     }
-    .calc-big-loss.calc-pop {
-      transform: scale(1.06);
+    .calc-big-loss.is-updating {
+      text-shadow: 0 0 14px rgba(239, 68, 68, 0.32);
     }
 
     .price-num-main {
@@ -2164,7 +2155,7 @@
               <span>Вечерних и ночных обращений в месяц:</span>
               <span class="calc-val-display" id="dispInquiries">15 обращений</span>
             </div>
-            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1" oninput="onSliderInputThrottled()">
+            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1">
           </div>
 
           <div class="calc-group">
@@ -2172,7 +2163,7 @@
               <span>Средний чек студии:</span>
               <span class="calc-val-display" id="dispCheck">35&nbsp;000&nbsp;₽</span>
             </div>
-            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000" oninput="onSliderInputThrottled()">
+            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000">
           </div>
 
           <div class="calc-group">
@@ -2180,7 +2171,7 @@
               <span>Доля уходящих к конкурентам при задержке:</span>
               <span class="calc-val-display" id="dispChurn">40%</span>
             </div>
-            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5" oninput="onSliderInputThrottled()">
+            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5">
           </div>
 
         </div>
@@ -2387,8 +2378,31 @@
 
   <!-- ─── СКРИПТЫ: КАЛЬКУЛЯТОР, ТАРИФЫ, ДЕМО-ИНТЕРАКТИВ ────────────────── -->
   <script>
-    // Высокопроизводительный калькулятор (60-120 FPS без лагов)
-    let calcRafId = null;
+    // Высокопроизводительный калькулятор (плавная анимация без зума и лагов, 60-120 FPS)
+    let calcInputs = null;
+    let calcDisplays = null;
+    let calcResultEl = null;
+
+    let currentLoss = 210000;
+    let targetLoss = 210000;
+    let lossAnimRaf = null;
+
+    function getCalcElements() {
+      if (!calcInputs) {
+        calcInputs = {
+          inq: document.getElementById('inputInquiries'),
+          chk: document.getElementById('inputCheck'),
+          chr: document.getElementById('inputChurn')
+        };
+        calcDisplays = {
+          inq: document.getElementById('dispInquiries'),
+          chk: document.getElementById('dispCheck'),
+          chr: document.getElementById('dispChurn')
+        };
+        calcResultEl = document.getElementById('calcLossResult');
+      }
+      return calcInputs;
+    }
 
     function updateSliderTrack(slider) {
       if (!slider) return;
@@ -2399,53 +2413,71 @@
       slider.style.background = `linear-gradient(to right, var(--pad) 0%, var(--pad) ${pct}%, var(--panel) ${pct}%, var(--panel) 100%)`;
     }
 
+    // Плавное перетекание цифр итоговой сметы без деформации и зума
+    function renderLossNumber(immediate) {
+      if (!calcResultEl) return;
+      if (immediate) {
+        currentLoss = targetLoss;
+        if (lossAnimRaf) {
+          cancelAnimationFrame(lossAnimRaf);
+          lossAnimRaf = null;
+        }
+        calcResultEl.textContent = targetLoss.toLocaleString('ru-RU') + ' ₽';
+        calcResultEl.classList.remove('is-updating');
+        return;
+      }
+
+      if (lossAnimRaf) return;
+
+      function step() {
+        const diff = targetLoss - currentLoss;
+        if (Math.abs(diff) < 200) {
+          currentLoss = targetLoss;
+          calcResultEl.textContent = targetLoss.toLocaleString('ru-RU') + ' ₽';
+          calcResultEl.classList.remove('is-updating');
+          lossAnimRaf = null;
+          return;
+        }
+        // Мягкий и быстрый lerp (35% за кадр = около 80-120 мс)
+        currentLoss += Math.round(diff * 0.35);
+        const rounded = Math.round(currentLoss / 100) * 100;
+        calcResultEl.textContent = rounded.toLocaleString('ru-RU') + ' ₽';
+        calcResultEl.classList.add('is-updating');
+        lossAnimRaf = requestAnimationFrame(step);
+      }
+
+      lossAnimRaf = requestAnimationFrame(step);
+    }
+
     function calculateLoss(isInitial) {
-      const sInq = document.getElementById('inputInquiries');
-      const sChk = document.getElementById('inputCheck');
-      const sChr = document.getElementById('inputChurn');
-      if (!sInq || !sChk || !sChr) return;
+      getCalcElements();
+      if (!calcInputs.inq || !calcInputs.chk || !calcInputs.chr) return;
 
-      const inq = parseInt(sInq.value, 10);
-      const chk = parseInt(sChk.value, 10);
-      const chr = parseInt(sChr.value, 10);
+      const inq = parseInt(calcInputs.inq.value, 10);
+      const chk = parseInt(calcInputs.chk.value, 10);
+      const chr = parseInt(calcInputs.chr.value, 10);
 
-      document.getElementById('dispInquiries').textContent = inq + ' обращений';
-      document.getElementById('dispCheck').textContent = chk.toLocaleString('ru-RU') + ' ₽';
-      document.getElementById('dispChurn').textContent = chr + '%';
+      calcDisplays.inq.textContent = inq + ' обращений';
+      calcDisplays.chk.textContent = chk.toLocaleString('ru-RU') + ' ₽';
+      calcDisplays.chr.textContent = chr + '%';
 
-      updateSliderTrack(sInq);
-      updateSliderTrack(sChk);
-      updateSliderTrack(sChr);
+      updateSliderTrack(calcInputs.inq);
+      updateSliderTrack(calcInputs.chk);
+      updateSliderTrack(calcInputs.chr);
 
       const lostClients = Math.round(inq * (chr / 100));
-      const totalLoss = lostClients * chk;
+      targetLoss = lostClients * chk;
 
-      const resultEl = document.getElementById('calcLossResult');
-      if (resultEl) {
-        resultEl.textContent = totalLoss.toLocaleString('ru-RU') + ' ₽';
-        if (!isInitial) {
-          resultEl.classList.add('calc-pop');
-          clearTimeout(resultEl._popTimer);
-          resultEl._popTimer = setTimeout(() => resultEl.classList.remove('calc-pop'), 160);
-        }
-      }
+      renderLossNumber(isInitial);
     }
 
-    // Троттлинг через requestAnimationFrame: мгновенный отклик без лагов
-    function onSliderInputThrottled() {
-      if (calcRafId) return;
-      calcRafId = requestAnimationFrame(() => {
-        calculateLoss(false);
-        calcRafId = null;
-      });
-    }
-
-    // Инициализация событий перетягивания (вызывается СТРОГО 1 РАЗ)
+    // Инициализация событий перетягивания с пассивными слушателями
     function initSliderDragEffects() {
+      getCalcElements();
       const sliders = [
-        { el: document.getElementById('inputInquiries'), disp: document.getElementById('dispInquiries') },
-        { el: document.getElementById('inputCheck'), disp: document.getElementById('dispCheck') },
-        { el: document.getElementById('inputChurn'), disp: document.getElementById('dispChurn') }
+        { el: calcInputs.inq, disp: calcDisplays.inq },
+        { el: calcInputs.chk, disp: calcDisplays.chk },
+        { el: calcInputs.chr, disp: calcDisplays.chr }
       ];
 
       sliders.forEach(({ el, disp }) => {
@@ -2457,7 +2489,7 @@
 
         el.addEventListener('input', () => {
           disp.classList.add('is-dragging');
-          onSliderInputThrottled();
+          calculateLoss(false);
         }, { passive: true });
 
         el.addEventListener('change', () => {
