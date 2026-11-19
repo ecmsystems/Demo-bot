@@ -2546,46 +2546,61 @@
         });
       }
 
-      if (estimate && estimate.carClass) {
-        const estBasePrice = (estimate.basePrice !== undefined && estimate.basePrice !== null && !isNaN(estimate.basePrice))
-          ? Number(estimate.basePrice) : 18000;
-        const estUpsellPrice = (estimate.upsellPrice !== undefined && estimate.upsellPrice !== null && !isNaN(estimate.upsellPrice))
-          ? Number(estimate.upsellPrice) : (estimate.upsellExcluded ? 0 : 25000);
-        const estTotalPrice = (estimate.totalPrice !== undefined && estimate.totalPrice !== null && !isNaN(estimate.totalPrice))
-          ? Number(estimate.totalPrice) : (estBasePrice + estUpsellPrice);
-        const estSlot = estimate.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)';
+      // Карточка заказ-наряда формируется ТОЛЬКО в самом начале как образец и в конце при фактической записи (оставлен контакт)
+      const isFinalBooking = !!contactInfo && !refusalMode && !b2bMode;
 
-        const newEstCard = {
+      if (isFinalBooking && (activeOrderState.carClass || (estimate && estimate.carClass))) {
+        const estClass = (estimate && estimate.carClass) || activeOrderState.carClass || 'Седан';
+        const estModel = (estimate && estimate.carModel) || activeOrderState.carModel || 'Автомобиль';
+        const estService = (estimate && estimate.serviceName) || activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
+        const estBasePrice = (estimate && estimate.basePrice !== undefined && estimate.basePrice !== null && !isNaN(estimate.basePrice))
+          ? Number(estimate.basePrice)
+          : (activeOrderState.basePrice || 18000);
+        const isExcl = (estimate && estimate.upsellExcluded) || !!activeOrderState.upsellExcluded;
+        const estUpsellPrice = isExcl
+          ? 0
+          : ((estimate && estimate.upsellPrice !== undefined && estimate.upsellPrice !== null && !isNaN(estimate.upsellPrice))
+              ? Number(estimate.upsellPrice)
+              : (activeOrderState.upsellPrice !== undefined ? activeOrderState.upsellPrice : 0));
+        const estUpsellName = isExcl
+          ? 'Без дополнительных опций'
+          : ((estimate && estimate.upsellName) || activeOrderState.upsellName || (estUpsellPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций'));
+        const estTotalPrice = (estimate && estimate.totalPrice !== undefined && estimate.totalPrice !== null && !isNaN(estimate.totalPrice))
+          ? Number(estimate.totalPrice)
+          : (estBasePrice + estUpsellPrice);
+        const estSlot = (estimate && estimate.slot) || activeOrderState.slot || 'по согласованию (на ваш выбор)';
+
+        const finalOrderCard = {
           role: 'bot',
           isEstimate: true,
-          carModel: estimate.carModel || 'Автомобиль',
-          carClass: estimate.carClass || 'Расчёт по прайсу',
-          serviceName: estimate.serviceName || 'Комплексная восстановительная полировка кузова',
+          isFinalConfirmed: true,
+          carModel: estModel,
+          carClass: estClass,
+          serviceName: estService,
           basePrice: estBasePrice,
-          upsellName: estimate.upsellName || (estUpsellPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций'),
+          upsellName: estUpsellName,
           upsellPrice: estUpsellPrice,
           totalPrice: estTotalPrice,
           slot: estSlot
         };
 
-        // Заменяем предыдущую карточку сметы, чтобы в ленте чата не копились бесконечные дубли заказ-нарядов
-        const prevEstIdx = messages.findIndex(m => m.isEstimate);
-        if (prevEstIdx !== -1) {
-          messages.splice(prevEstIdx, 1);
+        // Заменяем предыдущую подтвержденную карточку (если клиент скорректировал контакт или время), не трогая стартовый образец в шапке
+        const prevConfirmedIdx = messages.findIndex(m => m.isEstimate && !m.isInitialSample);
+        if (prevConfirmedIdx !== -1) {
+          messages.splice(prevConfirmedIdx, 1);
         }
-        messages.push(newEstCard);
+        messages.push(finalOrderCard);
 
         try {
-          const contactStr = contactInfo ? contactInfo.display : (bookingMode ? 'Онлайн-бронь слота' : 'Онлайн-диалог');
           window.dispatchEvent(new CustomEvent('ecm-lead-created', {
             detail: {
               client: 'Посетитель сайта',
-              contact: contactStr,
-              car: `${estimate.carModel} (${estimate.carClass})`,
-              service: `${estimate.serviceName || 'Полировка'} + ${estimate.upsellName || 'Керамика'}`,
-              cost: `${Number(estimate.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
+              contact: contactInfo.display,
+              car: `${estModel} (${estClass})`,
+              service: `${estService} + ${estUpsellName}`,
+              cost: `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
               source: 'Виджет на сайте',
-              status: contactInfo ? 'Бронь подтверждена' : 'Новая заявка'
+              status: 'Бронь подтверждена'
             }
           }));
         } catch (e) {}
@@ -2652,6 +2667,7 @@
     getActiveOrderState: function () { return activeOrderState; },
     setActiveOrderState: function (s) { activeOrderState = Object.assign({}, activeOrderState, s); },
     resetActiveOrderState: resetActiveOrderState,
+    getMessages: function () { return messages; },
 
     setTheme: function (themeNameOrTokens) {
       if (typeof themeNameOrTokens === 'string') {
@@ -2676,7 +2692,7 @@
     },
 
     sendMessage: function (text) {
-      handleUserSend(text);
+      return handleUserSend(text);
     },
 
     open: function () {
