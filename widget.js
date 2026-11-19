@@ -33,7 +33,7 @@
       'Хочу PPF на Mercedes GLE',
       'Сколько стоит полировка кузова?',
       'Помоги мне с выбором',
-      'Запишите на субботу'
+      'Записаться на удобное время'
     ]
   };
 
@@ -58,11 +58,12 @@
 - Джип / Внедорожник (BMW X5/X7, Mercedes GLE/GLS, Land Cruiser): Полировка 26 000 ₽, Керамика 9H 30 000 ₽, PPF 75 000 ₽, Химчистка 18 000 ₽.
 
 ПРАВИЛО ДОПРОДАЖИ:
-К полировке всегда предлагай закрепить результат 2 слоями керамики 9H (+25 000 ₽ для седана), а антидождь по акции идёт в подарок (0 ₽). Смету считай честно сложением.
+К полировке предлагай закрепить результат 2 слоями керамики 9H (+25 000 ₽ для седана), а антидождь по акции идёт в подарок (0 ₽). Смету считай честно сложением.
 К оклейке PPF предлагай керамику на оставшуюся часть кузова.
+Если клиент просит только одну базовую услугу или просит без допов — соглашайся и считай только базовую цену с показом сметы.
 
 БРОНИРОВАНИЕ:
-Ближайший свободный слот: суббота в 14:00 (удержание окна 15 минут). Проси номер телефона для закрепления брони.
+Не назначай время сам. Всегда спрашивай у клиента: «На какой день и время вам удобно приехать?». Уточняй имя и номер телефона (или Telegram @никнейм) для закрепления брони.
 `.trim();
 
   // ─── 3. ДЕМО-КЛЮЧ И СЕССИЯ ────────────────────────────────────────
@@ -767,6 +768,7 @@
     const uName = upsellName || (hasUpsell ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций');
     const tPrice = (totalPrice !== undefined && totalPrice !== null) ? Number(totalPrice) : (bPrice + uPrice);
     const totalLabel = hasUpsell ? 'Итого с допродажей:' : 'Итого к оплате:';
+    const displaySlot = (slot && slot !== 'суббота 14:00' && !slot.includes('суббота 14:00')) ? slot : 'на ваш выбор (по согласованию)';
 
     const upsellRowHtml = hasUpsell ? `
       <tr class="ecm-row-upsell">
@@ -807,7 +809,7 @@
           </tbody>
         </table>
         <div class="ecm-hold-banner">
-          <span>Свободный слот: ${slot}</span>
+          <span>Время визита: ${displaySlot}</span>
           <span class="tabular">Окно брони: <span class="ecm-timer-val">15:00</span></span>
         </div>
       </div>
@@ -865,7 +867,7 @@
         upsellName: 'Нанокерамика 9H (2 слоя)',
         upsellPrice: 25000,
         totalPrice: 43000,
-        slot: 'суббота 14:00'
+        slot: 'на ваш выбор (по согласованию)'
       }
     ];
   }
@@ -1129,7 +1131,8 @@
     upsellName: 'Нанокерамика 9H (2 слоя)',
     upsellPrice: 25000,
     totalPrice: 43000,
-    slot: 'суббота 14:00'
+    slot: 'на ваш выбор (по согласованию)',
+    upsellExcluded: false
   };
 
   function resetActiveOrderState() {
@@ -1141,7 +1144,8 @@
       upsellName: 'Нанокерамика 9H (2 слоя)',
       upsellPrice: 25000,
       totalPrice: 43000,
-      slot: 'суббота 14:00'
+      slot: 'на ваш выбор (по согласованию)',
+      upsellExcluded: false
     };
   }
 
@@ -1206,12 +1210,50 @@
     return null;
   }
 
+  function extractTimePreference(text) {
+    if (!text) return null;
+    const low = text.toLowerCase();
+    
+    // Поиск времени или дня
+    const timeMatch = text.match(/\b(?:в\s+)?(?:[01]?\d|2[0-3])[:.][0-5]\d\b/i);
+    const dayMatch = text.match(/(?:в\s+)?(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье|завтра|сегодня|выходные|будни)(?:\s+(?:утром|вечером|днем|в\s+\d{1,2}(?:[:.]\d{2})?|\d{1,2}(?:[:.]\d{2})?))?/i);
+    
+    if (dayMatch && timeMatch) {
+      return `${dayMatch[0].trim()} (${timeMatch[0].trim()})`;
+    }
+    if (dayMatch) {
+      return dayMatch[0].trim();
+    }
+    if (timeMatch) {
+      return timeMatch[0].trim();
+    }
+    return null;
+  }
+
+  function isUpsellExclusionQuery(low) {
+    if (!low) return false;
+    return (
+      low.includes('без пропитк') || low.includes('без защитн') || low.includes('без озонирован') ||
+      low.includes('без нано') || low.includes('без керамик') || low.includes('без доп') ||
+      low.includes('без покрытия') || low.includes('без второго') || low.includes('без допродаж') ||
+      low.includes('только пленк') || low.includes('только оклейк') || low.includes('только полировк') ||
+      low.includes('только химчистк') || low.includes('только салон') || low.includes('только баз') ||
+      low.includes('одну услуг') || low.includes('одну полировк') || low.includes('одну химчистк') ||
+      low.includes('уберите') || low.includes('не надо') ||
+      (low.includes('без ') && (low.includes('пропит') || low.includes('керамик') || low.includes('доп') || low.includes('слоя') || low.includes('услуг') || low.includes('опци')))
+    );
+  }
+
   function isBookingRequest(text) {
     if (!text) return false;
     const low = text.toLowerCase();
+    // Если клиент просит убрать доп или только одну услугу — это НЕ запрос на запись!
+    if (isUpsellExclusionQuery(low)) {
+      return false;
+    }
     return low.includes('запис') || low.includes('забронир') || low.includes('брон') ||
-           low.includes('подходит') || low.includes('согласен') || low.includes('давайте') ||
-           low.includes('зафиксир') || low.includes('слот') || low.includes('суббот');
+           low.includes('подходит') || low.includes('согласен') || (low.startsWith('давайте') && !low.includes('без')) ||
+           low.includes('зафиксир') || low.includes('слот');
   }
 
   function isRefusal(userText, botText) {
@@ -1266,14 +1308,8 @@
     const priceKws = ['скольк', 'цен', 'стоимост', 'прайс', 'рассчит', 'посчит', 'почем', 'тариф', 'смет'];
     if (priceKws.some(k => low.includes(k))) return true;
 
-    // Исключение допов / пересчет ("без нанокерамики", "без керамики", "без допов", "только оклейка")
-    const isExcl = (
-      low.includes('без нано') || low.includes('без керамик') ||
-      low.includes('без доп') || low.includes('только пленк') ||
-      low.includes('только оклейк') || low.includes('только полировк') ||
-      low.includes('без допродаж') || low.includes('с керамик') || low.includes('верните керамик')
-    );
-    if (isExcl) return true;
+    // Исключение допов / пересчет / запрос одной услуги
+    if (isUpsellExclusionQuery(low)) return true;
 
     // Услуга + автомобиль или намерение ("Хочу PPF на Mercedes GLE")
     const services = ['ppf', 'пленк', 'оклейк', 'полировк', 'керамик', 'химчист'];
@@ -1326,20 +1362,16 @@
     carClass = carClass || (baseState && baseState.carClass) || 'Седан';
     carModel = carModel || (baseState && baseState.carModel) || 'Автомобиль клиента';
 
-    const isExcl = (
-      low.includes('без нано') || low.includes('без керамик') ||
-      low.includes('без доп') || low.includes('только пленк') ||
-      low.includes('только оклейк') || low.includes('только полировк') ||
-      low.includes('уберите керамик') || !!(baseState && baseState.upsellExcluded)
-    );
+    const isExcl = isUpsellExclusionQuery(low) || !!(baseState && baseState.upsellExcluded);
 
     const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || low.includes('брон') || ((baseState && baseState.serviceName && baseState.serviceName.includes('PPF')));
-    const isClean = low.includes('химчист') || low.includes('салон') || ((baseState && baseState.serviceName && baseState.serviceName.includes('химчист')));
+    const isClean = low.includes('химчист') || low.includes('салон') || low.includes('пропитк') || ((baseState && baseState.serviceName && baseState.serviceName.includes('химчист')));
+    const curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'на ваш выбор (по согласованию)';
 
     if (isPPF) {
       const bp = (carClass === 'Седан') ? 65000 : 75000;
       const up = isExcl ? 0 : ((carClass === 'Седан') ? 25000 : 30000);
-      const uName = isExcl ? 'Без нанокерамики (только базовый комплекс)' : 'Нанокерамика 9H на остальной кузов';
+      const uName = isExcl ? 'Без нанокерамики (только базовый комплекс PPF)' : 'Нанокерамика 9H на остальной кузов';
       return {
         isEstimate: true,
         carModel: carModel,
@@ -1349,13 +1381,13 @@
         upsellName: uName,
         upsellPrice: up,
         totalPrice: bp + up,
-        slot: 'суббота 14:00',
+        slot: curSlot,
         upsellExcluded: isExcl
       };
     } else if (isClean) {
       const bp = (carClass === 'Седан') ? 15000 : 18000;
       const up = isExcl ? 0 : 8000;
-      const uName = isExcl ? 'Без дополнительных услуг' : 'Озонирование + защитная пропитка';
+      const uName = isExcl ? 'Без защитной пропитки (только базовая химчистка)' : 'Озонирование + защитная пропитка';
       return {
         isEstimate: true,
         carModel: carModel,
@@ -1365,13 +1397,13 @@
         upsellName: uName,
         upsellPrice: up,
         totalPrice: bp + up,
-        slot: 'суббота 14:00',
+        slot: curSlot,
         upsellExcluded: isExcl
       };
     } else {
       const bp = (carClass === 'Внедорожник') ? 26000 : ((carClass === 'Кроссовер') ? 22000 : 18000);
       const up = isExcl ? 0 : ((carClass === 'Седан') ? 25000 : 30000);
-      const uName = isExcl ? 'Без керамического покрытия' : 'Нанокерамика 9H (2 слоя)';
+      const uName = isExcl ? 'Без керамического покрытия (только восстановительная полировка)' : 'Нанокерамика 9H (2 слоя)';
       return {
         isEstimate: true,
         carModel: carModel,
@@ -1381,7 +1413,7 @@
         upsellName: uName,
         upsellPrice: up,
         totalPrice: bp + up,
-        slot: 'суббота 14:00',
+        slot: curSlot,
         upsellExcluded: isExcl
       };
     }
@@ -1478,6 +1510,10 @@
 
     // 1. Клиент предоставил контакт для бронирования
     if (contactInfo) {
+      const timePref = extractTimePreference(text);
+      if (timePref) {
+        activeOrderState.slot = timePref;
+      }
       const car = activeOrderState.carModel || 'BMW F10';
       const cClass = activeOrderState.carClass || 'Седан';
       const sName = activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
@@ -1485,6 +1521,7 @@
       const uPrice = (activeOrderState.upsellPrice !== undefined && activeOrderState.upsellPrice !== null && !isNaN(activeOrderState.upsellPrice)) ? Number(activeOrderState.upsellPrice) : (activeOrderState.upsellExcluded ? 0 : 25000);
       const uName = activeOrderState.upsellName || (uPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций');
       const tPrice = (activeOrderState.totalPrice !== undefined && activeOrderState.totalPrice !== null) ? Number(activeOrderState.totalPrice) : (bPrice + uPrice);
+      const slot = activeOrderState.slot || 'по согласованию (на ваш выбор)';
 
       const finalEst = {
         isEstimate: true,
@@ -1495,13 +1532,13 @@
         upsellName: uName,
         upsellPrice: uPrice,
         totalPrice: tPrice,
-        slot: 'суббота 14:00',
+        slot: slot,
         upsellExcluded: activeOrderState.upsellExcluded || (uPrice === 0)
       };
       activeOrderState = Object.assign({}, activeOrderState, finalEst);
 
       return {
-        text: `Спасибо! Контакт зафиксирован (${contactInfo.display}). Бронь слота на субботу в 14:00 предварительно закреплена (окно удерживается 15 минут). Мастер свяжется с вами для подтверждения всех деталей визита. Ниже сформирован ваш итоговый заказ-наряд:`,
+        text: `Спасибо! Контакт зафиксирован (${contactInfo.display}). Время визита: ${slot}. Мастер свяжется с вами в течение 10–15 минут для подтверждения записи и уточнения всех деталей. Ниже сформирован ваш итоговый заказ-наряд:`,
         estimate: finalEst,
         rawText: JSON.stringify(finalEst)
       };
@@ -1514,20 +1551,40 @@
       };
     }
 
-    // 3. ОТКАЗ ОТ ДОПРОДАЖИ: «А можно без нанокерамики?», «без допов», «только пленка», «без керамики»
-    const isUpsellExclusion = (
-      low.includes('без нанокерамик') || low.includes('без керамик') ||
-      low.includes('без нано') || low.includes('без доп') ||
-      low.includes('только пленк') || low.includes('только оклейк') ||
-      low.includes('только полировк') || low.includes('уберите керамик') ||
-      low.includes('без допродаж') || low.includes('без второго') ||
-      low.includes('только баз') || (low.includes('без') && (low.includes('керамик') || low.includes('слоя')))
-    );
+    // 3. ОТКАЗ ОТ ДОПРОДАЖИ / ОДНА УСЛУГА («А можно без нанокерамики?», «давайте без защитной пропитки», «только химчистка», «только полировка», «уберите допы»)
+    const isUpsellExclusion = isUpsellExclusionQuery(low);
     if (isUpsellExclusion) {
-      const car = activeOrderState.carModel || 'Mercedes GLE';
-      const cClass = activeOrderState.carClass || 'Внедорожник';
-      const sName = activeOrderState.serviceName || 'Оклейка зон риска пленкой PPF';
-      const bPrice = activeOrderState.basePrice || (cClass === 'Седан' ? 65000 : 75000);
+      let sName = activeOrderState.serviceName;
+      let cClass = activeOrderState.carClass || 'Седан';
+      let car = activeOrderState.carModel || 'Автомобиль клиента';
+      
+      const isClean = low.includes('химчист') || low.includes('салон') || low.includes('пропитк') || (sName && (sName.includes('химчист') || sName.includes('салон')));
+      const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || (sName && (sName.includes('PPF') || sName.includes('пленк')));
+      
+      let bPrice = 18000;
+      let uName = 'Без дополнительных опций';
+      let replyServiceWord = 'услугу';
+
+      if (isClean) {
+        sName = 'Полная химчистка салона';
+        bPrice = (cClass === 'Седан') ? 15000 : 18000;
+        uName = 'Без защитной пропитки (только базовая химчистка)';
+        replyServiceWord = 'полную химчистку салона';
+      } else if (isPPF) {
+        sName = 'Оклейка зон риска пленкой PPF';
+        bPrice = (cClass === 'Седан') ? 65000 : 75000;
+        uName = 'Без нанокерамики (только базовый комплекс PPF)';
+        replyServiceWord = 'оклейку зон риска пленкой PPF';
+      } else {
+        sName = 'Комплексная восстановительная полировка кузова';
+        bPrice = (cClass === 'Внедорожник') ? 26000 : ((cClass === 'Кроссовер') ? 22000 : 18000);
+        uName = 'Без нанокерамики (только восстановительная полировка)';
+        replyServiceWord = 'восстановительную полировку кузова';
+      }
+
+      if (activeOrderState.basePrice && activeOrderState.serviceName === sName) {
+        bPrice = activeOrderState.basePrice;
+      }
 
       const est = {
         isEstimate: true,
@@ -1535,16 +1592,16 @@
         carClass: cClass,
         serviceName: sName,
         basePrice: bPrice,
-        upsellName: 'Без нанокерамики (только базовый комплекс)',
+        upsellName: uName,
         upsellPrice: 0,
         totalPrice: bPrice,
-        slot: 'суббота 14:00',
+        slot: activeOrderState.slot || 'по согласованию (на ваш выбор)',
         upsellExcluded: true
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
 
       return {
-        text: `Да, конечно! Мы с радостью выполним только ${sName.toLowerCase()} для вашего ${car} без нанесения керамического состава.\n\nВ этом случае итоговая смета составит ровно ${bPrice.toLocaleString('ru-RU')} ₽. При этом специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nБлижайший свободный слот для приема: суббота в 14:00. Забронировать это время за вами?`,
+        text: `Да, конечно! Мы с радостью выполним только ${replyServiceWord} для вашего ${car} без дополнительных опций.\n\nВ этом случае итоговая стоимость составит ровно ${bPrice.toLocaleString('ru-RU')} ₽. При этом специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
@@ -1568,13 +1625,13 @@
         upsellName: 'Нанокерамика 9H на остальной кузов',
         upsellPrice: uPrice,
         totalPrice: tPrice,
-        slot: 'суббота 14:00',
+        slot: activeOrderState.slot || 'по согласованию (на ваш выбор)',
         upsellExcluded: false
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
 
       return {
-        text: `Отличное решение! С нанокерамикой 9H кузов вашего ${car} получит максимальную защиту, глубокий зеркальный глянец и мощный гидрофобный эффект на 18 месяцев.\n\nИтоговая смета комплекса: ${tPrice.toLocaleString('ru-RU')} ₽ (включая антидождь в подарок 0 ₽).\n\nЗакрепить за вами свободный слот на субботу в 14:00?`,
+        text: `Отличное решение! С нанокерамикой 9H кузов вашего ${car} получит максимальную защиту, глубокий зеркальный глянец и мощный гидрофобный эффект на 18 месяцев.\n\nИтоговая смета комплекса: ${tPrice.toLocaleString('ru-RU')} ₽ (включая антидождь в подарок 0 ₽).\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
@@ -1615,7 +1672,7 @@
     if (isShortInterjection) {
       if (activeOrderState.carModel) {
         return {
-          text: `Я на связи! По вашему автомобилю ${activeOrderState.carModel} предварительный заказ-наряд зафиксирован.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00 (для подтверждения потребуется номер телефона или Telegram @никнейм), или хотите уточнить какие-либо вопросы по услугам?`
+          text: `Я на связи! По вашему автомобилю ${activeOrderState.carModel} предварительный заказ-наряд зафиксирован.\n\nПодскажите, на какой день и время вам удобно запланировать визит? (для подтверждения потребуется номер телефона или Telegram @никнейм).`
         };
       }
       return {
@@ -1627,8 +1684,13 @@
     if (low.includes('химчист') || low.includes('салон') || low.includes('почистить')) {
       const est = computeEstimateForCar(text, activeOrderState);
       activeOrderState = Object.assign({}, activeOrderState, est);
+      const hasUpsell = est.upsellPrice > 0;
+      const upsellText = hasUpsell
+        ? `Рекомендуем дополнить защитной гидрофобной пропиткой кожи и текстиля (+${est.upsellPrice.toLocaleString('ru-RU')} ₽). `
+        : `Выбрана только базовая комплексная химчистка (${est.basePrice.toLocaleString('ru-RU')} ₽). `;
+
       return {
-        text: `Для ${est.carModel} стоимость комплексной детейлинг-химчистки салона составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. В комплекс входит глубокая чистка всех элементов интерьера, потолка, пола, багажника и озонирование салона.\n\nРекомендуем дополнить защитной гидрофобной пропиткой кожи и текстиля (+${est.upsellPrice.toLocaleString('ru-RU')} ₽). Антидождь передней полусферы — 0 ₽ в подарок по акции!\n\nБлижайший свободный слот: суббота в 14:00. Забронировать это время за вами?`,
+        text: `Для ${est.carModel} стоимость комплексной детейлинг-химчистки салона составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. В комплекс входит глубокая чистка всех элементов интерьера, потолка, пола, багажника и озонирование салона.\n\n${upsellText}Антидождь передней полусферы — 0 ₽ в подарок по акции!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
@@ -1643,7 +1705,7 @@
         : `Комплексная полировка и защита для ${car} занимает 1 рабочий день (утром привозите, на следующий день забираете в идеальном состоянии).`;
 
       return {
-        text: `${timing}\n\nЕсли привезти автомобиль в субботу к 14:00, мы сможем отдать его уже в воскресенье во второй половине дня. Забронировать окно на субботу?`
+        text: `${timing}\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию? Забронирую бокс под ваш график!`
       };
     }
 
@@ -1687,23 +1749,35 @@
 
     // 15. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
     if (low.includes('воскресень') || low.includes('понедельник') || low.includes('вторник') || low.includes('сред') || low.includes('четверг') || low.includes('пятниц') || low.includes('будн') || low.includes('другой день') || low.includes('другое время') || low.includes('утром') || low.includes('вечером')) {
+      const timePref = extractTimePreference(text);
+      if (timePref) {
+        activeOrderState.slot = timePref;
+      }
       return {
-        text: `Да, конечно! Мы с удовольствием подберем удобный для вас день и время приема.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор свяжется с вами, чтобы согласовать идеальное окно в расписании.`
+        text: `Да, конечно! Мы с удовольствием примем вас в удобное для вас время${timePref ? ` (${timePref})` : ''}.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор закрепит бокс и свяжется для подтверждения деталей.`
       };
     }
 
     // 16. СОГЛАСИЕ НА ЗАПИСЬ / ПОДТВЕРЖДЕНИЕ
     if (low === 'да' || low === 'давайте' || low === 'хорошо' || low === 'согласен' || low === 'подходит' || low === 'бронируйте' || low === 'ок' || low === 'запишите' || low.startsWith('да,') || low.startsWith('давайте,')) {
+      const timePref = extractTimePreference(text);
+      if (timePref) {
+        activeOrderState.slot = timePref;
+      }
       const car = activeOrderState.carModel || 'автомобиль';
       return {
-        text: `Отлично! С удовольствием забронируем свободный слот на субботу в 14:00 для вашего ${car}.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), чтобы мастер закрепил за вами окно и связался для подтверждения деталей визита.`
+        text: `Отлично! С удовольствием забронируем удобное для вас время для вашего ${car}.\n\nПодскажите, пожалуйста:\n1. На какой день и время вам удобнее всего приехать?\n2. Ваше имя и контакт для связи (номер телефона или Telegram @никнейм), чтобы мастер закрепил за вами окно.`
       };
     }
 
     // 17. Запрос записи БЕЗ контакта
     if (isBookingRequest(text)) {
+      const timePref = extractTimePreference(text);
+      if (timePref) {
+        activeOrderState.slot = timePref;
+      }
       return {
-        text: 'С удовольствием запишем вас на свободный слот в эту субботу в 14:00!\n\nПодскажите, пожалуйста, ваше имя и удобный контакт для связи — номер телефона, Telegram (@никнейм) или профиль ВКонтакте, чтобы мастер закрепил бронь и связался с вами для подтверждения деталей.'
+        text: 'С удовольствием запишем вас в наш детейлинг-центр!\n\nПодскажите, пожалуйста, на какой день и время вам удобно приехать, а также ваше имя и номер телефона (или Telegram @никнейм), чтобы мастер закрепил бронь и связался с вами.'
       };
     }
 
@@ -1751,7 +1825,7 @@
         : `Выбран базовый комплекс без дополнительных опций.`;
 
       return {
-        text: `Для ${est.carModel} (${est.carClass}) ${serviceDesc}. ${upsellDesc} Нанесение гидрофобного антидождя на переднюю полусферу — 0 ₽ в подарок по действующей акции!\n\nБлижайший свободный слот для приема: суббота в 14:00 (удержание окна 15 минут). Забронировать за вами этот слот?`,
+        text: `Для ${est.carModel} (${est.carClass}) ${serviceDesc}. ${upsellDesc} Нанесение гидрофобного антидождя на переднюю полусферу — 0 ₽ в подарок по действующей акции!\n\nПодскажите, на какой день и время вам удобно приехать в студию? Я сразу зафиксирую предварительную бронь!`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
@@ -1762,7 +1836,7 @@
       const car = activeOrderState.carModel;
       const cClass = activeOrderState.carClass;
       return {
-        text: `По вашему автомобилю ${car} (${cClass}) предварительный заказ-наряд зафиксирован.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00, или хотите уточнить какие-либо детали по комплексу, материалам или срокам?`
+        text: `По вашему автомобилю ${car} (${cClass}) предварительный заказ-наряд зафиксирован.\n\nПодскажите, на какой день и время вам удобно приехать к нам, или хотите уточнить какие-либо детали по комплексу, материалам или срокам?`
       };
     }
 
@@ -1870,6 +1944,12 @@
       messages.push({ role: 'user', text: trimmed });
       renderAllStreams();
 
+      // Сохраняем пожелание по времени, если пользователь его указал
+      const timePref = extractTimePreference(trimmed);
+      if (timePref) {
+        activeOrderState.slot = timePref;
+      }
+
       // Анализ контакта и намерения
       const contactInfo = extractContactInfo(trimmed);
       const refusalMode = isRefusal(trimmed, '');
@@ -1895,7 +1975,7 @@
       if (contactInfo && !estimate && !refusalMode && !b2bMode) {
         estimate = Object.assign({}, activeOrderState, {
           isEstimate: true,
-          slot: 'суббота 14:00'
+          slot: activeOrderState.slot || 'по согласованию (на ваш выбор)'
         });
       }
 
@@ -1914,6 +1994,7 @@
           ? Number(estimate.upsellPrice) : (estimate.upsellExcluded ? 0 : 25000);
         const estTotalPrice = (estimate.totalPrice !== undefined && estimate.totalPrice !== null && !isNaN(estimate.totalPrice))
           ? Number(estimate.totalPrice) : (estBasePrice + estUpsellPrice);
+        const estSlot = estimate.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)';
 
         messages.push({
           role: 'bot',
@@ -1925,7 +2006,7 @@
           upsellName: estimate.upsellName || (estUpsellPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций'),
           upsellPrice: estUpsellPrice,
           totalPrice: estTotalPrice,
-          slot: estimate.slot || 'суббота 14:00'
+          slot: estSlot
         });
 
         try {
