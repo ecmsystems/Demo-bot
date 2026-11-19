@@ -1302,252 +1302,229 @@
   }
 
   // ─── КАТАЛОГ И ИНТЕЛЛЕКТУАЛЬНОЕ РАСПОЗНАВАНИЕ АВТОМОБИЛЕЙ ───────────
+  function hasCarPattern(text, pat) {
+    const rx = new RegExp('(^|[^a-zа-я0-9_])(?:' + pat + ')([^a-zа-я0-9_]|$)', 'i');
+    return rx.test(text);
+  }
+
   function detectCarDetails(text) {
     if (!text) return { carModel: null, carClass: null };
     const low = text.toLowerCase().replace(/ё/g, 'е').trim();
 
-    // 1. ВНЕДОРОЖНИКИ (Полноразмерные SUV, Джипы, Premium Внедорожники)
+    // 1. ВНЕДОРОЖНИКИ (Full-size SUV / Джипы / Флагманы)
+    // Li Auto (L9, L8, L7, L6, Lixiang)
+    if (hasCarPattern(low, '(?:(?:li|lixiang|ли|лисиан|лисян|ли\\s*сянг)\\s*(?:l\\s*9|л\\s*9|9))|l\\s*9|л\\s*9|ли\\s*9')) {
+      return { carModel: 'Li Auto L9', carClass: 'Внедорожник' };
+    }
+    if (hasCarPattern(low, '(?:(?:li|lixiang|ли|лисиан|лисян|ли\\s*сянг)\\s*(?:l\\s*8|л\\s*8|8))|l\\s*8|л\\s*8|ли\\s*8')) {
+      return { carModel: 'Li Auto L8', carClass: 'Внедорожник' };
+    }
+    if (hasCarPattern(low, '(?:(?:li|lixiang|ли|лисиан|лисян|ли\\s*сянг)\\s*(?:l\\s*7|л\\s*7|7))|l\\s*7|л\\s*7|ли\\s*7')) {
+      return { carModel: 'Li Auto L7', carClass: 'Внедорожник' };
+    }
+    if (hasCarPattern(low, '(?:(?:li|lixiang|ли|лисиан|лисян|ли\\s*сянг)\\s*(?:l\\s*6|л\\s*6|6))|l\\s*6|л\\s*6|ли\\s*6')) {
+      return { carModel: 'Li Auto L6', carClass: 'Внедорожник' };
+    }
+    if (hasCarPattern(low, 'lixiang|лисиан|ли\\s*авто|лисян|ли\\s*сянг')) {
+      return { carModel: 'Li Auto (Lixiang)', carClass: 'Внедорожник' };
+    }
+
     // Audi Q8 / Q7 / e-tron
-    if (/\b(?:audi|ауди)?\s*(?:sq\s*8|rs\s*q\s*8|rsq\s*8|q\s*8|ку\s*8|кю\s*8)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:sq\\s*8|rs\\s*q\\s*8|rsq\\s*8|q\\s*8|ку\\s*8|кю\\s*8)')) {
       return { carModel: 'Audi Q8', carClass: 'Внедорожник' };
     }
-    if (/\b(?:audi|ауди)?\s*(?:sq\s*7|rs\s*q\s*7|rsq\s*7|q\s*7|ку\s*7|кю\s*7)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:sq\\s*7|rs\\s*q\\s*7|rsq\\s*7|q\\s*7|ку\\s*7|кю\\s*7)')) {
       return { carModel: 'Audi Q7', carClass: 'Внедорожник' };
     }
-    if (/\b(?:audi|ауди)?\s*(?:e-tron|етрон|е-трон)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:e-tron|етрон|е-трон)')) {
       return { carModel: 'Audi e-tron', carClass: 'Внедорожник' };
     }
 
     // BMW X7 / X6 / X5 / XM
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*7|х\s*7)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*7|х\\s*7)')) {
       return { carModel: 'BMW X7', carClass: 'Внедорожник' };
     }
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*6|х\s*6)(?:\s*m|м)?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*6|х\\s*6)(?:\\s*m|м)?')) {
       return { carModel: 'BMW X6', carClass: 'Внедорожник' };
     }
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*5|х\s*5)(?:\s*m|м)?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*5|х\\s*5)(?:\\s*m|м)?')) {
       return { carModel: 'BMW X5', carClass: 'Внедорожник' };
     }
-    if (/\b(?:bmw|бмв)?\s*(?:xm|хм)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:bmw|бмв)?\\s*(?:xm|хм)')) {
       return { carModel: 'BMW XM', carClass: 'Внедорожник' };
     }
 
     // Mercedes GLS / GLE / G-Class (Гелик)
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:gls|глс|gl|гл)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб|мерс)?\\s*(?:gls|глс|gl|гл)')) {
       return { carModel: 'Mercedes GLS', carClass: 'Внедорожник' };
     }
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:gle|гле)(?:\s*купе|\s*coupe)?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб|мерс)?\\s*(?:gle|гле)(?:\\s*купе|\\s*coupe)?')) {
       return { carModel: 'Mercedes GLE', carClass: 'Внедорожник' };
     }
-    if (/\b(?:гелик|гелендваген|gelandewagen|g-class|g\s*класс|г-класс|г\s*класс|g\s*63|г\s*63|g\s*500|г\s*500)\b/i.test(low)) {
+    if (hasCarPattern(low, 'гелик|гелендваген|gelandewagen|g-class|g\\s*класс|г-класс|г\\s*класс|g\\s*63|г\\s*63|g\\s*500|г\\s*500')) {
       return { carModel: 'Mercedes G-Class (Гелендваген)', carClass: 'Внедорожник' };
     }
 
     // Porsche Cayenne
-    if (/\b(?:porsche|порше)?\s*(?:cayenne|кайен|каен)(?:\s*купе|\s*coupe)?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:porsche|порше|порш)?\\s*(?:cayenne|кайен|каен)(?:\\s*купе|\\s*coupe)?')) {
       return { carModel: 'Porsche Cayenne', carClass: 'Внедорожник' };
     }
 
     // Tank (300 / 500 / 700)
-    if (/\b(?:tank|танк)(?:\s*(?:700|500|300))?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:tank|танк)(?:\\s*(?:700|500|300))?')) {
       if (low.includes('500')) return { carModel: 'Tank 500', carClass: 'Внедорожник' };
       if (low.includes('300')) return { carModel: 'Tank 300', carClass: 'Внедорожник' };
       if (low.includes('700')) return { carModel: 'Tank 700', carClass: 'Внедорожник' };
       return { carModel: 'Tank (Внедорожник)', carClass: 'Внедорожник' };
     }
 
-    // Toyota Land Cruiser / Prado / Highlander
-    if (/\b(?:toyota|тойота)?\s*(?:land\s*cruiser|ленд\s*крузер|ленд\s*круизер|крузак|крузер|lc\s*200|lc\s*300|крузак\s*300|крузак\s*200|двухсотк|трехсотк)\b/i.test(low)) {
+    // Toyota Land Cruiser / Prado / Highlander / Sequoia
+    if (hasCarPattern(low, '(?:toyota|тойота)?\\s*(?:land\\s*cruiser|ленд\\s*крузер|ленд\\s*круизер|крузак|крузер|lc\\s*200|lc\\s*300|крузак\\s*300|крузак\\s*200|двухсотк|трехсотк)')) {
       return { carModel: 'Toyota Land Cruiser', carClass: 'Внедорожник' };
     }
-    if (/\b(?:toyota|тойота)?\s*(?:prado|прадо|150|250)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:toyota|тойота)?\\s*(?:prado|прадо|150|250)')) {
       return { carModel: 'Toyota Prado', carClass: 'Внедорожник' };
     }
-    if (/\b(?:toyota|тойота)?\s*(?:highlander|хайлендер|sequoia|секвойя)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:toyota|тойота)?\\s*(?:highlander|хайлендер|sequoia|секвойя)')) {
       return { carModel: 'Toyota Highlander', carClass: 'Внедорожник' };
     }
-    if (/\b(?:lexus|лексус)?\s*(?:lx|лх|lx\s*570|lx\s*600|gx|гх|gx\s*460|gx\s*550)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:lexus|лексус)?\\s*(?:lx|лх|lx\\s*570|lx\\s*600|gx|гх|gx\\s*460|gx\\s*550)')) {
       return { carModel: 'Lexus LX / GX', carClass: 'Внедорожник' };
     }
 
     // Range Rover / Defender / Discovery
-    if (/\b(?:range\s*rover|рейндж\s*ровер|рэндж\s*ровер|vogue|вог)(?:\s*sport|\s*спорт)?\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:range\\s*rover|рейндж\\s*ровер|рэндж\\s*ровер|vogue|вог)(?:\\s*sport|\\s*спорт)?')) {
       return { carModel: 'Range Rover', carClass: 'Внедорожник' };
     }
-    if (/\b(?:land\s*rover|ленд\s*ровер)?\s*(?:defender|дефендер)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:land\\s*rover|ленд\\s*ровер)?\\s*(?:defender|дефендер)')) {
       return { carModel: 'Land Rover Defender', carClass: 'Внедорожник' };
     }
-    if (/\b(?:discovery|дискавери)\b/i.test(low)) {
+    if (hasCarPattern(low, 'discovery|дискавери')) {
       return { carModel: 'Land Rover Discovery', carClass: 'Внедорожник' };
     }
 
-    // Cadillac / Chevrolet / VW / Li Auto / Volvo / Hyundai / Infiniti
-    if (/\b(?:cadillac|кадиллак)?\s*(?:escalade|эскалейд|эскалэйд)\b/i.test(low)) {
+    // Cadillac Escalade / Chevrolet Tahoe / VW Touareg / Volvo XC90
+    if (hasCarPattern(low, '(?:cadillac|кадиллак)?\\s*(?:escalade|эскалейд|эскалэйд)')) {
       return { carModel: 'Cadillac Escalade', carClass: 'Внедорожник' };
     }
-    if (/\b(?:chevrolet|шевроле)?\s*(?:tahoe|тахо|suburban|субурбан)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:chevrolet|шевроле)?\\s*(?:tahoe|тахо|suburban|субурбан)')) {
       return { carModel: 'Chevrolet Tahoe', carClass: 'Внедорожник' };
     }
-    if (/\b(?:volkswagen|vw|фольксваген)?\s*(?:touareg|туарег|таурег)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:volkswagen|vw|фольксваген)?\\s*(?:touareg|туарег|таурег)')) {
       return { carModel: 'VW Touareg', carClass: 'Внедорожник' };
     }
-    if (/\b(?:li|lixiang|ли|лисиан)?\s*(?:l\s*9|л\s*9|ли\s*9|l\s*8|л\s*8|ли\s*8|l\s*7|л\s*7|ли\s*7)\b|\b(?:lixiang|лисиан|ли авто)\b/i.test(low)) {
-      return { carModel: 'Li Auto (Lixiang)', carClass: 'Внедорожник' };
-    }
-    if (/\b(?:volvo|вольво)?\s*(?:xc\s*90|хс\s*90)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:volvo|вольво)?\\s*(?:xc\\s*90|хс\\s*90)')) {
       return { carModel: 'Volvo XC90', carClass: 'Внедорожник' };
     }
-    if (/\b(?:palisade|палисад|mohave|мохав)\b/i.test(low)) {
+    if (hasCarPattern(low, 'palisade|палисад|mohave|мохав')) {
       return { carModel: 'Hyundai Palisade / Mohave', carClass: 'Внедорожник' };
     }
-    if (/\b(?:infiniti|инфинити)?\s*(?:qx\s*80|qx\s*56)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:infiniti|инфинити)?\\s*(?:qx\\s*80|qx\\s*56)')) {
       return { carModel: 'Infiniti QX80', carClass: 'Внедорожник' };
     }
-    if (/\b(?:внедорожник|джип|suv)\b/i.test(low)) {
-      return { carModel: 'Внедорожник', carClass: 'Внедорожник' };
-    }
 
-    // 2. КРОССОВЕРЫ (Компактные и среднеразмерные кроссоверы / паркетники)
-    // Audi Q5 / Q3
-    if (/\b(?:audi|ауди)?\s*(?:sq\s*5|q\s*5|ку\s*5|кю\s*5)\b/i.test(low)) {
-      return { carModel: 'Audi Q5', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:audi|ауди)?\s*(?:sq\s*3|q\s*3|ку\s*3|кю\s*3)\b/i.test(low)) {
-      return { carModel: 'Audi Q3', carClass: 'Кроссовер' };
-    }
+    // 2. КРОССОВЕРЫ (Compact & Mid-size SUV)
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:sq\\s*5|q\\s*5|ку\\s*5|кю\\s*5)')) return { carModel: 'Audi Q5', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:sq\\s*3|q\\s*3|ку\\s*3|кю\\s*3)')) return { carModel: 'Audi Q3', carClass: 'Кроссовер' };
 
-    // BMW X4 / X3 / X1 / X2
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*4|х\s*4)\b/i.test(low)) {
-      return { carModel: 'BMW X4', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*3|х\s*3)\b/i.test(low)) {
-      return { carModel: 'BMW X3', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:bmw|бмв)?\s*(?:x\s*1|х\s*1|x\s*2|х\s*2)\b/i.test(low)) {
-      return { carModel: 'BMW X1 / X2', carClass: 'Кроссовер' };
-    }
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*4|х\\s*4)')) return { carModel: 'BMW X4', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*3|х\\s*3)')) return { carModel: 'BMW X3', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:bmw|бмв|бумер|бэх)?\\s*(?:x\\s*1|х\\s*1|x\\s*2|х\\s*2)')) return { carModel: 'BMW X1 / X2', carClass: 'Кроссовер' };
 
-    // Mercedes GLC / GLA / GLB
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:glc|глц)(?:\s*купе|\s*coupe)?\b/i.test(low)) {
-      return { carModel: 'Mercedes GLC', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:gla|гла|glb|глб)\b/i.test(low)) {
-      return { carModel: 'Mercedes GLA / GLB', carClass: 'Кроссовер' };
-    }
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб)?\\s*(?:glc|глц)(?:\\s*купе|\\s*coupe)?')) return { carModel: 'Mercedes GLC', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб)?\\s*(?:gla|гла|glb|глб)')) return { carModel: 'Mercedes GLA / GLB', carClass: 'Кроссовер' };
 
-    // Porsche Macan / Range Rover Velar / Evoque
-    if (/\b(?:porsche|порше)?\s*(?:macan|макан)\b/i.test(low)) {
-      return { carModel: 'Porsche Macan', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:range\s*rover|рейндж\s*ровер)?\s*(?:velar|велар|evoque|эвок)\b/i.test(low)) {
-      return { carModel: 'Range Rover Velar', carClass: 'Кроссовер' };
-    }
+    if (hasCarPattern(low, '(?:porsche|порше|порш)?\\s*(?:macan|макан)')) return { carModel: 'Porsche Macan', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:range\\s*rover|рейндж\\s*ровер)?\\s*(?:velar|велар|evoque|эвок)')) return { carModel: 'Range Rover Velar', carClass: 'Кроссовер' };
 
-    // Toyota RAV4 / Lexus RX / NX
-    if (/\b(?:toyota|тойота)?\s*(?:rav\s*4|рав\s*4|рав4|rav4)\b/i.test(low)) {
-      return { carModel: 'Toyota RAV4', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:lexus|лексус)?\s*(?:rx|рх|rx\s*350|rx\s*300|nx|нх|nx\s*200|nx\s*300)\b/i.test(low)) {
-      return { carModel: 'Lexus RX / NX', carClass: 'Кроссовер' };
-    }
+    if (hasCarPattern(low, '(?:toyota|тойота)?\\s*(?:rav\\s*4|рав\\s*4|рав4|rav4)')) return { carModel: 'Toyota RAV4', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:lexus|лексус)?\\s*(?:rx|рх|rx\\s*350|rx\\s*300|nx|нх|nx\\s*200|nx\\s*300)')) return { carModel: 'Lexus RX / NX', carClass: 'Кроссовер' };
 
-    // VW Tiguan / Skoda Kodiaq / Karoq
-    if (/\b(?:volkswagen|vw|фольксваген)?\s*(?:tiguan|тигуан|taos|таос)\b/i.test(low)) {
-      return { carModel: 'VW Tiguan', carClass: 'Кроссовер' };
-    }
-    if (/\b(?:skoda|шкода)?\s*(?:kodiaq|кодиак|karoq|карок)\b/i.test(low)) {
-      return { carModel: 'Skoda Kodiaq', carClass: 'Кроссовер' };
-    }
+    if (hasCarPattern(low, '(?:volkswagen|vw|фольксваген)?\\s*(?:tiguan|тигуан|taos|таос)')) return { carModel: 'VW Tiguan', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:skoda|шкода)?\\s*(?:kodiaq|кодиак|karoq|карок)')) return { carModel: 'Skoda Kodiaq', carClass: 'Кроссовер' };
 
-    // Geely / Haval / Changan / Chery / Exeed / Omoda / Zeekr
-    if (/\b(?:monjaro|монжаро|манжаро)\b/i.test(low)) return { carModel: 'Geely Monjaro', carClass: 'Кроссовер' };
-    if (/\b(?:tugella|тугелла|тугела)\b/i.test(low)) return { carModel: 'Geely Tugella', carClass: 'Кроссовер' };
-    if (/\b(?:coolray|кулрей|кулрэй)\b/i.test(low)) return { carModel: 'Geely Coolray', carClass: 'Кроссовер' };
-    if (/\b(?:atlas|атлас)\b/i.test(low)) return { carModel: 'Geely Atlas', carClass: 'Кроссовер' };
-    if (/\b(?:geely|джили)\b/i.test(low)) return { carModel: 'Geely (Кроссовер)', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'monjaro|монжаро|манжаро')) return { carModel: 'Geely Monjaro', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'tugella|тугелла|тугела')) return { carModel: 'Geely Tugella', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'coolray|кулрей|кулрэй')) return { carModel: 'Geely Coolray', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'atlas|атлас')) return { carModel: 'Geely Atlas', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'geely|джили')) return { carModel: 'Geely (Кроссовер)', carClass: 'Кроссовер' };
 
-    if (/\b(?:dargo|дарго)\b/i.test(low)) return { carModel: 'Haval Dargo', carClass: 'Кроссовер' };
-    if (/\b(?:jolion|джолион|джолиан)\b/i.test(low)) return { carModel: 'Haval Jolion', carClass: 'Кроссовер' };
-    if (/\b(?:f7|ф7|f7x|ф7х)\b/i.test(low)) return { carModel: 'Haval F7', carClass: 'Кроссовер' };
-    if (/\b(?:haval|хавал|хавейл)\b/i.test(low)) return { carModel: 'Haval (Кроссовер)', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'dargo|дарго')) return { carModel: 'Haval Dargo', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'jolion|джолион|джолиан')) return { carModel: 'Haval Jolion', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'f7|ф7|f7x|ф7х')) return { carModel: 'Haval F7', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'haval|хавал|хавейл')) return { carModel: 'Haval (Кроссовер)', carClass: 'Кроссовер' };
 
-    if (/\b(?:exeed|эксид|txl|vx)\b/i.test(low)) return { carModel: 'Exeed (Кроссовер)', carClass: 'Кроссовер' };
-    if (/\b(?:changan|чанган|uni-k|юни\s*к|cs75|cs55)\b/i.test(low)) return { carModel: 'Changan (Кроссовер)', carClass: 'Кроссовер' };
-    if (/\b(?:chery|чери|tiggo|тигго|тиго)\b/i.test(low)) return { carModel: 'Chery Tiggo', carClass: 'Кроссовер' };
-    if (/\b(?:omoda|омода|jaecoo|джейку)\b/i.test(low)) return { carModel: 'Omoda / Jaecoo', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'voyah\\s*free|воя\\s*фри|воя|voyah')) return { carModel: 'Voyah Free', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'exeed|эксид|txl|vx')) return { carModel: 'Exeed (Кроссовер)', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'changan|чанган|uni-k|юни\\s*к|cs75|cs55')) return { carModel: 'Changan (Кроссовер)', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'chery|чери|tiggo|тигго|тиго')) return { carModel: 'Chery Tiggo', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'omoda|омода|jaecoo|джейку')) return { carModel: 'Omoda / Jaecoo', carClass: 'Кроссовер' };
 
-    if (/\b(?:zeekr\s*x|зикр\s*х|зикр\s*x)\b/i.test(low)) return { carModel: 'Zeekr X', carClass: 'Кроссовер' };
-    if (/\b(?:sportage|спортейдж|спортаж|tucson|туссан|тусон|creta|крета|seltos|селтос|sorento|соренто|santa\s*fe|санта\s*фе)\b/i.test(low)) {
+    if (hasCarPattern(low, 'zeekr\\s*x|зикр\\s*х|зикр\\s*x')) return { carModel: 'Zeekr X', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'sportage|спортейдж|спортаж|tucson|туссан|тусон|creta|крета|seltos|селтос|sorento|соренто|santa\\s*fe|санта\\s*фе')) {
       return { carModel: 'Кроссовер', carClass: 'Кроссовер' };
     }
-    if (/\b(?:cx-5|cx5|сх5|сх-5|cx-9|cx9|сх9)\b/i.test(low)) return { carModel: 'Mazda CX-5', carClass: 'Кроссовер' };
-    if (/\b(?:volvo|вольво)?\s*(?:xc\s*60|хс\s*60|xc\s*40|хс\s*40)\b/i.test(low)) return { carModel: 'Volvo XC60', carClass: 'Кроссовер' };
-    if (/\b(?:qashqai|кашкай|x-trail|икстрейл|х-трейл|murano|мурано)\b/i.test(low)) return { carModel: 'Nissan (Кроссовер)', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'cx-5|cx5|сх5|сх-5|cx-9|cx9|сх9')) return { carModel: 'Mazda CX-5', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, '(?:volvo|вольво)?\\s*(?:xc\\s*60|хс\\s*60|xc\\s*40|хс\\s*40)')) return { carModel: 'Volvo XC60', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'qashqai|кашкай|x-trail|икстрейл|х-трейл|murano|мурано')) return { carModel: 'Nissan (Кроссовер)', carClass: 'Кроссовер' };
 
-    if (/\b(?:кроссовер|паркетник)\b/i.test(low)) {
-      return { carModel: 'Кроссовер', carClass: 'Кроссовер' };
-    }
+    // 3. СЕДАНЫ / КУПЕ / ЛИФТБЕКИ
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*3|а\\s*3|s\\s*3|rs\\s*3)')) return { carModel: 'Audi A3', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*4|а\\s*4|s\\s*4|rs\\s*4)')) return { carModel: 'Audi A4', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*5|а\\s*5|s\\s*5|rs\\s*5)')) return { carModel: 'Audi A5', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*6|а\\s*6|s\\s*6|rs\\s*6|аллроуд|allroad)')) return { carModel: 'Audi A6', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*7|а\\s*7|s\\s*7|rs\\s*7)')) return { carModel: 'Audi A7', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:audi|ауди)?\\s*(?:a\\s*8|а\\s*8|s\\s*8)')) return { carModel: 'Audi A8', carClass: 'Седан' };
+    if (hasCarPattern(low, 'audi|ауди|аудюх')) return { carModel: 'Audi (Седан / Бизнес)', carClass: 'Седан' };
 
-    // ─── 3. СЕДАНЫ / КУПЕ / ЛИФТБЕКИ ─────────────────────────────────
-    // Audi A-Series
-    if (/\b(?:audi|ауди)?\s*(?:a\s*3|а\s*3|s\s*3|rs\s*3)\b/i.test(low)) return { carModel: 'Audi A3', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)?\s*(?:a\s*4|а\s*4|s\s*4|rs\s*4)\b/i.test(low)) return { carModel: 'Audi A4', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)?\s*(?:a\s*5|а\s*5|s\s*5|rs\s*5)\b/i.test(low)) return { carModel: 'Audi A5', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)?\s*(?:a\s*6|а\s*6|s\s*6|rs\s*6|аллроуд|allroad)\b/i.test(low)) return { carModel: 'Audi A6', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)?\s*(?:a\s*7|а\s*7|s\s*7|rs\s*7)\b/i.test(low)) return { carModel: 'Audi A7', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)?\s*(?:a\s*8|а\s*8|s\s*8)\b/i.test(low)) return { carModel: 'Audi A8', carClass: 'Седан' };
-    if (/\b(?:audi|ауди)\b/i.test(low)) return { carModel: 'Audi (Седан / Бизнес)', carClass: 'Седан' };
+    if (hasCarPattern(low, 'f10|ф10')) return { carModel: 'BMW F10', carClass: 'Седан' };
+    if (hasCarPattern(low, 'g30|г30')) return { carModel: 'BMW 5 (G30)', carClass: 'Седан' };
+    if (hasCarPattern(low, 'g20|г20|f30|ф30|e90|е90')) return { carModel: 'BMW 3', carClass: 'Седан' };
+    if (hasCarPattern(low, 'e60|е60')) return { carModel: 'BMW 5 (E60)', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:bmw|бмв)\\s*3')) return { carModel: 'BMW 3 (Седан)', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:bmw|бмв)\\s*5')) return { carModel: 'BMW 5 (Седан)', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:bmw|бмв)\\s*7')) return { carModel: 'BMW 7 (Седан)', carClass: 'Седан' };
+    if (hasCarPattern(low, 'm3|м3|m5|м5|m4|м4|m8|м8')) return { carModel: 'BMW M (Седан)', carClass: 'Седан' };
+    if (hasCarPattern(low, 'bmw|бмв|бумер|бэх')) return { carModel: 'BMW (Седан)', carClass: 'Седан' };
 
-    // BMW Sedans
-    if (/\b(?:f10|ф10)\b/i.test(low)) return { carModel: 'BMW F10', carClass: 'Седан' };
-    if (/\b(?:g30|г30)\b/i.test(low)) return { carModel: 'BMW 5 (G30)', carClass: 'Седан' };
-    if (/\b(?:g20|г20|f30|ф30|e90|е90)\b/i.test(low)) return { carModel: 'BMW 3', carClass: 'Седан' };
-    if (/\b(?:e60|е60)\b/i.test(low)) return { carModel: 'BMW 5 (E60)', carClass: 'Седан' };
-    if (/\b(?:bmw|бмв)\s*3\b/i.test(low)) return { carModel: 'BMW 3 (Седан)', carClass: 'Седан' };
-    if (/\b(?:bmw|бмв)\s*5\b/i.test(low)) return { carModel: 'BMW 5 (Седан)', carClass: 'Седан' };
-    if (/\b(?:bmw|бмв)\s*7\b/i.test(low)) return { carModel: 'BMW 7 (Седан)', carClass: 'Седан' };
-    if (/\b(?:m3|м3|m5|м5|m4|м4|m8|м8)\b/i.test(low)) return { carModel: 'BMW M (Седан)', carClass: 'Седан' };
-    if (/\b(?:bmw|бмв)\b/i.test(low)) return { carModel: 'BMW (Седан)', carClass: 'Седан' };
-
-    // Mercedes Sedans
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:e-class|е-класс|е\s*класс|ешка|е-шка|w213|w214|w212|e200|e300)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб|мерс)?\\s*(?:e-class|е-класс|е\\s*класс|ешка|е-шка|w213|w214|w212|e200|e300)')) {
       return { carModel: 'Mercedes E-Class', carClass: 'Седан' };
     }
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:c-class|с-класс|ц-класс|ц\s*класс|цешка|ц-шка|w205|w206|c180|c200)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб|мерс)?\\s*(?:c-class|с-класс|ц-класс|ц\\s*класс|цешка|ц-шка|w205|w206|c180|c200)')) {
       return { carModel: 'Mercedes C-Class', carClass: 'Седан' };
     }
-    if (/\b(?:mercedes|мерседес|mb|мб)?\s*(?:s-class|s-класс|с-класс|эска|w222|w223|s500|s600|майбах|maybach)\b/i.test(low)) {
+    if (hasCarPattern(low, '(?:mercedes|мерседес|mb|мб|мерс)?\\s*(?:s-class|s-класс|с-класс|эска|w222|w223|s500|s600|майбах|maybach)')) {
       return { carModel: 'Mercedes S-Class', carClass: 'Седан' };
     }
-    if (/\b(?:cla|кла|cls|цлс)\b/i.test(low)) return { carModel: 'Mercedes CLA / CLS', carClass: 'Седан' };
-    if (/\b(?:mercedes|мерседес|мерс)\b/i.test(low)) return { carModel: 'Mercedes-Benz (Седан)', carClass: 'Седан' };
+    if (hasCarPattern(low, 'cla|кла|cls|цлс')) return { carModel: 'Mercedes CLA / CLS', carClass: 'Седан' };
+    if (hasCarPattern(low, 'mercedes|мерседес|мерс|мерин')) return { carModel: 'Mercedes-Benz (Седан)', carClass: 'Седан' };
 
-    // Porsche / Toyota / Lexus / VW / Skoda / Kia / Hyundai
-    if (/\b(?:panamera|панамера)\b/i.test(low)) return { carModel: 'Porsche Panamera', carClass: 'Седан' };
-    if (/\b(?:taycan|тайкан)\b/i.test(low)) return { carModel: 'Porsche Taycan', carClass: 'Седан' };
-    if (/\b(?:911|boxster|боксер|cayman|кайман)\b/i.test(low)) return { carModel: 'Porsche 911 / Cayman', carClass: 'Седан' };
+    if (hasCarPattern(low, 'panamera|панамера')) return { carModel: 'Porsche Panamera', carClass: 'Седан' };
+    if (hasCarPattern(low, 'taycan|тайкан')) return { carModel: 'Porsche Taycan', carClass: 'Седан' };
+    if (hasCarPattern(low, '911|boxster|боксер|cayman|кайман')) return { carModel: 'Porsche 911 / Cayman', carClass: 'Седан' };
 
-    if (/\b(?:camry|камри)\b/i.test(low)) return { carModel: 'Toyota Camry', carClass: 'Седан' };
-    if (/\b(?:corolla|королла)\b/i.test(low)) return { carModel: 'Toyota Corolla', carClass: 'Седан' };
-    if (/\b(?:lexus|лексус)?\s*(?:es|ес|es250|es350|is|ис|ls|лс)\b/i.test(low)) return { carModel: 'Lexus ES / IS', carClass: 'Седан' };
+    if (hasCarPattern(low, 'camry|камри')) return { carModel: 'Toyota Camry', carClass: 'Седан' };
+    if (hasCarPattern(low, 'corolla|королла')) return { carModel: 'Toyota Corolla', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:lexus|лексус)?\\s*(?:es|ес|es250|es350|is|ис|ls|лс)')) return { carModel: 'Lexus ES / IS', carClass: 'Седан' };
 
-    if (/\b(?:passat|пассат|cc|сс|arteon|артеон)\b/i.test(low)) return { carModel: 'VW Passat', carClass: 'Седан' };
-    if (/\b(?:polo|поло|jetta|джетта)\b/i.test(low)) return { carModel: 'VW Polo / Jetta', carClass: 'Седан' };
+    if (hasCarPattern(low, 'passat|пассат|cc|сс|arteon|артеон')) return { carModel: 'VW Passat', carClass: 'Седан' };
+    if (hasCarPattern(low, 'polo|поло|jetta|джетта')) return { carModel: 'VW Polo / Jetta', carClass: 'Седан' };
 
-    if (/\b(?:octavia|октавия)\b/i.test(low)) return { carModel: 'Skoda Octavia', carClass: 'Седан' };
-    if (/\b(?:superb|суперб)\b/i.test(low)) return { carModel: 'Skoda Superb', carClass: 'Седан' };
-    if (/\b(?:rapid|рапид)\b/i.test(low)) return { carModel: 'Skoda Rapid', carClass: 'Седан' };
+    if (hasCarPattern(low, 'octavia|октавия')) return { carModel: 'Skoda Octavia', carClass: 'Седан' };
+    if (hasCarPattern(low, 'superb|суперб')) return { carModel: 'Skoda Superb', carClass: 'Седан' };
+    if (hasCarPattern(low, 'rapid|рапид')) return { carModel: 'Skoda Rapid', carClass: 'Седан' };
 
-    if (/\b(?:k5|к5|optima|оптима)\b/i.test(low)) return { carModel: 'Kia K5', carClass: 'Седан' };
-    if (/\b(?:sonata|соната)\b/i.test(low)) return { carModel: 'Hyundai Sonata', carClass: 'Седан' };
-    if (/\b(?:solaris|солярис|rio|рио|elantra|элантра)\b/i.test(low)) return { carModel: 'Hyundai Solaris', carClass: 'Седан' };
+    if (hasCarPattern(low, 'k5|к5|optima|оптима')) return { carModel: 'Kia K5', carClass: 'Седан' };
+    if (hasCarPattern(low, 'sonata|соната')) return { carModel: 'Hyundai Sonata', carClass: 'Седан' };
+    if (hasCarPattern(low, 'solaris|солярис|rio|рио|elantra|элантра')) return { carModel: 'Hyundai Solaris', carClass: 'Седан' };
 
-    if (/\b(?:zeekr\s*001|зикр\s*001|001)\b/i.test(low)) return { carModel: 'Zeekr 001', carClass: 'Седан' };
-    if (/\b(?:genesis|генезис)?\s*(?:g70|г70|g80|г80|g90|г90)\b/i.test(low)) return { carModel: 'Genesis G80', carClass: 'Седан' };
+    if (hasCarPattern(low, 'zeekr\\s*001|зикр\\s*001|001')) return { carModel: 'Zeekr 001', carClass: 'Седан' };
+    if (hasCarPattern(low, '(?:genesis|генезис)?\\s*(?:g70|г70|g80|г80|g90|г90)')) return { carModel: 'Genesis G80', carClass: 'Седан' };
 
-    if (/\b(?:седан|купе|хэтчбек|лифтбек)\b/i.test(low)) {
-      return { carModel: 'Седан / Купе', carClass: 'Седан' };
-    }
+    // 4. ОБЩИЕ ТЕРМИНЫ КУЗОВА (СЛОВА КЛИЕНТА)
+    if (hasCarPattern(low, 'внедорожник|джип|suv|большая\\s*машина|рамный')) return { carModel: 'Внедорожник', carClass: 'Внедорожник' };
+    if (hasCarPattern(low, 'кроссовер|паркетник|паркет')) return { carModel: 'Кроссовер', carClass: 'Кроссовер' };
+    if (hasCarPattern(low, 'седан|купе|хэтчбек|лифтбек|легковая')) return { carModel: 'Седан / Купе', carClass: 'Седан' };
 
     return { carModel: null, carClass: null };
   }
@@ -1557,15 +1534,22 @@
     if (isLeadershipOrB2bQuery(userText)) return false;
     const low = userText.toLowerCase().replace(/ё/g, 'е').trim();
 
-    // Прямой вопрос о стоимости/расчете
-    const priceKws = ['скольк', 'цен', 'стоимост', 'прайс', 'рассчит', 'посчит', 'почем', 'тариф', 'смет'];
+    // Прямой вопрос о стоимости/расчете (с толерантностью к опечаткам вроде «солько», «скоко», «почем», «стоит»)
+    const priceKws = [
+      'скольк', 'сольк', 'скоко', 'скока', 'склько', 'почем', 'почем',
+      'цен', 'стоимост', 'стоит', 'прайс', 'рассчит', 'посчит', 'тариф',
+      'смет', 'расчет', 'оцен'
+    ];
     if (priceKws.some(k => low.includes(k))) return true;
 
     // Исключение допов / пересчет / запрос одной услуги
     if (isUpsellExclusionQuery(low)) return true;
 
-    // Услуга + автомобиль или намерение ("Хочу PPF на Mercedes GLE", "можно сделать химчистку на ауди ку8")
-    const services = ['ppf', 'пленк', 'оклейк', 'полировк', 'керамик', 'химчист', 'почистить'];
+    // Услуга + автомобиль или намерение ("Хочу PPF на Mercedes GLE", "можно сделать химчистку на ауди ку8", "у меня ли 9 химчистка")
+    const services = [
+      'ppf', 'ппф', 'пленк', 'плёнк', 'оклейк', 'оклеить', 'заклеить', 'затянуть',
+      'полировк', 'палировк', 'керамик', 'химчист', 'химчиск', 'почистить', 'салон'
+    ];
     const hasService = services.some(s => low.includes(s));
     const detectedCar = detectCarDetails(userText);
     const hasCar = !!(detectedCar.carClass || detectedCar.carModel);
@@ -1903,13 +1887,13 @@
     }
 
     // 8. ХИМЧИСТКА САЛОНА
-    if (low.includes('химчист') || low.includes('салон') || low.includes('почистить')) {
+    if (low.includes('химчист') || low.includes('химчиск') || low.includes('салон') || low.includes('почистить') || low.includes('сидень')) {
       const detected = detectCarDetails(text);
       const car = detected.carModel || activeOrderState.carModel;
 
       if (!car) {
         return {
-          text: 'Стоимость комплексной детейлинг-химчистки салона с глубокой чисткой кожи/текстиля и озонированием:\n• Седаны и купе (BMW 3/5, Audi A4/A6, Camry) — 15 000 ₽\n• Кроссоверы и внедорожники (Audi Q7/Q8, BMW X5/X7, Mercedes GLE) — 18 000 ₽\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов!'
+          text: 'Стоимость комплексной детейлинг-химчистки салона с глубокой чисткой кожи/текстиля и озонированием:\n• Седаны и купе (BMW 3/5, Audi A4/A6, Camry) — 15 000 ₽\n• Кроссоверы и внедорожники (Audi Q7/Q8, BMW X5/X7, Mercedes GLE, Li Auto L9) — 18 000 ₽\nПо действующей акции нанесение антидождя на переднюю полусферу — в подарок (0 ₽)!\n\nПодскажите, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов!'
         };
       }
 
@@ -2029,7 +2013,7 @@
     // 20. ПРЯМОЙ РАСЧЕТ СМЕТЫ / ВЫБОР УСЛУГИ ДЛЯ НАЗВАННОГО АВТОМОБИЛЯ
     const detectedCar = detectCarDetails(text);
     const isCarMentioned = !!(detectedCar.carModel || detectedCar.carClass);
-    const isServiceMentioned = low.includes('полировк') || low.includes('ppf') || low.includes('пленк') || low.includes('керамик') || low.includes('оклейк') || low.includes('химчист') || low.includes('салон') || low.includes('почистить');
+    const isServiceMentioned = low.includes('полировк') || low.includes('палировк') || low.includes('ppf') || low.includes('ппф') || low.includes('пленк') || low.includes('плёнк') || low.includes('керамик') || low.includes('оклейк') || low.includes('оклеить') || low.includes('химчист') || low.includes('химчиск') || low.includes('салон') || low.includes('почистить');
     const isPriceOrServiceAsk = isEstimateRequest(text) || isServiceMentioned || low.includes('хочу');
 
     if (isCarMentioned && !isPriceOrServiceAsk && !activeOrderState.carModel) {
