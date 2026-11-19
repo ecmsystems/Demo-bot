@@ -1331,10 +1331,11 @@
         font-size: 15.5px;
       }
       .hero-h1 {
-        font-size: 38px;
+        font-size: clamp(28px, 8vw, 38px);
+        line-height: 1.18;
       }
       .section-title {
-        font-size: 30px;
+        font-size: clamp(24px, 6vw, 30px);
       }
       .header-nav {
         display: none;
@@ -1346,7 +1347,22 @@
         grid-template-columns: 1fr;
       }
       .calc-box {
-        padding: 20px;
+        padding: 18px 16px;
+      }
+      .hero-grid {
+        gap: 24px;
+      }
+      .hero-widget-wrap {
+        width: 100%;
+        max-width: 100%;
+      }
+      .hero-live-widget {
+        min-height: 480px;
+        max-height: 530px;
+        border-radius: 14px;
+      }
+      .pricing-table-wrap {
+        -webkit-overflow-scrolling: touch;
       }
     }
     /* ─── СЕКЦИЯ: ЖИВАЯ БАЗА ЗАЯВОК (GOOGLE SHEETS / CRM) ──────────── */

@@ -655,6 +655,23 @@
         cursor: not-allowed;
       }
 
+      .ecm-chip-btn, .ecm-send, .ecm-icon-btn, .ecm-floating-launcher {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .ecm-chip-btn:active, .ecm-send:active {
+        transform: scale(0.96);
+        transition: transform 0.08s ease;
+      }
+      .ecm-chat-window, .ecm-stream, .ecm-msg, .ecm-order-card {
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+
       /* Мобильный полноэкранный лист (< 640px) */
       @media (max-width: 640px) {
         .ecm-modal-overlay {
@@ -664,18 +681,78 @@
           right: 0;
           bottom: 0;
           width: 100vw;
+          width: 100dvw;
           height: 100vh;
           height: 100dvh;
           max-width: none;
           max-height: none;
           border-radius: 0;
+          z-index: 2147483647;
+          background: var(--w-panel);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
         .ecm-chat-window {
           border-radius: 0;
           border: none;
+          height: 100%;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          background: var(--w-panel);
+        }
+        .ecm-header {
+          padding-top: max(16px, env(safe-area-inset-top, 16px));
+          padding-left: max(16px, env(safe-area-inset-left, 16px));
+          padding-right: max(16px, env(safe-area-inset-right, 16px));
+          padding-bottom: 12px;
+          min-height: calc(54px + env(safe-area-inset-top, 0px));
+          flex-shrink: 0;
+          background: var(--w-card);
+          border-bottom: 1px solid var(--w-rule);
+        }
+        .ecm-stream {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: contain;
+          padding: 14px 14px 10px 14px;
+          gap: 10px;
+        }
+        .ecm-chips-strip {
+          flex-shrink: 0;
+          padding: 4px max(14px, env(safe-area-inset-left, 14px)) 8px max(14px, env(safe-area-inset-right, 14px));
+          gap: 6px;
         }
         .ecm-footer {
-          padding-bottom: env(safe-area-inset-bottom, 12px);
+          flex-shrink: 0;
+          padding-top: 8px;
+          padding-left: max(12px, env(safe-area-inset-left, 12px));
+          padding-right: max(12px, env(safe-area-inset-right, 12px));
+          padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
+          background: var(--w-card);
+          border-top: 1px solid var(--w-rule);
+        }
+        .ecm-floating-launcher {
+          bottom: max(16px, env(safe-area-inset-bottom, 16px));
+          right: 16px;
+          width: 50px;
+          height: 50px;
+        }
+        .ecm-order-card {
+          margin-top: 2px;
+        }
+        .ecm-order-table td {
+          padding: 7px 10px;
+          font-size: 13px;
+        }
+        .ecm-order-table td.col-price {
+          font-size: 15px;
+        }
+        .ecm-row-total .col-price {
+          font-size: 17px;
         }
       }
     `;
@@ -783,25 +860,52 @@
 
   let messages = getInitialMessages();
 
+  function createMessageElement(m) {
+    const msgRow = document.createElement('div');
+    msgRow.className = `ecm-msg ${m.role}`;
+
+    if (m.role === 'user') {
+      msgRow.innerHTML = `<div class="ecm-user-text">${m.text}</div>`;
+    } else if (m.isEstimate) {
+      msgRow.innerHTML = buildOrderCardHtml(
+        m.carModel,
+        m.carClass,
+        m.basePrice,
+        m.upsellPrice,
+        m.totalPrice,
+        m.slot,
+        m.serviceName,
+        m.upsellName
+      );
+    } else {
+      msgRow.innerHTML = `<div class="ecm-user-text" style="background:var(--w-card); white-space:pre-wrap; line-height:1.45;">${m.text}</div>`;
+    }
+    return msgRow;
+  }
+
   function renderMessagesInto(containerEl) {
     if (!containerEl) return;
-    containerEl.innerHTML = '';
+    const existing = containerEl.querySelectorAll('.ecm-msg:not(.typing-msg)');
+    const currentCount = existing.length;
 
-    messages.forEach((m) => {
-      const msgRow = document.createElement('div');
-      msgRow.className = `ecm-msg ${m.role}`;
-
-      if (m.role === 'user') {
-        msgRow.innerHTML = `<div class="ecm-user-text">${m.text}</div>`;
-      } else if (m.isEstimate) {
-        msgRow.innerHTML = buildOrderCardHtml(m.carModel, m.carClass, m.basePrice, m.upsellPrice, m.totalPrice, m.slot, m.serviceName, m.upsellName);
-      } else {
-        msgRow.innerHTML = `<div class="ecm-user-text" style="background:var(--w-card); white-space:pre-wrap; line-height:1.45;">${m.text}</div>`;
+    // Полный рендер только если контейнер пуст или при сбросе диалога
+    if (currentCount === 0 || messages.length < currentCount) {
+      containerEl.innerHTML = '';
+      const fragment = document.createDocumentFragment();
+      messages.forEach(m => fragment.appendChild(createMessageElement(m)));
+      containerEl.appendChild(fragment);
+    } else if (messages.length > currentCount) {
+      // Инкрементальное добавление только новых сообщений (0 мс задержки на мобильных!)
+      const fragment = document.createDocumentFragment();
+      for (let i = currentCount; i < messages.length; i++) {
+        fragment.appendChild(createMessageElement(messages[i]));
       }
-      containerEl.appendChild(msgRow);
-    });
+      containerEl.appendChild(fragment);
+    }
 
-    containerEl.scrollTop = containerEl.scrollHeight;
+    requestAnimationFrame(() => {
+      containerEl.scrollTop = containerEl.scrollHeight;
+    });
   }
 
   // ─── 10. МОНТИРОВАНИЕ В ИНЛАЙН-РЕЖИМЕ (HERO #ECM-DEMO) ────────────
@@ -947,7 +1051,9 @@
       floatingLauncher.setAttribute('aria-expanded', 'true');
       if (icon) icon.innerHTML = SVG_CLOSE;
       renderAllStreams();
-      setTimeout(() => floatingInput.focus(), 150);
+      if (window.innerWidth > 640) {
+        setTimeout(() => floatingInput && floatingInput.focus(), 150);
+      }
     } else {
       modalOverlay.classList.remove('open');
       floatingLauncher.classList.remove('is-open');
@@ -958,6 +1064,26 @@
   }
 
   floatingLauncher.addEventListener('click', () => toggleFloating());
+
+  // Скрываем плавающую кнопку, если на экране уже виден инлайн-виджет (устраняет захламление на мобильных)
+  if (inlineContainer && window.IntersectionObserver) {
+    try {
+      const heroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            floatingLauncher.style.transform = 'scale(0)';
+            floatingLauncher.style.opacity = '0';
+            floatingLauncher.style.pointerEvents = 'none';
+          } else {
+            floatingLauncher.style.transform = 'scale(1)';
+            floatingLauncher.style.opacity = '1';
+            floatingLauncher.style.pointerEvents = 'auto';
+          }
+        });
+      }, { threshold: 0.15 });
+      heroObserver.observe(inlineContainer);
+    } catch(e) {}
+  }
 
   // Закрытие по клавише Esc
   window.addEventListener('keydown', (e) => {
@@ -1383,13 +1509,71 @@
     };
   }
 
+  let isSending = false;
+  let isGeminiReachable = true;
+
+  function setControlsState(disabled) {
+    const inputs = [inlineInput, floatingInput];
+    const sends = [inlineSend, floatingSend];
+
+    inputs.forEach(inp => {
+      if (inp) {
+        if (disabled) inp.setAttribute('disabled', 'true');
+        else inp.removeAttribute('disabled');
+      }
+    });
+
+    sends.forEach(btn => {
+      if (btn) {
+        btn.disabled = disabled;
+        btn.style.opacity = disabled ? '0.4' : '1';
+        btn.style.pointerEvents = disabled ? 'none' : 'auto';
+      }
+    });
+
+    const toggleChips = (root) => {
+      if (!root) return;
+      root.querySelectorAll('.ecm-chip-btn').forEach(chip => {
+        chip.style.pointerEvents = disabled ? 'none' : 'auto';
+        chip.style.opacity = disabled ? '0.5' : '1';
+      });
+    };
+
+    toggleChips(shadow);
+    const inlineHost = document.getElementById('ecm-inline-shadow-host');
+    if (inlineHost && inlineHost.shadowRoot) {
+      toggleChips(inlineHost.shadowRoot);
+    }
+  }
+
   async function queryAi(promptText, chatHistory, contactInfo) {
+    const low = (promptText || '').toLowerCase().trim();
+
+    // 0. МГНОВЕННЫЙ ОТВЕТ НА ЧАСТЫЕ ИНТЕНТЫ И ЧИПЫ (0 мс задержки сети, без подвисаний)
+    const isQuickIntent = (
+      isLeadershipOrB2bQuery(promptText) ||
+      isRefusal(promptText, '') ||
+      !!contactInfo ||
+      isBookingRequest(promptText) ||
+      low.includes('выбор') || low.includes('помог') || low.includes('посовету') ||
+      low.includes('где') || low.includes('адрес') ||
+      low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') ||
+      low.includes('f10') || low.includes('bmw') || low.includes('полировк') || low.includes('ppf') || low.includes('пленк') ||
+      low === 'здравствуйте' || low === 'привет' || low === 'добрый день'
+    );
+
+    if (isQuickIntent) {
+      // Имитируем живой набор текста (320 мс) для естественности диалога
+      await new Promise(r => setTimeout(r, 320));
+      return getSmartFallback(promptText, contactInfo);
+    }
+
     // 1. Попытка запроса через бэкенд FastAPI (/api/chat), если запущен локально
     try {
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       if (isLocal) {
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 4000);
+        const tid = setTimeout(() => ctrl.abort(), 1500);
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1412,11 +1596,11 @@
         }
       }
     } catch (e) {
-      // Игнорируем и переходим к прямому вызову Gemini
+      // Игнорируем и переходим дальше
     }
 
-    // 2. Прямой вызов Google Gemini API через DEFAULT_KEY (работает и на GitHub Pages, и локально)
-    if (DEFAULT_KEY) {
+    // 2. Прямой вызов Google Gemini API с коротким таймаутом (1.5 сек)
+    if (DEFAULT_KEY && isGeminiReachable) {
       try {
         const sysInstruction = `
 Ты — опытный, вежливый и профессиональный старший администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».
@@ -1471,7 +1655,7 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
         const recent = (chatHistory || []).slice(-6);
         for (const m of recent) {
           if (m.isInitialSample) {
-            continue; // КАТЕГОРИЧЕСКИ НЕ передаем приветственный образец в историю Gemini!
+            continue;
           }
           if (m.role === 'user' && m.text) {
             if (lastRole === 'user') {
@@ -1498,9 +1682,9 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
           contents.push({ role: 'user', parts: [{ text: promptText }] });
         }
 
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${DEFAULT_KEY}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${DEFAULT_KEY}`;
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 7500);
+        const tid = setTimeout(() => ctrl.abort(), 1500);
         const res = await fetch(geminiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1509,7 +1693,7 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
             contents: contents,
             generationConfig: {
               temperature: 0.25,
-              maxOutputTokens: 1200
+              maxOutputTokens: 600
             }
           }),
           signal: ctrl.signal
@@ -1527,107 +1711,119 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
               rawText: textPart.trim()
             };
           }
+        } else {
+          isGeminiReachable = false;
         }
       } catch (e) {
-        console.warn('[ECM Widget] Gemini direct call notice:', e);
+        isGeminiReachable = false;
       }
     }
 
-    // 3. Умный контекстный оффлайн-фоллбэк
+    // 3. Умный контекстный оффлайн-фоллбэк (работает мгновенно)
     return getSmartFallback(promptText, contactInfo);
   }
 
   async function handleUserSend(text) {
+    if (isSending) return;
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    // Лимит сообщений в демо
-    const count = incrementMessageCount();
-    if (count > MAX_DEMO_MESSAGES) {
+    isSending = true;
+    setControlsState(true);
+
+    try {
+      // Лимит сообщений в демо
+      const count = incrementMessageCount();
+      if (count > MAX_DEMO_MESSAGES) {
+        messages.push({ role: 'user', text: trimmed });
+        messages.push({
+          role: 'bot',
+          isEstimate: false,
+          text: 'В демо доступно 50 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
+        });
+        renderAllStreams();
+        return;
+      }
+
       messages.push({ role: 'user', text: trimmed });
-      messages.push({
-        role: 'bot',
-        isEstimate: false,
-        text: 'В демо доступно 50 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
-      });
       renderAllStreams();
-      return;
+
+      // Анализ контакта и намерения
+      const contactInfo = extractContactInfo(trimmed);
+      const refusalMode = isRefusal(trimmed, '');
+      const b2bMode = isLeadershipOrB2bQuery(trimmed);
+      const bookingMode = (isBookingRequest(trimmed) || !!contactInfo) && !b2bMode;
+
+      // Показываем индикатор набора
+      showTyping();
+
+      // Запрос к AI (быстрый ответ)
+      const rawResult = await queryAi(trimmed, messages, contactInfo);
+      hideTyping();
+
+      const cleanText = stripCodePieces(rawResult.text);
+
+      // Извлекаем смету: ТОЛЬКО при запросе цены или при подтверждении брони с контактом
+      let estimate = null;
+      if (!refusalMode && !b2bMode) {
+        estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo) || rawResult.estimate;
+      }
+
+      // Если клиент предоставил контакт (финальное подтверждение записи), гарантируем наличие сметы
+      if (contactInfo && !estimate && !refusalMode && !b2bMode) {
+        estimate = Object.assign({}, activeOrderState, {
+          isEstimate: true,
+          slot: 'суббота 14:00'
+        });
+      }
+
+      if (cleanText) {
+        messages.push({
+          role: 'bot',
+          isEstimate: false,
+          text: cleanText
+        });
+      }
+
+      if (estimate) {
+        messages.push({
+          role: 'bot',
+          isEstimate: true,
+          carModel: estimate.carModel || 'Автомобиль',
+          carClass: estimate.carClass || 'Расчёт по прайсу',
+          serviceName: estimate.serviceName || 'Комплексная восстановительная полировка кузова',
+          basePrice: Number(estimate.basePrice) || 18000,
+          upsellName: estimate.upsellName || 'Нанокерамика 9H (2 слоя)',
+          upsellPrice: Number(estimate.upsellPrice) || 25000,
+          totalPrice: Number(estimate.totalPrice) || 43000,
+          slot: estimate.slot || 'суббота 14:00'
+        });
+
+        try {
+          const contactStr = contactInfo ? contactInfo.display : (bookingMode ? 'Онлайн-бронь слота' : 'Онлайн-диалог');
+          window.dispatchEvent(new CustomEvent('ecm-lead-created', {
+            detail: {
+              client: 'Посетитель сайта',
+              contact: contactStr,
+              car: `${estimate.carModel} (${estimate.carClass})`,
+              service: `${estimate.serviceName || 'Полировка'} + ${estimate.upsellName || 'Керамика'}`,
+              cost: `${Number(estimate.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
+              source: 'Виджет на сайте',
+              status: contactInfo ? 'Бронь подтверждена' : 'Новая заявка'
+            }
+          }));
+        } catch (e) {}
+      }
+
+      renderAllStreams();
+    } finally {
+      isSending = false;
+      setControlsState(false);
     }
-
-    messages.push({ role: 'user', text: trimmed });
-    renderAllStreams();
-
-    // Анализ контакта и намерения
-    const contactInfo = extractContactInfo(trimmed);
-    const refusalMode = isRefusal(trimmed, '');
-    const b2bMode = isLeadershipOrB2bQuery(trimmed);
-    const bookingMode = (isBookingRequest(trimmed) || !!contactInfo) && !b2bMode;
-
-    // Показываем индикатор набора
-    showTyping();
-
-    // Запрос к AI (Gemini / Backend)
-    const rawResult = await queryAi(trimmed, messages, contactInfo);
-    hideTyping();
-
-    const cleanText = stripCodePieces(rawResult.text);
-    
-    // Извлекаем смету: ТОЛЬКО при запросе цены или при подтверждении брони с контактом
-    let estimate = null;
-    if (!refusalMode && !b2bMode) {
-      estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo) || rawResult.estimate;
-    }
-
-    // Если клиент предоставил контакт (финальное подтверждение записи), гарантируем наличие сметы
-    if (contactInfo && !estimate && !refusalMode && !b2bMode) {
-      estimate = Object.assign({}, activeOrderState, {
-        isEstimate: true,
-        slot: 'суббота 14:00'
-      });
-    }
-
-    if (cleanText) {
-      messages.push({
-        role: 'bot',
-        isEstimate: false,
-        text: cleanText
-      });
-    }
-
-    if (estimate) {
-      messages.push({
-        role: 'bot',
-        isEstimate: true,
-        carModel: estimate.carModel || 'Автомобиль',
-        carClass: estimate.carClass || 'Расчёт по прайсу',
-        serviceName: estimate.serviceName || 'Комплексная восстановительная полировка кузова',
-        basePrice: Number(estimate.basePrice) || 18000,
-        upsellName: estimate.upsellName || 'Нанокерамика 9H (2 слоя)',
-        upsellPrice: Number(estimate.upsellPrice) || 25000,
-        totalPrice: Number(estimate.totalPrice) || 43000,
-        slot: estimate.slot || 'суббота 14:00'
-      });
-
-      try {
-        const contactStr = contactInfo ? contactInfo.display : (bookingMode ? 'Онлайн-бронь слота' : 'Онлайн-диалог');
-        window.dispatchEvent(new CustomEvent('ecm-lead-created', {
-          detail: {
-            client: 'Посетитель сайта',
-            contact: contactStr,
-            car: `${estimate.carModel} (${estimate.carClass})`,
-            service: `${estimate.serviceName || 'Полировка'} + ${estimate.upsellName || 'Керамика'}`,
-            cost: `${Number(estimate.totalPrice || 43000).toLocaleString('ru-RU')} ₽`,
-            source: 'Виджет на сайте',
-            status: contactInfo ? 'Бронь подтверждена' : 'Новая заявка'
-          }
-        }));
-      } catch (e) {}
-    }
-
-    renderAllStreams();
   }
 
   function showTyping() {
+    hideTyping();
     const dotsHtml = `
       <div class="ecm-msg bot typing-msg">
         <div class="ecm-typing">
@@ -1639,22 +1835,24 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
     `;
     if (inlineStream) {
       inlineStream.insertAdjacentHTML('beforeend', dotsHtml);
-      inlineStream.scrollTop = inlineStream.scrollHeight;
+      requestAnimationFrame(() => {
+        inlineStream.scrollTop = inlineStream.scrollHeight;
+      });
     }
     if (floatingStream) {
       floatingStream.insertAdjacentHTML('beforeend', dotsHtml);
-      floatingStream.scrollTop = floatingStream.scrollHeight;
+      requestAnimationFrame(() => {
+        floatingStream.scrollTop = floatingStream.scrollHeight;
+      });
     }
   }
 
   function hideTyping() {
     if (inlineStream) {
-      const el = inlineStream.querySelector('.typing-msg');
-      if (el) el.remove();
+      inlineStream.querySelectorAll('.typing-msg').forEach(el => el.remove());
     }
     if (floatingStream) {
-      const el = floatingStream.querySelector('.typing-msg');
-      if (el) el.remove();
+      floatingStream.querySelectorAll('.typing-msg').forEach(el => el.remove());
     }
   }
 
