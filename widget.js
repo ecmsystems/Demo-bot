@@ -1250,18 +1250,44 @@
     return null;
   }
 
-  function isUpsellExclusionQuery(low) {
-    if (!low) return false;
-    return (
-      low.includes('без пропитк') || low.includes('без защитн') || low.includes('без озонирован') ||
-      low.includes('без нано') || low.includes('без керамик') || low.includes('без доп') ||
-      low.includes('без покрытия') || low.includes('без второго') || low.includes('без допродаж') ||
-      low.includes('только пленк') || low.includes('только оклейк') || low.includes('только полировк') ||
-      low.includes('только химчистк') || low.includes('только салон') || low.includes('только баз') ||
-      low.includes('одну услуг') || low.includes('одну полировк') || low.includes('одну химчистк') ||
-      low.includes('уберите') || low.includes('не надо') ||
-      (low.includes('без ') && (low.includes('пропит') || low.includes('керамик') || low.includes('доп') || low.includes('слоя') || low.includes('услуг') || low.includes('опци')))
-    );
+  function isUpsellExclusionQuery(text) {
+    if (!text) return false;
+    const norm = normalizeCarText(text || "").toLowerCase();
+
+    // Исключаем нейтральные фразы вроде «без проблем», «без опозданий», «без разницы»
+    if (norm.includes("без проблем") || norm.includes("без разниц") || norm.includes("без опоздан") || norm.includes("без задерж")) {
+      return false;
+    }
+
+    // 1. Любое «без ...» (например: «без этого», «без нее», «без допов», «без приптик», «без керамики», «без озона», «без доп опций»)
+    if (norm.includes("без ")) {
+      if (/без\s+(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек)/i.test(norm)) {
+        return true;
+      }
+      if (/(?:давайте|можно|хочу|лучше|только|будем)\s+без\b/i.test(norm) || norm.startsWith("без ")) {
+        return true;
+      }
+    }
+
+    // 2. «просто [услуга]» или «только [услуга]» или «чисто [услуга]»
+    if (/(?:просто|только|чисто)\s+(?:хим\s*чист|чистк|полиров|пленк|оклейк|баз|салон|одну|один)/i.test(norm)) {
+      return true;
+    }
+
+    // 3. Прямые указания убрать доп / отказ от допа
+    if (/не\s+надо\s+(?:керамик|нано|пропит|припит|доп|лишн|этого|ее|его)/i.test(norm)) {
+      return true;
+    }
+    if (/уберите\s+(?:керамик|нано|пропит|припит|доп|лишн|это|ее|его)/i.test(norm)) {
+      return true;
+    }
+
+    // 4. «одну услугу», «только базу», «без допов»
+    if (norm.includes("одну услуг") || norm.includes("один комплекс") || norm.includes("только баз") || norm.includes("без доп")) {
+      return true;
+    }
+
+    return false;
   }
 
   function isBookingRequest(text) {
@@ -2026,8 +2052,8 @@
       let uName = "Без дополнительных опций";
       let replyServiceWord = "базовый комплекс";
 
-      const isClean = norm.includes("химчист") || (activeOrderState.serviceName && activeOrderState.serviceName.includes("химчист"));
-      const isPPF = norm.includes("ppf") || norm.includes("пленк") || (activeOrderState.serviceName && activeOrderState.serviceName.includes("PPF"));
+      const isClean = (entities.service && entities.service.category === "clean") || /хим\s*чист|чистк|салон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes("химчист"));
+      const isPPF = (entities.service && entities.service.category === "ppf") || /ppf|пленк|оклейк|брон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes("PPF"));
 
       if (isClean) {
         sName = "Полная химчистка салона";
