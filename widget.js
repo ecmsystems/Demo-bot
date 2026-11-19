@@ -761,10 +761,28 @@
   // ─── 7. ГЕНЕРАЦИЯ HTML ДИАЛОГА ────────────────────────────────────
   function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot, serviceName, upsellName) {
     const sName = serviceName || 'Восстановительная полировка кузова';
-    const uName = upsellName || 'Нанокерамика 9H (2 слоя)';
-    const bPrice = Number(basePrice) || 18000;
-    const uPrice = Number(upsellPrice) || 25000;
-    const tPrice = Number(totalPrice) || (bPrice + uPrice);
+    const bPrice = (basePrice !== undefined && basePrice !== null) ? Number(basePrice) : 18000;
+    const uPrice = (upsellPrice !== undefined && upsellPrice !== null && !isNaN(upsellPrice)) ? Number(upsellPrice) : 25000;
+    const hasUpsell = uPrice > 0;
+    const uName = upsellName || (hasUpsell ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций');
+    const tPrice = (totalPrice !== undefined && totalPrice !== null) ? Number(totalPrice) : (bPrice + uPrice);
+    const totalLabel = hasUpsell ? 'Итого с допродажей:' : 'Итого к оплате:';
+
+    const upsellRowHtml = hasUpsell ? `
+      <tr class="ecm-row-upsell">
+        <td>
+          ${uName}
+          <span class="ecm-upsell-tag">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽ к заказу</span>
+        </td>
+        <td class="col-price">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+      </tr>
+    ` : `
+      <tr style="opacity: 0.65; font-size: 12.5px;">
+        <td>${uName}</td>
+        <td class="col-price" style="font-size: 13px; color: var(--w-muted);">0&nbsp;₽</td>
+      </tr>
+    `;
+
     return `
       <div class="ecm-order-card">
         <div class="ecm-order-meta">
@@ -777,19 +795,13 @@
               <td>${sName}</td>
               <td class="col-price">${bPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
-            <tr class="ecm-row-upsell">
-              <td>
-                ${uName}
-                <span class="ecm-upsell-tag">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽ к заказу</span>
-              </td>
-              <td class="col-price">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
-            </tr>
+            ${upsellRowHtml}
             <tr>
               <td>Гидрофобный антидождь передней полусферы</td>
               <td class="col-price" style="color: var(--w-ok); font-size: 13px;">0&nbsp;₽ (в подарок)</td>
             </tr>
             <tr class="ecm-row-total">
-              <td>Итого с допродажей:</td>
+              <td>${totalLabel}</td>
               <td class="col-price">${tPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
           </tbody>
@@ -1254,6 +1266,15 @@
     const priceKws = ['скольк', 'цен', 'стоимост', 'прайс', 'рассчит', 'посчит', 'почем', 'тариф', 'смет'];
     if (priceKws.some(k => low.includes(k))) return true;
 
+    // Исключение допов / пересчет ("без нанокерамики", "без керамики", "без допов", "только оклейка")
+    const isExcl = (
+      low.includes('без нано') || low.includes('без керамик') ||
+      low.includes('без доп') || low.includes('только пленк') ||
+      low.includes('только оклейк') || low.includes('только полировк') ||
+      low.includes('без допродаж') || low.includes('с керамик') || low.includes('верните керамик')
+    );
+    if (isExcl) return true;
+
     // Услуга + автомобиль или намерение ("Хочу PPF на Mercedes GLE")
     const services = ['ppf', 'пленк', 'оклейк', 'полировк', 'керамик', 'химчист'];
     const cars = ['gle', 'gls', 'x5', 'x7', 'bmw', 'бмв', 'mercedes', 'мерседес', 'audi', 'ауди', 'camry', 'камри', 'macan', 'cayenne', 'порше', 'porsche', 'monjaro', 'geely', 'haval', 'k5', 'octavia'];
@@ -1305,49 +1326,63 @@
     carClass = carClass || (baseState && baseState.carClass) || 'Седан';
     carModel = carModel || (baseState && baseState.carModel) || 'Автомобиль клиента';
 
-    const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || low.includes('брон');
-    const isClean = low.includes('химчист') || low.includes('салон');
+    const isExcl = (
+      low.includes('без нано') || low.includes('без керамик') ||
+      low.includes('без доп') || low.includes('только пленк') ||
+      low.includes('только оклейк') || low.includes('только полировк') ||
+      low.includes('уберите керамик') || !!(baseState && baseState.upsellExcluded)
+    );
+
+    const isPPF = low.includes('ppf') || low.includes('пленк') || low.includes('оклейк') || low.includes('брон') || ((baseState && baseState.serviceName && baseState.serviceName.includes('PPF')));
+    const isClean = low.includes('химчист') || low.includes('салон') || ((baseState && baseState.serviceName && baseState.serviceName.includes('химчист')));
 
     if (isPPF) {
       const bp = (carClass === 'Седан') ? 65000 : 75000;
-      const up = (carClass === 'Седан') ? 25000 : 30000;
+      const up = isExcl ? 0 : ((carClass === 'Седан') ? 25000 : 30000);
+      const uName = isExcl ? 'Без нанокерамики (только базовый комплекс)' : 'Нанокерамика 9H на остальной кузов';
       return {
         isEstimate: true,
         carModel: carModel,
         carClass: carClass,
         serviceName: 'Оклейка зон риска пленкой PPF',
         basePrice: bp,
-        upsellName: 'Нанокерамика 9H на остальной кузов',
+        upsellName: uName,
         upsellPrice: up,
         totalPrice: bp + up,
-        slot: 'суббота 14:00'
+        slot: 'суббота 14:00',
+        upsellExcluded: isExcl
       };
     } else if (isClean) {
       const bp = (carClass === 'Седан') ? 15000 : 18000;
+      const up = isExcl ? 0 : 8000;
+      const uName = isExcl ? 'Без дополнительных услуг' : 'Озонирование + защитная пропитка';
       return {
         isEstimate: true,
         carModel: carModel,
         carClass: carClass,
         serviceName: 'Полная химчистка салона',
         basePrice: bp,
-        upsellName: 'Озонирование + защитная пропитка',
-        upsellPrice: 8000,
-        totalPrice: bp + 8000,
-        slot: 'суббота 14:00'
+        upsellName: uName,
+        upsellPrice: up,
+        totalPrice: bp + up,
+        slot: 'суббота 14:00',
+        upsellExcluded: isExcl
       };
     } else {
       const bp = (carClass === 'Внедорожник') ? 26000 : ((carClass === 'Кроссовер') ? 22000 : 18000);
-      const up = (carClass === 'Седан') ? 25000 : 30000;
+      const up = isExcl ? 0 : ((carClass === 'Седан') ? 25000 : 30000);
+      const uName = isExcl ? 'Без керамического покрытия' : 'Нанокерамика 9H (2 слоя)';
       return {
         isEstimate: true,
         carModel: carModel,
         carClass: carClass,
         serviceName: 'Комплексная восстановительная полировка кузова',
         basePrice: bp,
-        upsellName: 'Нанокерамика 9H (2 слоя)',
+        upsellName: uName,
         upsellPrice: up,
         totalPrice: bp + up,
-        slot: 'суббота 14:00'
+        slot: 'суббота 14:00',
+        upsellExcluded: isExcl
       };
     }
   }
@@ -1391,15 +1426,13 @@
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed && (parsed.isEstimate || parsed.carModel)) {
-            // Если в запросе пользователя указана конкретная модель (например Mercedes GLE),
-            // а нейросеть склеила "BMW F10 / Mercedes GLE", принудительно очищаем по авто клиента
             const autoCalc = computeEstimateForCar(userText, activeOrderState);
             const userNamedCar = /gle|gls|x5|x7|macan|cayenne|monjaro|camry|камри|f10/i.test(userText);
 
-            const chosenModel = userNamedCar ? autoCalc.carModel : (parsed.carModel || autoCalc.carModel);
-            const chosenClass = userNamedCar ? autoCalc.carClass : (parsed.carClass || autoCalc.carClass);
-            const bp = userNamedCar ? autoCalc.basePrice : (Number(parsed.basePrice) || autoCalc.basePrice);
-            const up = userNamedCar ? autoCalc.upsellPrice : (Number(parsed.upsellPrice) || autoCalc.upsellPrice);
+            const chosenModel = userNamedCar ? autoCalc.carModel : (parsed.carModel || autoCalc.carModel || activeOrderState.carModel);
+            const chosenClass = userNamedCar ? autoCalc.carClass : (parsed.carClass || autoCalc.carClass || activeOrderState.carClass);
+            const bp = (parsed.basePrice !== undefined && parsed.basePrice !== null) ? Number(parsed.basePrice) : autoCalc.basePrice;
+            const up = (parsed.upsellPrice !== undefined && parsed.upsellPrice !== null) ? Number(parsed.upsellPrice) : autoCalc.upsellPrice;
 
             const res = {
               isEstimate: true,
@@ -1409,7 +1442,7 @@
               basePrice: bp,
               upsellName: parsed.upsellName || autoCalc.upsellName,
               upsellPrice: up,
-              totalPrice: Number(parsed.totalPrice) || (bp + up),
+              totalPrice: (parsed.totalPrice !== undefined && parsed.totalPrice !== null) ? Number(parsed.totalPrice) : (bp + up),
               slot: parsed.slot || 'суббота 14:00'
             };
             activeOrderState = Object.assign({}, activeOrderState, res);
@@ -1434,7 +1467,7 @@
   }
 
   function getSmartFallback(text, contactInfo) {
-    const low = (text || '').toLowerCase();
+    const low = (text || '').toLowerCase().trim();
 
     // 0. Вопросы о руководителе, директоре, приобретении бота под ключ или партнерстве (B2B)
     if (isLeadershipOrB2bQuery(text)) {
@@ -1445,7 +1478,28 @@
 
     // 1. Клиент предоставил контакт для бронирования
     if (contactInfo) {
-      const finalEst = Object.assign({}, activeOrderState, { isEstimate: true, slot: 'суббота 14:00' });
+      const car = activeOrderState.carModel || 'BMW F10';
+      const cClass = activeOrderState.carClass || 'Седан';
+      const sName = activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
+      const bPrice = (activeOrderState.basePrice !== undefined && activeOrderState.basePrice !== null) ? Number(activeOrderState.basePrice) : 18000;
+      const uPrice = (activeOrderState.upsellPrice !== undefined && activeOrderState.upsellPrice !== null && !isNaN(activeOrderState.upsellPrice)) ? Number(activeOrderState.upsellPrice) : (activeOrderState.upsellExcluded ? 0 : 25000);
+      const uName = activeOrderState.upsellName || (uPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций');
+      const tPrice = (activeOrderState.totalPrice !== undefined && activeOrderState.totalPrice !== null) ? Number(activeOrderState.totalPrice) : (bPrice + uPrice);
+
+      const finalEst = {
+        isEstimate: true,
+        carModel: car,
+        carClass: cClass,
+        serviceName: sName,
+        basePrice: bPrice,
+        upsellName: uName,
+        upsellPrice: uPrice,
+        totalPrice: tPrice,
+        slot: 'суббота 14:00',
+        upsellExcluded: activeOrderState.upsellExcluded || (uPrice === 0)
+      };
+      activeOrderState = Object.assign({}, activeOrderState, finalEst);
+
       return {
         text: `Спасибо! Контакт зафиксирован (${contactInfo.display}). Бронь слота на субботу в 14:00 предварительно закреплена (окно удерживается 15 минут). Мастер свяжется с вами для подтверждения всех деталей визита. Ниже сформирован ваш итоговый заказ-наряд:`,
         estimate: finalEst,
@@ -1460,28 +1514,160 @@
       };
     }
 
-    // 3. Консультация и помощь с выбором (БЕЗ сметы)
-    if (low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') || low.includes('что лучше')) {
+    // 3. ОТКАЗ ОТ ДОПРОДАЖИ: «А можно без нанокерамики?», «без допов», «только пленка», «без керамики»
+    const isUpsellExclusion = (
+      low.includes('без нанокерамик') || low.includes('без керамик') ||
+      low.includes('без нано') || low.includes('без доп') ||
+      low.includes('только пленк') || low.includes('только оклейк') ||
+      low.includes('только полировк') || low.includes('уберите керамик') ||
+      low.includes('без допродаж') || low.includes('без второго') ||
+      low.includes('только баз') || (low.includes('без') && (low.includes('керамик') || low.includes('слоя')))
+    );
+    if (isUpsellExclusion) {
+      const car = activeOrderState.carModel || 'Mercedes GLE';
+      const cClass = activeOrderState.carClass || 'Внедорожник';
+      const sName = activeOrderState.serviceName || 'Оклейка зон риска пленкой PPF';
+      const bPrice = activeOrderState.basePrice || (cClass === 'Седан' ? 65000 : 75000);
+
+      const est = {
+        isEstimate: true,
+        carModel: car,
+        carClass: cClass,
+        serviceName: sName,
+        basePrice: bPrice,
+        upsellName: 'Без нанокерамики (только базовый комплекс)',
+        upsellPrice: 0,
+        totalPrice: bPrice,
+        slot: 'суббота 14:00',
+        upsellExcluded: true
+      };
+      activeOrderState = Object.assign({}, activeOrderState, est);
+
       return {
-        text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, пожалуйста:\n1. Марку и модель вашего автомобиля?\n2. Автомобиль новый из салона или с пробегом?\n3. Какую задачу в первую очередь хотите решить: защитить кузов от сколов (пленка PPF), вернуть зеркальный глянец (полировка + керамика) или обновить салон (химчистка)?'
+        text: `Да, конечно! Мы с радостью выполним только ${sName.toLowerCase()} для вашего ${car} без нанесения керамического состава.\n\nВ этом случае итоговая смета составит ровно ${bPrice.toLocaleString('ru-RU')} ₽. При этом специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nБлижайший свободный слот для приема: суббота в 14:00. Забронировать это время за вами?`,
+        estimate: est,
+        rawText: JSON.stringify(est)
       };
     }
 
-    // 4. Адрес и локация (БЕЗ сметы)
-    if (low.includes('где') || low.includes('адрес') || low.includes('находит') || low.includes('город') || low.includes('как доехать')) {
+    // 4. ВОЗВРАТ ДОПРОДАЖИ: «А давайте с керамикой», «верните керамику», «сколько с керамикой»
+    if (low.includes('с керамик') || low.includes('с нанокерамик') || low.includes('верните керамик') || low.includes('добавьте керамик')) {
+      const car = activeOrderState.carModel || 'Mercedes GLE';
+      const cClass = activeOrderState.carClass || 'Внедорожник';
+      const sName = activeOrderState.serviceName || 'Оклейка зон риска пленкой PPF';
+      const bPrice = activeOrderState.basePrice || (cClass === 'Седан' ? 65000 : 75000);
+      const uPrice = (cClass === 'Седан') ? 25000 : 30000;
+      const tPrice = bPrice + uPrice;
+
+      const est = {
+        isEstimate: true,
+        carModel: car,
+        carClass: cClass,
+        serviceName: sName,
+        basePrice: bPrice,
+        upsellName: 'Нанокерамика 9H на остальной кузов',
+        upsellPrice: uPrice,
+        totalPrice: tPrice,
+        slot: 'суббота 14:00',
+        upsellExcluded: false
+      };
+      activeOrderState = Object.assign({}, activeOrderState, est);
+
       return {
-        text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать стоимость услуг или подобрать удобное время?`
+        text: `Отличное решение! С нанокерамикой 9H кузов вашего ${car} получит максимальную защиту, глубокий зеркальный глянец и мощный гидрофобный эффект на 18 месяцев.\n\nИтоговая смета комплекса: ${tPrice.toLocaleString('ru-RU')} ₽ (включая антидождь в подарок 0 ₽).\n\nЗакрепить за вами свободный слот на субботу в 14:00?`,
+        estimate: est,
+        rawText: JSON.stringify(est)
       };
     }
 
-    // 5. Запрос записи БЕЗ контакта — вежливо запрашиваем контакт (БЕЗ сметы)
+    // 5. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
+    if ((low.includes('скольк') && low.includes('времен')) || low.includes('по времени') || low.includes('сколько дней') || low.includes('сколько часов') || low.includes('когда готов') || low.includes('когда забрать') || low.includes('когда отдадите') || low.includes('длится')) {
+      const car = activeOrderState.carModel || 'автомобиля';
+      const isPPF = (activeOrderState.serviceName || '').includes('PPF') || (activeOrderState.serviceName || '').includes('пленк');
+      const timing = isPPF
+        ? `Оклейка зон риска для ${car} занимает от 1 до 2 рабочих дней. Пленке требуется технологическая просушка в теплом боксе и фиксация всех подворотов.`
+        : `Комплексная полировка и защита для ${car} занимает 1 рабочий день (утром привозите, на следующий день забираете в идеальном состоянии).`;
+
+      return {
+        text: `${timing}\n\nЕсли привезти автомобиль в субботу к 14:00, мы сможем отдать его уже в воскресенье во второй половине дня. Забронировать окно на субботу?`
+      };
+    }
+
+    // 6. ВОПРОС О ГАРАНТИИ
+    if (low.includes('гарант') || low.includes('сертифик') || low.includes('надежн')) {
+      const car = activeOrderState.carModel || 'автомобиль';
+      return {
+        text: `На все работы по ${car} предоставляется официальная гарантия:\n• На полиуретановую пленку — гарантия от производителя от 5 до 10 лет (не желтеет, не мутнеет, не трескается от мороза).\n• На монтаж и прилегание краев — гарантия студии 1 год.\n• На керамику 9H — гарантия гидрофобного эффекта до 18 месяцев.\n\nЧерез 10–14 дней после оклейки мы приглашаем вас на бесплатный контрольный осмотр мастера.`
+      };
+    }
+
+    // 7. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
+    if (low.includes('материал') || (low.includes('пленк') && (low.includes('как') || low.includes('бренд') || low.includes('фирм') || low.includes('производ'))) || low.includes('какой состав')) {
+      return {
+        text: `Мы работаем исключительно со 100% оптическим полиуретаном премиум-класса толщиной 195–215 микрон (бренды Stek, Llumar, SunTek).\n\nПленка имеет прочный верхний лаковый слой Top Coat — царапины от веток и песка самозатягиваются от тепла на солнце или горячей воды. Никакого дешевого винила или гибрида.`
+      };
+    }
+
+    // 8. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
+    if ((low.includes('зон') && low.includes('риск')) || low.includes('что входит') || low.includes('какие детали')) {
+      const car = activeOrderState.carModel || 'автомобиля';
+      return {
+        text: `В комплекс «Зоны риска» для ${car} входит оклейка самых уязвимых от гравия и сколов элементов:\n• Капот полностью;\n• Передний бампер целиком со всеми вставками;\n• Передние крылья полностью;\n• Корпуса боковых зеркал;\n• Оптика (фары и ПТФ);\n• Зоны под ручками дверей (от ногтей);\n• Полоса на крышу над лобовым стеклом;\n• Стойки лобового стекла.`
+      };
+    }
+
+    // 9. ВОПРОС О СКИДКАХ И ЦЕНЕ
+    if (low.includes('скидк') || low.includes('подешевл') || low.includes('дорог') || low.includes('торг') || low.includes('уступ')) {
+      const car = activeOrderState.carModel || 'автомобиля';
+      return {
+        text: `В расчет для вашего ${car} уже включены максимальные бонусы по нашей акции:\n1. Антидождь передней полусферы в подарок — 0 ₽ (экономия 4 000 ₽);\n2. Бесплатный замер толщины ЛКП всего кузова высокоточным толщиномером;\n3. Детейлинг-мойка кузова перед оклейкой.\n\nМы держим фиксированные честные цены с гарантией качества без скрытых доплат.`
+      };
+    }
+
+    // 10. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
+    if (low.includes('оплат') || low.includes('предоплат') || low.includes('карт') || low.includes('наличн') || low.includes('сбп') || low.includes('безнал')) {
+      return {
+        text: `Предоплата для бронирования не требуется! Оплата производится строго по факту завершения работ после вашего личного осмотра автомобиля.\n\nПринимаем любые удобные способы: наличные, банковская карта, СБП, а также безналичный расчет для юридических лиц.`
+      };
+    }
+
+    // 11. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
+    if (low.includes('воскресень') || low.includes('понедельник') || low.includes('вторник') || low.includes('сред') || low.includes('четверг') || low.includes('пятниц') || low.includes('будн') || low.includes('другой день') || low.includes('другое время') || low.includes('утром') || low.includes('вечером')) {
+      return {
+        text: `Да, конечно! Мы с удовольствием подберем удобный для вас день и время приема.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор свяжется с вами, чтобы согласовать идеальное окно в расписании.`
+      };
+    }
+
+    // 12. СОГЛАСИЕ НА ЗАПИСЬ / ПОДТВЕРЖДЕНИЕ
+    if (low === 'да' || low === 'давайте' || low === 'хорошо' || low === 'согласен' || low === 'подходит' || low === 'бронируйте' || low === 'ок' || low === 'запишите' || low.startsWith('да,') || low.startsWith('давайте,')) {
+      const car = activeOrderState.carModel || 'автомобиль';
+      return {
+        text: `Отлично! С удовольствием забронируем свободный слот на субботу в 14:00 для вашего ${car}.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), чтобы мастер закрепил за вами окно и связался для подтверждения деталей визита.`
+      };
+    }
+
+    // 13. Запрос записи БЕЗ контакта
     if (isBookingRequest(text)) {
       return {
         text: 'С удовольствием запишем вас на свободный слот в эту субботу в 14:00!\n\nПодскажите, пожалуйста, ваше имя и удобный контакт для связи — номер телефона, Telegram (@никнейм) или профиль ВКонтакте, чтобы мастер закрепил бронь и связался с вами для подтверждения деталей.'
       };
     }
 
-    // 6. Прямой расчет сметы: Mercedes GLE / Внедорожник
+    // 14. Консультация и помощь с выбором (БЕЗ сметы)
+    if (low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') || low.includes('что лучше')) {
+      return {
+        text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, пожалуйста:\n1. Марку и модель вашего автомобиля?\n2. Автомобиль новый из салона или с пробегом?\n3. Какую задачу в первую очередь хотите решить: защитить кузов от сколов (пленка PPF), вернуть зеркальный глянец (полировка + керамика) или обновить салон (химчистка)?'
+      };
+    }
+
+    // 15. Адрес и локация
+    if (low.includes('где') || low.includes('адрес') || low.includes('находит') || low.includes('город') || low.includes('как доехать')) {
+      return {
+        text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать стоимость услуг или подобрать удобное время?`
+      };
+    }
+
+    // 16. Прямой расчет сметы: Mercedes GLE / Внедорожник
     if (low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') || low.includes('джип') || low.includes('внедорожник')) {
       const est = computeEstimateForCar(text, activeOrderState);
       activeOrderState = Object.assign({}, activeOrderState, est);
@@ -1492,7 +1678,7 @@
       };
     }
 
-    // 7. Прямой расчет сметы: BMW / Седан / полировка
+    // 17. Прямой расчет сметы: BMW / Седан / полировка
     if (low.includes('f10') || low.includes('bmw') || low.includes('седан') || low.includes('полировк')) {
       const est = computeEstimateForCar(text, activeOrderState);
       activeOrderState = Object.assign({}, activeOrderState, est);
@@ -1503,7 +1689,17 @@
       };
     }
 
-    // 8. Общее приветствие (БЕЗ сметы)
+    // 18. ПАМЯТЬ ДИАЛОГА: Если в диалоге УЖЕ обсуждается автомобиль (activeOrderState.carModel)
+    // КАТЕГОРИЧЕСКИ НЕЛЬЗЯ сбрасывать диалог и выводить стартовое приветствие!
+    if (activeOrderState.carModel) {
+      const car = activeOrderState.carModel;
+      const cClass = activeOrderState.carClass;
+      return {
+        text: `По вашему автомобилю ${car} (${cClass}) мы зафиксировали предварительный заказ-наряд.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00, или хотите уточнить какие-либо дополнительные детали по комплексу?`
+      };
+    }
+
+    // 19. Первичное приветствие (ТОЛЬКО если диалог еще не начат)
     return {
       text: 'Здравствуйте! Я онлайн-консультант детейлинг-центра «ECM Detailing Lab». Подскажите марку и модель вашего автомобиля или интересующую услугу (полировка, нанокерамика, оклейка PPF, химчистка), и я подробно проконсультирую и сделаю точный расчет сметы.'
     };
@@ -1550,16 +1746,39 @@
     const low = (promptText || '').toLowerCase().trim();
 
     // 0. МГНОВЕННЫЙ ОТВЕТ НА ЧАСТЫЕ ИНТЕНТЫ И ЧИПЫ (0 мс задержки сети, без подвисаний)
+    const isExclusionQuery = (
+      low.includes('без нано') || low.includes('без керамик') ||
+      low.includes('без доп') || low.includes('только пленк') ||
+      low.includes('только оклейк') || low.includes('только полировк') ||
+      low.includes('уберите керамик') || low.includes('без допродаж') ||
+      low.includes('с керамик') || low.includes('верните керамик') ||
+      low.includes('без бонусов')
+    );
+
+    const isFaqOrFollowUp = (
+      low.includes('времен') || low.includes('дней') || low.includes('часов') || low.includes('когда готов') || low.includes('когда забрать') || low.includes('длится') ||
+      low.includes('гарант') || low.includes('сертифик') ||
+      low.includes('материал') || (low.includes('пленк') && (low.includes('как') || low.includes('бренд') || low.includes('фирм') || low.includes('производ'))) ||
+      (low.includes('зон') && low.includes('риск')) || low.includes('что входит') || low.includes('какие детали') ||
+      low.includes('скидк') || low.includes('подешевл') || low.includes('дорог') || low.includes('торг') ||
+      low.includes('оплат') || low.includes('предоплат') || low.includes('карт') || low.includes('сбп') ||
+      low.includes('воскресень') || low.includes('понедельник') || low.includes('вторник') || low.includes('сред') || low.includes('четверг') || low.includes('пятниц') || low.includes('будн') || low.includes('другой день') || low.includes('другое время') ||
+      low === 'да' || low === 'давайте' || low === 'хорошо' || low === 'согласен' || low === 'подходит' || low === 'ок' || low === 'запишите' || low.startsWith('да,') || low.startsWith('давайте,')
+    );
+
     const isQuickIntent = (
       isLeadershipOrB2bQuery(promptText) ||
       isRefusal(promptText, '') ||
       !!contactInfo ||
       isBookingRequest(promptText) ||
-      low.includes('выбор') || low.includes('помог') || low.includes('посовету') ||
+      isExclusionQuery ||
+      isFaqOrFollowUp ||
+      low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') ||
       low.includes('где') || low.includes('адрес') ||
       low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') ||
       low.includes('f10') || low.includes('bmw') || low.includes('полировк') || low.includes('ppf') || low.includes('пленк') ||
-      low === 'здравствуйте' || low === 'привет' || low === 'добрый день'
+      low === 'здравствуйте' || low === 'привет' || low === 'добрый день' ||
+      (!!activeOrderState.carModel) // ЕСЛИ В ДИАЛОГЕ УЖЕ ЕСТЬ АВТОМОБИЛЬ — ОТВЕЧАЕМ МГНОВЕННО ИЗ ПАМЯТИ
     );
 
     if (isQuickIntent) {
@@ -1648,6 +1867,15 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
 
 Мы настраиваем систему под ваш прайс за 1 день и предоставляем бесплатный тест-драйв на 24 часа без предоплаты!»
    - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить, что руководитель занят или на встречах в студии. Всегда давай прямой контакт @godblessed77! Смету и JSON при этом НЕ выводи.
+
+6. ОБРАБОТКА ВОЗРАЖЕНИЙ И ОТКАЗ ОТ ДОПРОДАЖИ («А можно без нанокерамики?», «без керамики», «только оклейка», «уберите допы»):
+   - Если клиент просит убрать керамику или допродажу — обязательно согласись и пересчитай цену строго по базовой услуге:
+     Для Mercedes GLE PPF: ровно 75 000 ₽.
+     Для седана PPF: ровно 65 000 ₽.
+     Для полировки BMW F10: ровно 18 000 ₽.
+   - Подчеркни, что акция (антидождь в подарок 0 ₽) сохраняется!
+   - В конце выведи JSON заказ-наряда с "upsellPrice": 0, "upsellName": "Без нанокерамики (только базовый комплекс)" и "totalPrice": <базовая цена>.
+   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО сбрасывать диалог или повторно приветствовать клиента («Здравствуйте! Я онлайн-консультант...»).
 `.trim();
 
         const contents = [];
@@ -1766,7 +1994,7 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
       // Извлекаем смету: ТОЛЬКО при запросе цены или при подтверждении брони с контактом
       let estimate = null;
       if (!refusalMode && !b2bMode) {
-        estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo) || rawResult.estimate;
+        estimate = rawResult.estimate || extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo);
       }
 
       // Если клиент предоставил контакт (финальное подтверждение записи), гарантируем наличие сметы
@@ -1786,16 +2014,23 @@ Telegram: @godblessed77 (https://t.me/godblessed77).
       }
 
       if (estimate) {
+        const estBasePrice = (estimate.basePrice !== undefined && estimate.basePrice !== null && !isNaN(estimate.basePrice))
+          ? Number(estimate.basePrice) : 18000;
+        const estUpsellPrice = (estimate.upsellPrice !== undefined && estimate.upsellPrice !== null && !isNaN(estimate.upsellPrice))
+          ? Number(estimate.upsellPrice) : (estimate.upsellExcluded ? 0 : 25000);
+        const estTotalPrice = (estimate.totalPrice !== undefined && estimate.totalPrice !== null && !isNaN(estimate.totalPrice))
+          ? Number(estimate.totalPrice) : (estBasePrice + estUpsellPrice);
+
         messages.push({
           role: 'bot',
           isEstimate: true,
           carModel: estimate.carModel || 'Автомобиль',
           carClass: estimate.carClass || 'Расчёт по прайсу',
           serviceName: estimate.serviceName || 'Комплексная восстановительная полировка кузова',
-          basePrice: Number(estimate.basePrice) || 18000,
-          upsellName: estimate.upsellName || 'Нанокерамика 9H (2 слоя)',
-          upsellPrice: Number(estimate.upsellPrice) || 25000,
-          totalPrice: Number(estimate.totalPrice) || 43000,
+          basePrice: estBasePrice,
+          upsellName: estimate.upsellName || (estUpsellPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций'),
+          upsellPrice: estUpsellPrice,
+          totalPrice: estTotalPrice,
           slot: estimate.slot || 'суббота 14:00'
         });
 
