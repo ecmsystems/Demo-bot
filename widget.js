@@ -1102,8 +1102,26 @@
     return false;
   }
 
+  function isLeadershipOrB2bQuery(text) {
+    if (!text) return false;
+    const low = text.toLowerCase();
+    if (/руковод[а-я]*|директор[а-я]*|владел[а-я]*|собственник[а-я]*|начальни[а-я]*/i.test(low)) {
+      return true;
+    }
+    const b2bKeywords = [
+      'купить бота', 'купить виджет', 'купить систему', 'приобрести', 'заказать бота', 'заказать виджет',
+      'установк', 'под ключ', 'разработчик', 'создател', 'внедрен', 'интеграц',
+      'партнер', 'сотрудничеств', 'франшиз', 'кто делал', 'кто создал',
+      'для своего бизнеса', 'для своего сервиса', 'для своей студии',
+      'автор проекта', 'основател', 'связаться с автором', 'связь с автором',
+      'сколько стоит бот', 'сколько стоит виджет', 'демо верси', 'демо-верси'
+    ];
+    return b2bKeywords.some(k => low.includes(k));
+  }
+
   function isEstimateRequest(userText) {
     if (!userText) return false;
+    if (isLeadershipOrB2bQuery(userText)) return false;
     const low = userText.toLowerCase().trim();
 
     // Прямой вопрос о стоимости/расчете
@@ -1229,11 +1247,11 @@
   }
 
   function extractEstimate(rawText, userText, contactInfo) {
-    // Если отказ или непрофильный запрос — КАТЕГОРИЧЕСКИ смету не создаем!
-    if (isRefusal(userText, rawText)) return null;
+    // Если отказ, непрофильный запрос или вопрос по покупке/руководству — КАТЕГОРИЧЕСКИ смету не создаем!
+    if (isRefusal(userText, rawText) || isLeadershipOrB2bQuery(userText)) return null;
 
     const isEstReq = isEstimateRequest(userText);
-    const hasContact = !!contactInfo;
+    const hasContact = !isLeadershipOrB2bQuery(userText) && !!contactInfo;
 
     // Смета формируется ТОЛЬКО по прямому вопросу о цене/расчете ИЛИ при подтверждении контакта
     if (!isEstReq && !hasContact) {
@@ -1291,6 +1309,13 @@
 
   function getSmartFallback(text, contactInfo) {
     const low = (text || '').toLowerCase();
+
+    // 0. Вопросы о руководителе, директоре, приобретении бота под ключ или партнерстве (B2B)
+    if (isLeadershipOrB2bQuery(text)) {
+      return {
+        text: 'Здравствуйте! Данный чат — это интерактивная демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.\n\nПриобрести такого умного ИИ-бота и виджет расчета сметы с установкой под ключ можно напрямую у нашего основателя и разработчика:\nTelegram: @godblessed77 (https://t.me/godblessed77).\n\nМы настраиваем систему под ваш прайс за 1 день и предоставляем бесплатный тест-драйв на 24 часа без предоплаты!'
+      };
+    }
 
     // 1. Клиент предоставил контакт для бронирования
     if (contactInfo) {
@@ -1428,6 +1453,17 @@
 
 4. ЧИСТОТА ВЫВОДА:
    - Никогда не выводи в чате Markdown-блоки кода (\`\`\`json). Выводи только чистый вежливый текст, а JSON — строго в самом конце ответа.
+
+5. СВЯЗЬ С РУКОВОДСТВОМ, ПАРТНЕРСТВО И ПРИОБРЕТЕНИЕ СИСТЕМЫ ПОД КЛЮЧ (B2B):
+   - Если собеседник спрашивает про связь с руководителем («можно связаться с вашим руководителем / директором»), владельцем, интересуется покупкой, интеграцией под ключ или партнерством для своего бизнеса:
+   - ОБЯЗАТЕЛЬНО ответь в таком формате:
+     «Здравствуйте! Данный чат — это интерактивная демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.
+
+Приобрести такого умного ИИ-бота и виджет расчета сметы с установкой под ключ можно напрямую у нашего основателя и разработчика:
+Telegram: @godblessed77 (https://t.me/godblessed77).
+
+Мы настраиваем систему под ваш прайс за 1 день и предоставляем бесплатный тест-драйв на 24 часа без предоплаты!»
+   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить, что руководитель занят или на встречах в студии. Всегда давай прямой контакт @godblessed77! Смету и JSON при этом НЕ выводи.
 `.trim();
 
         const contents = [];
@@ -1524,7 +1560,8 @@
     // Анализ контакта и намерения
     const contactInfo = extractContactInfo(trimmed);
     const refusalMode = isRefusal(trimmed, '');
-    const bookingMode = isBookingRequest(trimmed) || !!contactInfo;
+    const b2bMode = isLeadershipOrB2bQuery(trimmed);
+    const bookingMode = (isBookingRequest(trimmed) || !!contactInfo) && !b2bMode;
 
     // Показываем индикатор набора
     showTyping();
@@ -1537,12 +1574,12 @@
     
     // Извлекаем смету: ТОЛЬКО при запросе цены или при подтверждении брони с контактом
     let estimate = null;
-    if (!refusalMode) {
+    if (!refusalMode && !b2bMode) {
       estimate = extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo) || rawResult.estimate;
     }
 
     // Если клиент предоставил контакт (финальное подтверждение записи), гарантируем наличие сметы
-    if (contactInfo && !estimate && !refusalMode) {
+    if (contactInfo && !estimate && !refusalMode && !b2bMode) {
       estimate = Object.assign({}, activeOrderState, {
         isEstimate: true,
         slot: 'суббота 14:00'
