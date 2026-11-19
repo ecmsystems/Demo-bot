@@ -1580,7 +1580,61 @@
       };
     }
 
-    // 5. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
+    // 5. ПОЛНЫЙ КАТАЛОГ УСЛУГ («какие у вас есть услуги», «что делаете», «прайс», «весь спектр»)
+    const isServiceInquiry = (
+      low.includes('услуг') || low.includes('что вы делаете') || low.includes('что делаете') ||
+      low.includes('какие работы') || low.includes('что можете') || low.includes('что умеете') ||
+      low.includes('прайс') || low.includes('список') || low.includes('чем занимаетесь')
+    );
+    if (isServiceInquiry) {
+      return {
+        text: 'В нашем детейлинг-центре доступны все ключевые направления премиальной защиты и ухода за автомобилем:\n\n1. 🛡 Оклейка антигравийной полиуретановой пленкой PPF (зоны риска или весь кузов целиком) — надежная защита от гравия, сколов и царапин со свойством самозатягивания Top Coat.\n2. ✨ Восстановительная полировка кузова — бережное удаление до 95% мелких царапин, паутинки и возврат глубокого заводского глянца.\n3. 💎 Нанесение нанокерамики 9H (в 2–3 слоя) — стойкий гидрофобный щит, зеркальный блеск и защита от дорожных реагентов на 18 месяцев.\n4. 🧼 Детейлинг-химчистка салона — глубокая очистка кожи, алькантары и текстиля с озонированием и защитной консервацией.\n5. 🌧 Антидождь передней полусферы (в подарок по акции!), полировка оптики, бронирование лобового стекла.\n\nПодскажите, пожалуйста, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет под ваш кузов и подскажу свободное время для записи!'
+      };
+    }
+
+    // 6. ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ («только эти?», «а еще что-то есть?», «тонировка», «шумоизоляция», «вмятины», «лобовое»)
+    const isExtraServices = (
+      low.includes('только эт') || low.includes('еще что') || low.includes('что еще') ||
+      low.includes('другие услуг') || low.includes('тонировк') || low.includes('шумоизоляц') ||
+      low.includes('шумк') || low.includes('вмятин') || low.includes('pdr') ||
+      low.includes('лобовое') || low.includes('стекл') || low.includes('кожа') || low.includes('перешив') ||
+      low.includes('дополнительн') || low.includes('кроме эт')
+    );
+    if (isExtraServices) {
+      return {
+        text: 'Конечно, спектр наших услуг намного шире! Помимо основных комплексов мы также профессионально выполняем:\n• Тонирование стекол по ГОСТу американскими премиум-пленками (Llumar, SunTek);\n• Бронирование лобовых стекол защитными пленками повышенной прочности от сколов и трещин;\n• Беспокрасочное удаление вмятин (технология PDR) с полным сохранением заводского ЛКП;\n• Премиальную шумоизоляцию салона, дверей и арок;\n• Реставрацию, покраску и защитную консервацию кожи салона.\n\nПодскажите, какой у вас автомобиль и какую именно задачу хотелось бы решить? Я предложу оптимальный комплекс и рассчитаю точную цену.'
+      };
+    }
+
+    // 7. КОРОТКИЕ РЕПЛИКИ / МЕЖДОМЕТИЯ («ак», «ок», «ау», «ты тут», «ну», «и?», «что дальше», «ясно», «привет»)
+    const isShortInterjection = (
+      low === 'ак' || low === 'ок' || low === 'ау' || low === 'ты тут' || low === 'ну' ||
+      low === 'и?' || low === 'что дальше' || low === 'ясно' || low === 'понятно' ||
+      low === 'привет' || low === 'здравствуйте' || low === 'добрый день' || low === 'добрый вечер' || low === 'ку'
+    );
+    if (isShortInterjection) {
+      if (activeOrderState.carModel) {
+        return {
+          text: `Я на связи! По вашему автомобилю ${activeOrderState.carModel} предварительный заказ-наряд зафиксирован.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00 (для подтверждения потребуется номер телефона или Telegram @никнейм), или хотите уточнить какие-либо вопросы по услугам?`
+        };
+      }
+      return {
+        text: `Я на связи и готов подробно проконсультировать! Напишите марку и модель вашего автомобиля или нажмите одну из кнопок внизу — и я мгновенно рассчитаю точную стоимость комплекса с подарком по акции.`
+      };
+    }
+
+    // 8. ХИМЧИСТКА САЛОНА
+    if (low.includes('химчист') || low.includes('салон') || low.includes('почистить')) {
+      const est = computeEstimateForCar(text, activeOrderState);
+      activeOrderState = Object.assign({}, activeOrderState, est);
+      return {
+        text: `Для ${est.carModel} стоимость комплексной детейлинг-химчистки салона составляет ${est.basePrice.toLocaleString('ru-RU')} ₽. В комплекс входит глубокая чистка всех элементов интерьера, потолка, пола, багажника и озонирование салона.\n\nРекомендуем дополнить защитной гидрофобной пропиткой кожи и текстиля (+${est.upsellPrice.toLocaleString('ru-RU')} ₽). Антидождь передней полусферы — 0 ₽ в подарок по акции!\n\nБлижайший свободный слот: суббота в 14:00. Забронировать это время за вами?`,
+        estimate: est,
+        rawText: JSON.stringify(est)
+      };
+    }
+
+    // 9. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
     if ((low.includes('скольк') && low.includes('времен')) || low.includes('по времени') || low.includes('сколько дней') || low.includes('сколько часов') || low.includes('когда готов') || low.includes('когда забрать') || low.includes('когда отдадите') || low.includes('длится')) {
       const car = activeOrderState.carModel || 'автомобиля';
       const isPPF = (activeOrderState.serviceName || '').includes('PPF') || (activeOrderState.serviceName || '').includes('пленк');
@@ -1593,7 +1647,7 @@
       };
     }
 
-    // 6. ВОПРОС О ГАРАНТИИ
+    // 10. ВОПРОС О ГАРАНТИИ
     if (low.includes('гарант') || low.includes('сертифик') || low.includes('надежн')) {
       const car = activeOrderState.carModel || 'автомобиль';
       return {
@@ -1601,14 +1655,14 @@
       };
     }
 
-    // 7. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
+    // 11. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
     if (low.includes('материал') || (low.includes('пленк') && (low.includes('как') || low.includes('бренд') || low.includes('фирм') || low.includes('производ'))) || low.includes('какой состав')) {
       return {
         text: `Мы работаем исключительно со 100% оптическим полиуретаном премиум-класса толщиной 195–215 микрон (бренды Stek, Llumar, SunTek).\n\nПленка имеет прочный верхний лаковый слой Top Coat — царапины от веток и песка самозатягиваются от тепла на солнце или горячей воды. Никакого дешевого винила или гибрида.`
       };
     }
 
-    // 8. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
+    // 12. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
     if ((low.includes('зон') && low.includes('риск')) || low.includes('что входит') || low.includes('какие детали')) {
       const car = activeOrderState.carModel || 'автомобиля';
       return {
@@ -1616,7 +1670,7 @@
       };
     }
 
-    // 9. ВОПРОС О СКИДКАХ И ЦЕНЕ
+    // 13. ВОПРОС О СКИДКАХ И ЦЕНЕ
     if (low.includes('скидк') || low.includes('подешевл') || low.includes('дорог') || low.includes('торг') || low.includes('уступ')) {
       const car = activeOrderState.carModel || 'автомобиля';
       return {
@@ -1624,21 +1678,21 @@
       };
     }
 
-    // 10. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
+    // 14. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
     if (low.includes('оплат') || low.includes('предоплат') || low.includes('карт') || low.includes('наличн') || low.includes('сбп') || low.includes('безнал')) {
       return {
         text: `Предоплата для бронирования не требуется! Оплата производится строго по факту завершения работ после вашего личного осмотра автомобиля.\n\nПринимаем любые удобные способы: наличные, банковская карта, СБП, а также безналичный расчет для юридических лиц.`
       };
     }
 
-    // 11. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
+    // 15. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
     if (low.includes('воскресень') || low.includes('понедельник') || low.includes('вторник') || low.includes('сред') || low.includes('четверг') || low.includes('пятниц') || low.includes('будн') || low.includes('другой день') || low.includes('другое время') || low.includes('утром') || low.includes('вечером')) {
       return {
         text: `Да, конечно! Мы с удовольствием подберем удобный для вас день и время приема.\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), и наш администратор свяжется с вами, чтобы согласовать идеальное окно в расписании.`
       };
     }
 
-    // 12. СОГЛАСИЕ НА ЗАПИСЬ / ПОДТВЕРЖДЕНИЕ
+    // 16. СОГЛАСИЕ НА ЗАПИСЬ / ПОДТВЕРЖДЕНИЕ
     if (low === 'да' || low === 'давайте' || low === 'хорошо' || low === 'согласен' || low === 'подходит' || low === 'бронируйте' || low === 'ок' || low === 'запишите' || low.startsWith('да,') || low.startsWith('давайте,')) {
       const car = activeOrderState.carModel || 'автомобиль';
       return {
@@ -1646,62 +1700,76 @@
       };
     }
 
-    // 13. Запрос записи БЕЗ контакта
+    // 17. Запрос записи БЕЗ контакта
     if (isBookingRequest(text)) {
       return {
         text: 'С удовольствием запишем вас на свободный слот в эту субботу в 14:00!\n\nПодскажите, пожалуйста, ваше имя и удобный контакт для связи — номер телефона, Telegram (@никнейм) или профиль ВКонтакте, чтобы мастер закрепил бронь и связался с вами для подтверждения деталей.'
       };
     }
 
-    // 14. Консультация и помощь с выбором (БЕЗ сметы)
+    // 18. Консультация и помощь с выбором (БЕЗ сметы)
     if (low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') || low.includes('что лучше')) {
       return {
         text: 'С удовольствием помогу подобрать оптимальный комплекс услуг!\n\nПодскажите, пожалуйста:\n1. Марку и модель вашего автомобиля?\n2. Автомобиль новый из салона или с пробегом?\n3. Какую задачу в первую очередь хотите решить: защитить кузов от сколов (пленка PPF), вернуть зеркальный глянец (полировка + керамика) или обновить салон (химчистка)?'
       };
     }
 
-    // 15. Адрес и локация
+    // 19. Адрес и локация
     if (low.includes('где') || low.includes('адрес') || low.includes('находит') || low.includes('город') || low.includes('как доехать')) {
       return {
         text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать стоимость услуг или подобрать удобное время?`
       };
     }
 
-    // 16. Прямой расчет сметы: Mercedes GLE / Внедорожник
-    if (low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') || low.includes('джип') || low.includes('внедорожник')) {
+    // 20. ПРЯМОЙ РАСЧЕТ СМЕТЫ: ЛЮБАЯ МАРКА ИЛИ МОДЕЛЬ АВТОМОБИЛЯ
+    const knownCars = [
+      'gle', 'gls', 'x5', 'x7', 'x3', 'x4', 'x6', 'bmw', 'бмв', 'f10',
+      'mercedes', 'мерседес', 'audi', 'ауди', 'porsche', 'порше', 'macan', 'cayenne', 'panamera',
+      'toyota', 'тойота', 'camry', 'камри', 'land cruiser', 'крузак', 'prado', 'rav4',
+      'lexus', 'лексус', 'rx', 'lx', 'es',
+      'geely', 'джили', 'monjaro', 'монжаро', 'tugella',
+      'haval', 'хавал', 'changan', 'чанган', 'cheri', 'чери', 'exeed', 'эксид', 'tank', 'танк',
+      'kia', 'киа', 'k5', 'hyundai', 'хендай', 'solaris', 'солярис',
+      'volkswagen', 'фольксваген', 'vw', 'tiguan', 'тигуан', 'passat', 'пассат',
+      'skoda', 'шкода', 'octavia', 'октавия', 'kodiaq', 'кодиак', 'superb',
+      'седан', 'кроссовер', 'внедорожник', 'джип', 'купе'
+    ];
+    const isCarMentioned = knownCars.some(c => low.includes(c));
+    const isPriceOrServiceAsk = isEstimateRequest(text) || low.includes('полировк') || low.includes('ppf') || low.includes('пленк') || low.includes('керамик') || low.includes('оклейк') || low.includes('хочу');
+
+    if (isCarMentioned || (isPriceOrServiceAsk && activeOrderState.carModel)) {
       const est = computeEstimateForCar(text, activeOrderState);
       activeOrderState = Object.assign({}, activeOrderState, est);
+
+      const isPPF = (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
+      const serviceDesc = isPPF
+        ? `стоимость оклейки зон риска полиуретановой пленкой (PPF) — ${est.basePrice.toLocaleString('ru-RU')} ₽`
+        : `стоимость комплексной восстановительной полировки кузова — ${est.basePrice.toLocaleString('ru-RU')} ₽`;
+
+      const upsellDesc = est.upsellPrice > 0
+        ? `В качестве максимальной защиты рекомендуем нанести ${est.upsellName.toLowerCase()} (+${est.upsellPrice.toLocaleString('ru-RU')} ₽).`
+        : `Выбран базовый комплекс без дополнительных опций.`;
+
       return {
-        text: 'Для внедорожников класса Mercedes GLE стоимость оклейки зон риска защитной полиуретановой пленкой (PPF) — 75 000 ₽. Для максимальной защиты и зеркального гидрофоба рекомендуем нанести нанокерамику 9H на остальной кузов (+30 000 ₽). Нанесение гидрофобного антидождя на переднюю полусферу — 0 ₽ в подарок по акции!\n\nБлижайший свободный слот: суббота в 14:00. Подсказать детали или забронировать время?',
+        text: `Для ${est.carModel} (${est.carClass}) ${serviceDesc}. ${upsellDesc} Нанесение гидрофобного антидождя на переднюю полусферу — 0 ₽ в подарок по действующей акции!\n\nБлижайший свободный слот для приема: суббота в 14:00 (удержание окна 15 минут). Забронировать за вами этот слот?`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
     }
 
-    // 17. Прямой расчет сметы: BMW / Седан / полировка
-    if (low.includes('f10') || low.includes('bmw') || low.includes('седан') || low.includes('полировк')) {
-      const est = computeEstimateForCar(text, activeOrderState);
-      activeOrderState = Object.assign({}, activeOrderState, est);
-      return {
-        text: 'Для седанов стоимость восстановительной полировки кузова — 18 000 ₽. Рекомендуем закрепить результат 2 слоями нанокерамики 9H (+25 000 ₽), при этом гидрофобный антидождь на переднюю полусферу идет в подарок по акции!\n\nБлижайший свободный слот: суббота в 14:00. Забронировать за вами окно?',
-        estimate: est,
-        rawText: JSON.stringify(est)
-      };
-    }
-
-    // 18. ПАМЯТЬ ДИАЛОГА: Если в диалоге УЖЕ обсуждается автомобиль (activeOrderState.carModel)
-    // КАТЕГОРИЧЕСКИ НЕЛЬЗЯ сбрасывать диалог и выводить стартовое приветствие!
+    // 21. ФОЛЛБЭК: Если автомобиль уже обсуждается в диалоге (activeOrderState.carModel)
     if (activeOrderState.carModel) {
       const car = activeOrderState.carModel;
       const cClass = activeOrderState.carClass;
       return {
-        text: `По вашему автомобилю ${car} (${cClass}) мы зафиксировали предварительный заказ-наряд.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00, или хотите уточнить какие-либо дополнительные детали по комплексу?`
+        text: `По вашему автомобилю ${car} (${cClass}) предварительный заказ-наряд зафиксирован.\n\nПодскажите, закрепить за вами свободный слот на субботу в 14:00, или хотите уточнить какие-либо детали по комплексу, материалам или срокам?`
       };
     }
 
-    // 19. Первичное приветствие (ТОЛЬКО если диалог еще не начат)
+    // 22. ФОЛЛБЭК: Если диалог уже идет (пользователь уже задавал вопросы, но авто еще не назвал)
+    // КАТЕГОРИЧЕСКИ НЕ ПОВТОРЯЕМ ПРИВЕТСТВИЕ!
     return {
-      text: 'Здравствуйте! Я онлайн-консультант детейлинг-центра «ECM Detailing Lab». Подскажите марку и модель вашего автомобиля или интересующую услугу (полировка, нанокерамика, оклейка PPF, химчистка), и я подробно проконсультирую и сделаю точный расчет сметы.'
+      text: 'С удовольствием подробно проконсультирую по технологиям и помогу подобрать лучший комплекс!\n\nПодскажите, пожалуйста, какая у вас марка и модель автомобиля? Я сразу сделаю точный расчет стоимости и сориентирую по свободным окнам.'
     };
   }
 
@@ -1743,56 +1811,12 @@
   }
 
   async function queryAi(promptText, chatHistory, contactInfo) {
-    const low = (promptText || '').toLowerCase().trim();
-
-    // 0. МГНОВЕННЫЙ ОТВЕТ НА ЧАСТЫЕ ИНТЕНТЫ И ЧИПЫ (0 мс задержки сети, без подвисаний)
-    const isExclusionQuery = (
-      low.includes('без нано') || low.includes('без керамик') ||
-      low.includes('без доп') || low.includes('только пленк') ||
-      low.includes('только оклейк') || low.includes('только полировк') ||
-      low.includes('уберите керамик') || low.includes('без допродаж') ||
-      low.includes('с керамик') || low.includes('верните керамик') ||
-      low.includes('без бонусов')
-    );
-
-    const isFaqOrFollowUp = (
-      low.includes('времен') || low.includes('дней') || low.includes('часов') || low.includes('когда готов') || low.includes('когда забрать') || low.includes('длится') ||
-      low.includes('гарант') || low.includes('сертифик') ||
-      low.includes('материал') || (low.includes('пленк') && (low.includes('как') || low.includes('бренд') || low.includes('фирм') || low.includes('производ'))) ||
-      (low.includes('зон') && low.includes('риск')) || low.includes('что входит') || low.includes('какие детали') ||
-      low.includes('скидк') || low.includes('подешевл') || low.includes('дорог') || low.includes('торг') ||
-      low.includes('оплат') || low.includes('предоплат') || low.includes('карт') || low.includes('сбп') ||
-      low.includes('воскресень') || low.includes('понедельник') || low.includes('вторник') || low.includes('сред') || low.includes('четверг') || low.includes('пятниц') || low.includes('будн') || low.includes('другой день') || low.includes('другое время') ||
-      low === 'да' || low === 'давайте' || low === 'хорошо' || low === 'согласен' || low === 'подходит' || low === 'ок' || low === 'запишите' || low.startsWith('да,') || low.startsWith('давайте,')
-    );
-
-    const isQuickIntent = (
-      isLeadershipOrB2bQuery(promptText) ||
-      isRefusal(promptText, '') ||
-      !!contactInfo ||
-      isBookingRequest(promptText) ||
-      isExclusionQuery ||
-      isFaqOrFollowUp ||
-      low.includes('выбор') || low.includes('помог') || low.includes('посовету') || low.includes('подскаж') ||
-      low.includes('где') || low.includes('адрес') ||
-      low.includes('gle') || low.includes('gls') || low.includes('x5') || low.includes('x7') ||
-      low.includes('f10') || low.includes('bmw') || low.includes('полировк') || low.includes('ppf') || low.includes('пленк') ||
-      low === 'здравствуйте' || low === 'привет' || low === 'добрый день' ||
-      (!!activeOrderState.carModel) // ЕСЛИ В ДИАЛОГЕ УЖЕ ЕСТЬ АВТОМОБИЛЬ — ОТВЕЧАЕМ МГНОВЕННО ИЗ ПАМЯТИ
-    );
-
-    if (isQuickIntent) {
-      // Имитируем живой набор текста (320 мс) для естественности диалога
-      await new Promise(r => setTimeout(r, 320));
-      return getSmartFallback(promptText, contactInfo);
-    }
-
     // 1. Попытка запроса через бэкенд FastAPI (/api/chat), если запущен локально
-    try {
-      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      if (isLocal) {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      try {
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 1500);
+        const tid = setTimeout(() => ctrl.abort(), 1200);
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1813,141 +1837,11 @@
             };
           }
         }
-      }
-    } catch (e) {
-      // Игнорируем и переходим дальше
+      } catch (e) {}
     }
 
-    // 2. Прямой вызов Google Gemini API с коротким таймаутом (1.5 сек)
-    if (DEFAULT_KEY && isGeminiReachable) {
-      try {
-        const sysInstruction = `
-Ты — опытный, вежливый и профессиональный старший администратор детейлинг-центра «${STUDIO_CONFIG.company_name}».
-Адрес студии: ${STUDIO_CONFIG.city}.
-ТВОЙ ТОН: деловой, спокойный, лаконичный, стиль премиум-сервиса заказ-наряда. Без восклицаний и лишних эмодзи.
-
-УСЛУГИ И ПРАЙС:
-- Седан / Купе (BMW 3/5, Camry, Mercedes E/C, Audi A4/A6, Polo, Solaris): Полировка 18 000 ₽, Керамика 9H (2 слоя) +25 000 ₽, Оклейка PPF от 65 000 ₽, Химчистка салона 15 000 ₽.
-- Кроссовер (BMW X3, Audi Q5, Mercedes GLC, Tiguan, Monjaro, Macan): Полировка 22 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
-- Внедорожник / Джип (BMW X5/X7, Mercedes GLE/GLS, Land Cruiser, Tahoe): Полировка 26 000 ₽, Керамика 9H +30 000 ₽, Оклейка PPF от 75 000 ₽, Химчистка 18 000 ₽.
-АКЦИЯ И БОНУС:
-При заказе комплекса (полировка + керамика или оклейка PPF) — нанесение гидрофобного антидождя на переднюю полусферу бесплатно (0 ₽ в подарок).
-СВОБОДНЫЙ СЛОТ ДЛЯ ЗАПИСИ: суббота в 14:00 (удержание окна 15 минут).
-
-СТРОГИЕ ПРАВИЛА:
-1. КОНТЕКСТ ТЕКУЩЕГО СООБЩЕНИЯ (ГЛАВНОЕ ПРАВИЛО):
-   - Отвечай ИСКЛЮЧИТЕЛЬНО на текущий запрос клиента!
-   - Если клиент спрашивает про Mercedes GLE — говори ТОЛЬКО про Mercedes GLE. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать BMW F10 или другие машины из истории, если клиент о них не спрашивал.
-   - Если клиент просто поздоровался («здравствуйте», «привет») — вежливо поздоровайся, спроси какой у него автомобиль и какая услуга интересует. СМЕТУ И JSON НЕ ВЫВОДИ!
-   - Если клиент просит помочь с выбором («помоги мне с выбором») — задай 2-3 уточняющих вопроса (марка, новая или с пробегом, какие задачи). СМЕТУ И JSON НЕ ВЫВОДИ!
-   - Если клиент пишет про отечественные автомобили (Лада, ВАЗ, ГАЗ, УАЗ) или непрофильные работы (ремонт мотора, шиномонтаж) — вежливо объясни, что мы специализируемся на иномарках премиум-класса (BMW, Mercedes, Audi, Porsche и др.) и не сможем взять авто. СМЕТУ И JSON НЕ ВЫВОДИ!
-
-2. СБОР КОНТАКТНЫХ ДАННЫХ ДЛЯ ЗАПИСИ (ТЕЛЕФОН / TELEGRAM / VK):
-   - Если клиент хочет записаться («запишите на субботу», «забронируйте», «мне подходит»), но еще НЕ указал контакт:
-     Вежливо спроси: «С удовольствием запишем вас на субботу в 14:00! Подскажите, пожалуйста, ваше имя и удобный контакт для связи — номер телефона, Telegram (@никнейм) или профиль ВКонтакте, чтобы мастер закрепил бронь и связался с вами для подтверждения деталей.»
-     При этом JSON сметы НЕ выводи!
-   - Если клиент предоставил контакт (номер телефона от 10-11 цифр, Telegram @username или ссылку, профиль ВКонтакте):
-     Подтверди, что контакт зафиксирован, слот на субботу в 14:00 предварительно закреплен (окно держится 15 минут), и в самом конце ответа ОДНОЙ строчкой выведи JSON финального заказ-наряда:
-     {"isEstimate": true, "carModel": "...", "carClass": "...", "serviceName": "...", "basePrice": ..., "upsellName": "...", "upsellPrice": ..., "totalPrice": ..., "slot": "суббота 14:00"}
-
-3. РАСЧЁТ ЦЕНЫ ПО ЗАПРОСУ:
-   - Если клиент прямо спрашивает стоимость («сколько стоит полировка», «Хочу PPF на Mercedes GLE»):
-     Определи класс автомобиля, назови стоимость базовой услуги и допродажи с бонусом (антидождь в подарок), и в самом конце ответа добавь одну строчку JSON сметы строго на эту модель.
-
-4. ЧИСТОТА ВЫВОДА:
-   - Никогда не выводи в чате Markdown-блоки кода (\`\`\`json). Выводи только чистый вежливый текст, а JSON — строго в самом конце ответа.
-
-5. СВЯЗЬ С РУКОВОДСТВОМ, ПАРТНЕРСТВО И ПРИОБРЕТЕНИЕ СИСТЕМЫ ПОД КЛЮЧ (B2B):
-   - Если собеседник спрашивает про связь с руководителем («можно связаться с вашим руководителем / директором»), владельцем, интересуется покупкой, интеграцией под ключ или партнерством для своего бизнеса:
-   - ОБЯЗАТЕЛЬНО ответь в таком формате:
-     «Здравствуйте! Данный чат — это интерактивная демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.
-
-Приобрести такого умного ИИ-бота и виджет расчета сметы с установкой под ключ можно напрямую у нашего основателя и разработчика:
-Telegram: @godblessed77 (https://t.me/godblessed77).
-
-Мы настраиваем систему под ваш прайс за 1 день и предоставляем бесплатный тест-драйв на 24 часа без предоплаты!»
-   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить, что руководитель занят или на встречах в студии. Всегда давай прямой контакт @godblessed77! Смету и JSON при этом НЕ выводи.
-
-6. ОБРАБОТКА ВОЗРАЖЕНИЙ И ОТКАЗ ОТ ДОПРОДАЖИ («А можно без нанокерамики?», «без керамики», «только оклейка», «уберите допы»):
-   - Если клиент просит убрать керамику или допродажу — обязательно согласись и пересчитай цену строго по базовой услуге:
-     Для Mercedes GLE PPF: ровно 75 000 ₽.
-     Для седана PPF: ровно 65 000 ₽.
-     Для полировки BMW F10: ровно 18 000 ₽.
-   - Подчеркни, что акция (антидождь в подарок 0 ₽) сохраняется!
-   - В конце выведи JSON заказ-наряда с "upsellPrice": 0, "upsellName": "Без нанокерамики (только базовый комплекс)" и "totalPrice": <базовая цена>.
-   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО сбрасывать диалог или повторно приветствовать клиента («Здравствуйте! Я онлайн-консультант...»).
-`.trim();
-
-        const contents = [];
-        let lastRole = null;
-        const recent = (chatHistory || []).slice(-6);
-        for (const m of recent) {
-          if (m.isInitialSample) {
-            continue;
-          }
-          if (m.role === 'user' && m.text) {
-            if (lastRole === 'user') {
-              contents[contents.length - 1].parts[0].text += '\n' + m.text;
-            } else {
-              contents.push({ role: 'user', parts: [{ text: m.text }] });
-              lastRole = 'user';
-            }
-          } else if (m.role === 'bot') {
-            const bText = m.text || (m.isEstimate ? `[Смета: ${m.carModel} (${m.carClass}), ${m.serviceName} ${m.basePrice} ₽, ${m.upsellName} ${m.upsellPrice} ₽, Итого ${m.totalPrice} ₽]` : '');
-            if (bText) {
-              if (lastRole === 'model') {
-                contents[contents.length - 1].parts[0].text += '\n' + bText;
-              } else if (contents.length > 0) {
-                contents.push({ role: 'model', parts: [{ text: bText }] });
-                lastRole = 'model';
-              }
-            }
-          }
-        }
-        if (lastRole === 'user') {
-          contents[contents.length - 1].parts[0].text += '\n' + promptText;
-        } else {
-          contents.push({ role: 'user', parts: [{ text: promptText }] });
-        }
-
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${DEFAULT_KEY}`;
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 1500);
-        const res = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: sysInstruction }] },
-            contents: contents,
-            generationConfig: {
-              temperature: 0.25,
-              maxOutputTokens: 600
-            }
-          }),
-          signal: ctrl.signal
-        });
-        clearTimeout(tid);
-
-        if (res.ok) {
-          const gData = await res.json();
-          const cand = gData.candidates && gData.candidates[0];
-          const textPart = cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text;
-          if (textPart) {
-            const cleanT = stripCodePieces(textPart.trim());
-            return {
-              text: cleanT,
-              rawText: textPart.trim()
-            };
-          }
-        } else {
-          isGeminiReachable = false;
-        }
-      } catch (e) {
-        isGeminiReachable = false;
-      }
-    }
-
-    // 3. Умный контекстный оффлайн-фоллбэк (работает мгновенно)
+    // 2. Интеллектуальный моментальный отклик (320 мс живого набора)
+    await new Promise(r => setTimeout(r, 320));
     return getSmartFallback(promptText, contactInfo);
   }
 
