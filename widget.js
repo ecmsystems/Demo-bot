@@ -1895,6 +1895,21 @@
     if (brand === 'Haval' || low.includes('dargo') || low.includes('дарго') || low.includes('f7')) {
       return 'Отличная семейная машина! Тщательно вычистим сиденья, ковролин и багажник, чтобы в салоне было максимально свежо.';
     }
+    if (low.includes('мерс') || low.includes('mercedes') || brand === 'Mercedes') {
+      return 'У Mercedes благородные материалы отделки — бережно вычистим премиальную кожу и алькантару немецкими составами Koch Chemie.';
+    }
+    if (low.includes('бмв') || low.includes('bmw') || brand === 'BMW') {
+      return 'Салон BMW с рельефной отделкой — уделим максимум внимания фактурной коже и всем элементам интерьера.';
+    }
+    if (low.includes('ауди') || low.includes('audi') || brand === 'Audi') {
+      return 'В салоне Audi премиальная эргономика — вернем коже матовость и чистоту, деликатно очистим все стыки.';
+    }
+    if (low.includes('порш') || low.includes('porsche') || brand === 'Porsche') {
+      return 'У Порше эталонный интерьер — деликатно обработаем кожу и алькантару, сохранив заводскую матовую текстуру без жирного блеска.';
+    }
+    if (low.includes('lexus') || low.includes('лексус') || brand === 'Lexus') {
+      return 'На Лексусе очень мягкая и приятная кожа — обработаем бережными защитными бальзамами, вернем мягкость и свежесть.';
+    }
     if (cClass === 'Внедорожник') {
       return 'Для большого внедорожника с просторным салоном комплексный уход вернет ощущение нового автомобиля из салона.';
     }
@@ -2386,9 +2401,11 @@
           const isSwitchWithActiveService = hasServiceActive && !hasServiceInMsg && isCarMentioned;
           let switchComment = "";
           if (isSwitchWithActiveService) {
-            switchComment = `Принято, пересчитал смету на ${est.carModel} (${est.carClass})! 👍 ${expertNote}\n\n`;
+            switchComment = `Принято, пересчитал смету на ${est.carModel} (${est.carClass})! 👍 ${expertNote ? expertNote + ' ' : ''}\n\n`;
           } else {
-            switchComment = `Для вашего ${est.carModel} (${est.carClass}): ${expertNote}\n\n`;
+            switchComment = expertNote
+              ? `Для вашего ${est.carModel} (${est.carClass}): ${expertNote}\n\n`
+              : `Для вашего ${est.carModel} (${est.carClass}):\n\n`;
           }
 
           return {
