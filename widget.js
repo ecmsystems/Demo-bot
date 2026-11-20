@@ -1176,36 +1176,57 @@
     // 1. Телефон: +7 / 8 с цифрами или 10-11 цифр подряд
     const phoneMatch = trimmed.match(/(?:\+?7|8)[\s\-\(]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}\b/) || trimmed.match(/\b\d{10,11}\b/);
     if (phoneMatch) {
+      const cleanWithoutPhone = trimmed.replace(phoneMatch[0], '').replace(/[+\-()]/g, '').replace(/тел[ефон]*[.:]?/i, '').replace(/меня зовут/i, '').trim();
+      const nameMatch = cleanWithoutPhone.match(/[a-zA-Zа-яА-ЯёЁ]{2,20}/);
+      const clientName = nameMatch ? nameMatch[0] : null;
+
       return {
         type: 'phone',
         value: phoneMatch[0],
-        display: `тел. ${phoneMatch[0]}`
+        phone: phoneMatch[0],
+        name: clientName,
+        display: clientName ? `${clientName} (${phoneMatch[0]})` : `тел. ${phoneMatch[0]}`
       };
     }
 
     // 2. Telegram: t.me/link, @handle или "тг: handle"
     const tgUrl = trimmed.match(/(?:https?:\/\/)?t\.me\/([a-zA-Z0-9_]{3,32})/i);
     if (tgUrl) {
+      const cleanWithoutTg = trimmed.replace(tgUrl[0], '').replace(/меня зовут/i, '').trim();
+      const nameMatch = cleanWithoutTg.match(/[a-zA-Zа-яА-ЯёЁ]{2,20}/);
+      const clientName = nameMatch ? nameMatch[0] : null;
       return {
         type: 'telegram',
         value: '@' + tgUrl[1],
-        display: `Telegram @${tgUrl[1]}`
+        telegram: '@' + tgUrl[1],
+        name: clientName,
+        display: clientName ? `${clientName} (@${tgUrl[1]})` : `Telegram @${tgUrl[1]}`
       };
     }
     const tgHandle = trimmed.match(/@([a-zA-Z0-9_]{3,32})/);
     if (tgHandle) {
+      const cleanWithoutTg = trimmed.replace(tgHandle[0], '').replace(/меня зовут/i, '').trim();
+      const nameMatch = cleanWithoutTg.match(/[a-zA-Zа-яА-ЯёЁ]{2,20}/);
+      const clientName = nameMatch ? nameMatch[0] : null;
       return {
         type: 'telegram',
         value: '@' + tgHandle[1],
-        display: `Telegram @${tgHandle[1]}`
+        telegram: '@' + tgHandle[1],
+        name: clientName,
+        display: clientName ? `${clientName} (@${tgHandle[1]})` : `Telegram @${tgHandle[1]}`
       };
     }
     const tgWord = trimmed.match(/(?:тг|телеграм|телега|tg)\s*[:\-—]?\s*@?([a-zA-Z0-9_]{3,32})/i);
     if (tgWord) {
+      const cleanWithoutTg = trimmed.replace(tgWord[0], '').replace(/меня зовут/i, '').trim();
+      const nameMatch = cleanWithoutTg.match(/[a-zA-Zа-яА-ЯёЁ]{2,20}/);
+      const clientName = nameMatch ? nameMatch[0] : null;
       return {
         type: 'telegram',
         value: '@' + tgWord[1],
-        display: `Telegram @${tgWord[1]}`
+        telegram: '@' + tgWord[1],
+        name: clientName,
+        display: clientName ? `${clientName} (@${tgWord[1]})` : `Telegram @${tgWord[1]}`
       };
     }
 
@@ -1215,6 +1236,7 @@
       return {
         type: 'vk',
         value: 'vk.com/' + vkUrl[1],
+        vk: 'vk.com/' + vkUrl[1],
         display: `ВКонтакте vk.com/${vkUrl[1]}`
       };
     }
@@ -1223,6 +1245,7 @@
       return {
         type: 'vk',
         value: 'vk.com/' + vkWord[1],
+        vk: 'vk.com/' + vkWord[1],
         display: `ВКонтакте vk.com/${vkWord[1]}`
       };
     }
@@ -2654,6 +2677,83 @@
     return getSmartFallback(promptText, contactInfo);
   }
 
+  let lastSyncedContactKey = null;
+  let lastSyncedTime = 0;
+
+  function syncLeadToExternalServices(leadData) {
+    if (!leadData) return;
+    const contactKey = `${leadData.phone || leadData.tg_username || leadData.contactDisplay}_${leadData.car}_${leadData.service}`;
+    const now = Date.now();
+    if (lastSyncedContactKey === contactKey && (now - lastSyncedTime) < 15000) {
+      return;
+    }
+    lastSyncedContactKey = contactKey;
+    lastSyncedTime = now;
+
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzu8ArfBKXIC3TXHTft_E71DexXH4U_URuptyEqCRTxub9eUejPLaLwiFGAeyIghy3S/exec";
+    const TG_BOT_TOKEN = "9042228037:AAEy1Sij6yYSSqdl1OW6S8e253auvBywajg";
+    const TG_ADMIN_ID = 5031947136;
+
+    // 1. Отправка в Google Таблицу через Apps Script Webhook
+    try {
+      const sheetPayload = {
+        action: "create",
+        id: String(Date.now()).slice(-6),
+        created_at: new Date().toLocaleString("ru-RU"),
+        company: STUDIO_CONFIG.company_name || "ECM Detailing Lab",
+        client: leadData.client || "Посетитель сайта",
+        service: leadData.service || "Детейлинг-комплекс",
+        price: leadData.price || "По прайсу",
+        day: leadData.slot || "По согласованию",
+        time_slot: leadData.slot || "По согласованию",
+        phone: leadData.phone || "",
+        tg_username: leadData.tg_username || "",
+        status: "⏳ Ожидает подтверждения"
+      };
+
+      fetch(GOOGLE_SHEETS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(sheetPayload)
+      }).catch(function(err) {
+        console.warn("[ECM Widget] Google Sheets sync notice:", err);
+      });
+    } catch (e) {
+      console.warn("[ECM Widget] Google Sheets sync error:", e);
+    }
+
+    // 2. Мгновенное уведомление в Telegram бот владельца (@ecm_owner_demo_bot)
+    try {
+      const cardText = `🔔 <b>НОВАЯ ЗАЯВКА ИЗ ВЕБ-ВИДЖЕТА (САЙТ)</b>\n` +
+        `━━━━━━━━━━━━━━━\n` +
+        `🏢 <b>Филиал:</b> ${STUDIO_CONFIG.company_name || "ECM Detailing Lab"}\n` +
+        `👤 <b>Клиент:</b> ${leadData.client || "Посетитель сайта"}\n` +
+        `🚗 <b>Автомобиль:</b> ${leadData.car || "Уточняется"}\n` +
+        `🛠 <b>Услуги:</b> ${leadData.service || "Детейлинг-комплекс"}\n` +
+        `💰 <b>Предварительная сумма:</b> ${leadData.price || "По согласованию"}\n` +
+        `📅 <b>Время / Запись:</b> <b>${leadData.slot || "По согласованию"}</b>\n` +
+        `📞 <b>Контакты клиента:</b> <code>${leadData.phone || leadData.contactDisplay || "Не указан"}</code>\n` +
+        `🌐 <b>Источник:</b> Демо-стенд (веб-виджет)\n` +
+        `━━━━━━━━━━━━━━━\n` +
+        `<i>✅ Заявка сохранена в Google Таблицу и передана вам!</i>`;
+
+      fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TG_ADMIN_ID,
+          text: cardText,
+          parse_mode: "HTML"
+        })
+      }).catch(function(err) {
+        console.warn("[ECM Widget] Telegram notify notice:", err);
+      });
+    } catch (e) {
+      console.warn("[ECM Widget] Telegram notify error:", e);
+    }
+  }
+
   async function handleUserSend(text) {
     if (isSending) return;
     const trimmed = text.trim();
@@ -2747,9 +2847,9 @@
       // Карточка заказ-наряда формируется ТОЛЬКО в самом начале как образец и в конце при фактической записи (оставлен контакт)
       const isFinalBooking = !!contactInfo && !refusalMode && !b2bMode;
 
-      if (isFinalBooking && (activeOrderState.carClass || (estimate && estimate.carClass))) {
-        const estClass = (estimate && estimate.carClass) || activeOrderState.carClass || 'Седан';
-        const estModel = (estimate && estimate.carModel) || activeOrderState.carModel || 'Автомобиль';
+      if (isFinalBooking) {
+        const estClass = (estimate && estimate.carClass) || activeOrderState.carClass || 'Внедорожник';
+        const estModel = (estimate && estimate.carModel) || activeOrderState.carModel || 'Автомобиль клиента';
         const estService = (estimate && estimate.serviceName) || activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
         const estBasePrice = (estimate && estimate.basePrice !== undefined && estimate.basePrice !== null && !isNaN(estimate.basePrice))
           ? Number(estimate.basePrice)
@@ -2789,10 +2889,26 @@
         }
         messages.push(finalOrderCard);
 
+        const clientDisplayName = contactInfo.name
+          ? `${contactInfo.name} / ${estModel} (${estClass})`
+          : `${estModel} (${estClass})`;
+
+        // Отправка в реальные сервисы (Google Sheets и Telegram)
+        syncLeadToExternalServices({
+          client: clientDisplayName,
+          car: `${estModel} (${estClass})`,
+          service: `${estService}${estUpsellPrice > 0 ? ' + ' + estUpsellName : ''}`,
+          price: `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
+          slot: estSlot,
+          phone: contactInfo.phone || contactInfo.display,
+          tg_username: contactInfo.telegram || (contactInfo.type === 'telegram' ? contactInfo.value : ''),
+          contactDisplay: contactInfo.display
+        });
+
         try {
           window.dispatchEvent(new CustomEvent('ecm-lead-created', {
             detail: {
-              client: 'Посетитель сайта',
+              client: contactInfo.name || 'Посетитель сайта',
               contact: contactInfo.display,
               car: `${estModel} (${estClass})`,
               service: `${estService} + ${estUpsellName}`,
