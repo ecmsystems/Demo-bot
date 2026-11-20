@@ -1259,30 +1259,51 @@
       return false;
     }
 
-    // 1. Любое «без ...» (например: «без этого», «без нее», «без допов», «без приптик», «без керамики», «без озона», «без доп опций»)
-    if (norm.includes("без ")) {
-      if (/без\s+(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек)/i.test(norm)) {
-        return true;
-      }
-      if (/(?:давайте|можно|хочу|лучше|только|будем)\s+без\b/i.test(norm) || norm.startsWith("без ")) {
-        return true;
-      }
-    }
-
-    // 2. «просто [услуга]» или «только [услуга]» или «чисто [услуга]»
-    if (/(?:просто|только|чисто)\s+(?:хим\s*чист|чистк|полиров|пленк|оклейк|баз|салон|одну|один)/i.test(norm)) {
+    // 1. «только / просто / чисто» + услуга с опечатками (только, тольео, толька, тольк, ток, тока, проста, просто, чисто)
+    if (/(?:^|\s)(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)\s+(?:одну\s+)?(?:хим\s*чист|чистк|химк|полиров|пленк|оклейк|баз|салон|одну|один)/i.test(norm)) {
       return true;
     }
 
-    // 3. Прямые указания убрать доп / отказ от допа
-    if (/не\s+надо\s+(?:керамик|нано|пропит|припит|доп|лишн|этого|ее|его)/i.test(norm)) {
+    // 2. «только / просто» + сумма («только за 18к», «только 18000», «только базу»)
+    if (/(?:^|\s)(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)\s+(?:за\s+)?(?:\d+\s*(?:к|тыс|руб|р)?|баз)/i.test(norm)) {
+      return true;
+    }
+
+    // 3. «давайте / давате / хочу / можно / сделайте / оставьте» + «только / просто» с опечатками
+    if (/(?:давайте|давате|давай|хочу|можно|мне|нам|сделайте|оставьте|будем)\s+(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)(?:\s|$)/i.test(norm)) {
+      return true;
+    }
+
+    // 4. Любое «без ...»
+    if (norm.includes("без ")) {
+      if (/без\s+(?:защитн[а-я]*\s+)?(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек)/i.test(norm)) {
+        return true;
+      }
+      if (/(?:давайте|давате|давай|можно|хочу|лучше|только|будем|мне|нам)\s+без(?:\s|$)/i.test(norm) || norm.startsWith("без ")) {
+        return true;
+      }
+    }
+
+    // 5. Прямые указания убрать доп / отказ от допа
+    if (/доп[а-я]*\s+(?:не\s+(?:нужн|надо)|не\s+хочу)/i.test(norm) || /не\s+(?:нужн|надо)\s+доп/i.test(norm)) {
+      return true;
+    }
+    if (/дополнительн[а-я]*\s+(?:не\s+(?:нужн|надо)|ничего)/i.test(norm)) {
+      return true;
+    }
+    if (/не\s+надо\s+(?:никак[а-я]*\s+)?(?:керамик|нано|пропит|припит|доп|лишн|этого|ее|его)/i.test(norm)) {
       return true;
     }
     if (/уберите\s+(?:керамик|нано|пропит|припит|доп|лишн|это|ее|его)/i.test(norm)) {
       return true;
     }
 
-    // 4. «одну услугу», «только базу», «без допов»
+    // 6. «[услуга] и все», «[услуга] без всего», «больше ничего»
+    if (/(?:хим\s*чист|чистк|полиров|оклейк|пленк)[а-я]*\s+(?:и\s+все|больше\s+ничего|без\s+всего)/i.test(norm)) {
+      return true;
+    }
+
+    // 7. «одну услугу», «только базу», «без допов»
     if (norm.includes("одну услуг") || norm.includes("один комплекс") || norm.includes("только баз") || norm.includes("без доп")) {
       return true;
     }
@@ -1957,8 +1978,9 @@
 
             if (!chosenClass) return null;
 
+            const isExcl = isUpsellExclusionQuery(userText) || !!activeOrderState.upsellExcluded;
             const bp = (parsed.basePrice !== undefined && parsed.basePrice !== null) ? Number(parsed.basePrice) : (autoCalc ? autoCalc.basePrice : 18000);
-            const up = (parsed.upsellPrice !== undefined && parsed.upsellPrice !== null) ? Number(parsed.upsellPrice) : (autoCalc ? autoCalc.upsellPrice : 25000);
+            const up = isExcl ? 0 : ((parsed.upsellPrice !== undefined && parsed.upsellPrice !== null) ? Number(parsed.upsellPrice) : (autoCalc ? autoCalc.upsellPrice : 25000));
 
             const res = {
               isEstimate: true,
@@ -1967,10 +1989,11 @@
               serviceCategory: autoCalc ? autoCalc.serviceCategory : 'polishing',
               serviceName: parsed.serviceName || (autoCalc ? autoCalc.serviceName : 'Комплексная восстановительная полировка кузова'),
               basePrice: bp,
-              upsellName: parsed.upsellName || (autoCalc ? autoCalc.upsellName : 'Нанокерамика 9H (2 слоя)'),
+              upsellName: isExcl ? 'Без дополнительных опций' : (parsed.upsellName || (autoCalc ? autoCalc.upsellName : 'Нанокерамика 9H (2 слоя)')),
               upsellPrice: up,
-              totalPrice: (parsed.totalPrice !== undefined && parsed.totalPrice !== null) ? Number(parsed.totalPrice) : (bp + up),
-              slot: parsed.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)'
+              totalPrice: isExcl ? bp : ((parsed.totalPrice !== undefined && parsed.totalPrice !== null) ? Number(parsed.totalPrice) : (bp + up)),
+              slot: parsed.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)',
+              upsellExcluded: isExcl
             };
             activeOrderState = Object.assign({}, activeOrderState, res);
             return res;
@@ -2045,8 +2068,8 @@
 
     // 4. ИСКЛЮЧЕНИЕ ДОПРОДАЖИ: «Можно без керамики», «давайте без допов», «только химчистка», «без защитной пропитки»
     if (isUpsellExclusionQuery(norm)) {
-      const car = activeOrderState.carModel || (entities.car && entities.car.carModel) || "автомобиля";
-      const cClass = activeOrderState.carClass || (entities.car && entities.car.carClass) || "Внедорожник";
+      const car = (entities.car && entities.car.carModel) || activeOrderState.carModel || "автомобиля";
+      const cClass = (entities.car && entities.car.carClass) || activeOrderState.carClass || "Внедорожник";
       let sName = activeOrderState.serviceName || "Комплексная восстановительная полировка кузова";
       let bPrice = 18000;
       let uName = "Без дополнительных опций";
@@ -2086,6 +2109,26 @@
         upsellExcluded: true
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
+
+      const hasKnownCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
+      if (!hasKnownCar) {
+        return {
+          text: `Да, конечно! Мы с радостью выполним только ${replyServiceWord} без каких-либо дополнительных опций.\n\nСтоимость базовой услуги:\n• Для седанов и купе — ${(isClean ? 15000 : (isPPF ? 65000 : 18000)).toLocaleString("ru-RU")} ₽\n• Для кроссоверов и внедорожников — ${(isClean ? 18000 : (isPPF ? 75000 : 22000)).toLocaleString("ru-RU")} ₽\n\nСпециальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите, какая у вас марка и модель автомобиля? Я сразу зафиксирую точный расчет под ваш кузов и предложу удобное время для записи!`,
+          estimate: est,
+          rawText: JSON.stringify(est)
+        };
+      }
+
+      if (entities.dateIntent.hasDate) {
+        const dateSlot = entities.dateIntent.display + (entities.dateIntent.time ? (" в " + entities.dateIntent.time) : " (время на ваш выбор)");
+        est.slot = dateSlot;
+        activeOrderState.slot = dateSlot;
+        return {
+          text: `Да, конечно! С удовольствием запишем ваш ${car} (${cClass}) только на ${replyServiceWord} без дополнительных опций на ${entities.dateIntent.display}.\n\nСтоимость составит ровно ${bPrice.toLocaleString("ru-RU")} ₽. Нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите ваше имя и удобный контакт для связи (телефон или Telegram @никнейм), чтобы старший мастер закрепил за вами бокс на ${dateSlot}?`,
+          estimate: est,
+          rawText: JSON.stringify(est)
+        };
+      }
 
       return {
         text: `Да, конечно! Мы с радостью выполним только ${replyServiceWord} для вашего ${car} без дополнительных опций.\n\nВ этом случае стоимость составит ровно ${bPrice.toLocaleString("ru-RU")} ₽. Специальная акция сохраняется: нанесение гидрофобного антидождя на переднюю полусферу мы сделаем в подарок (0 ₽)!\n\nПодскажите, на какой день и время вам удобно приехать к нам в студию?`,
