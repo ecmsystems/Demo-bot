@@ -1230,22 +1230,90 @@
     return null;
   }
 
+  function parseTimeEntity(text) {
+    if (!text) return null;
+    const raw = text.toLowerCase().replace(/ё/g, "е");
+
+    // 1. Формат ЧЧ:ММ или ЧЧ.ММ (например 14:00, 14.30, 9:15)
+    const exactMatch = raw.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+    if (exactMatch) {
+      const h = parseInt(exactMatch[1], 10);
+      const m = exactMatch[2];
+      const hh = h < 10 ? "0" + h : "" + h;
+      return { hour: h, minute: parseInt(m, 10), formatted: `${hh}:${m}`, raw: exactMatch[0] };
+    }
+
+    // 2. Словесные формы: проверяем сначала конкретные числа (два, три...), а потом уже единицу/час
+    const wordItems = [
+      { words: ["два", "двум", "двух", "двумя"], h: 14 },
+      { words: ["три", "трем", "трех", "тремя"], h: 15 },
+      { words: ["четыре", "четырем", "четырех"], h: 16 },
+      { words: ["пять", "пяти"], h: 17 },
+      { words: ["шесть", "шести"], h: 18 },
+      { words: ["семь", "семи"], h: 19 },
+      { words: ["восемь", "восьми"], h: 20 },
+      { words: ["девять", "девяти"], h: 9 },
+      { words: ["десять", "десяти"], h: 10 },
+      { words: ["одиннадцать", "одиннадцати"], h: 11 },
+      { words: ["двенадцать", "двенадцати"], h: 12 },
+      { words: ["полдень"], h: 12 },
+      { words: ["обед"], h: 13 },
+      { words: ["час", "часу", "один", "одному", "единицу"], h: 13 }
+    ];
+
+    for (const item of wordItems) {
+      for (const w of item.words) {
+        const rx = new RegExp("(?:^|\\s)(?:(?:в|к|около|примерно|часа? в)\\s+)?" + w + "(?:\\s+час[а-я]*)?(?:\\s+(?:дня|вечера|утра|ночи))?(?:\\s|$|[.,!?;:])", "i");
+        if (rx.test(raw)) {
+          const hasTimeMarker = /(?:^|\s)(?:в|к|около|примерно|часа? в|приеду|буду|заеду|записат|свободно)/i.test(raw) ||
+                                raw.includes("час") || raw.includes("дня") || raw.includes("утра") || raw.includes("вечера");
+          if (hasTimeMarker) {
+            let h = item.h;
+            if (raw.includes("утра") && h >= 12) h -= 12;
+            const hh = h < 10 ? "0" + h : "" + h;
+            return { hour: h, minute: 0, formatted: `${hh}:00`, raw: w };
+          }
+        }
+      }
+    }
+
+    // 3. Цифры с предлогом времени или словом час/дня/вечера/утра
+    const hasDigitTimeContext = /(?:^|\s)(?:в|к|около|примерно|после|до)\s+(\d{1,2})(?:\s*(?:ч|час|часа|часов|дня|вечера|утра|ночи))?(?:\s|$|[.,!?;:])/i.test(raw) ||
+                                /(?:^|\s)(\d{1,2})\s*(?:ч\b|час|часа|часов|дня|вечера|утра|ночи)(?:\s|$|[.,!?;:])/i.test(raw);
+
+    if (hasDigitTimeContext) {
+      const m = raw.match(/(?:(?:^|\s)(?:в|к|около|примерно|после|до)\s+(\d{1,2}))|(?:(?:^|\s)(\d{1,2})\s*(?:ч\b|час|часа|часов|дня|вечера|утра|ночи))/i);
+      if (m) {
+        const numStr = m[1] || m[2];
+        let num = parseInt(numStr, 10);
+        if (num >= 0 && num <= 24) {
+          if (num >= 1 && num <= 7) {
+            if (!raw.includes("ночи") && !raw.includes("утра")) {
+              num += 12;
+            }
+          }
+          const hh = num < 10 ? "0" + num : "" + num;
+          return { hour: num, minute: 0, formatted: `${hh}:00`, raw: m[0].trim() };
+        }
+      }
+    }
+
+    return null;
+  }
+
   function extractTimePreference(text) {
     if (!text) return null;
-    const low = text.toLowerCase();
+    const parsedTime = parseTimeEntity(text);
+    const dayMatch = text.match(/(?:в\s+)?(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье|завтра|сегодня|выходные|будни)/i);
     
-    // Поиск времени или дня
-    const timeMatch = text.match(/\b(?:в\s+)?(?:[01]?\d|2[0-3])[:.][0-5]\d\b/i);
-    const dayMatch = text.match(/(?:в\s+)?(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье|завтра|сегодня|выходные|будни)(?:\s+(?:утром|вечером|днем|в\s+\d{1,2}(?:[:.]\d{2})?|\d{1,2}(?:[:.]\d{2})?))?/i);
-    
-    if (dayMatch && timeMatch) {
-      return `${dayMatch[0].trim()} (${timeMatch[0].trim()})`;
+    if (dayMatch && parsedTime) {
+      return `${dayMatch[0].trim()} в ${parsedTime.formatted}`;
+    }
+    if (parsedTime) {
+      return `в ${parsedTime.formatted}`;
     }
     if (dayMatch) {
       return dayMatch[0].trim();
-    }
-    if (timeMatch) {
-      return timeMatch[0].trim();
     }
     return null;
   }
@@ -1422,9 +1490,13 @@
       display = 'эти выходные';
     }
 
-    const timeMatch = (text || '').match(/\b(?:в\s+)?([01]?\d|2[0-3])[:.]([0-5]\d)\b/i);
-    if (timeMatch) {
-      time = `${timeMatch[1]}:${timeMatch[2]}`;
+    const parsedTime = parseTimeEntity(text);
+    if (parsedTime) {
+      time = parsedTime.formatted;
+      if (!hasDate) {
+        hasDate = true;
+        display = 'это время';
+      }
     } else if (norm.includes('утром') || norm.includes('с утра')) {
       time = 'утреннее время';
     } else if (norm.includes('вечером')) {
@@ -2093,6 +2165,7 @@
 
       const car = activeOrderState.carModel || "ваш автомобиль";
       const slot = activeOrderState.slot || "в удобное для вас время";
+      const slotPrep = (slot.startsWith("на ") || slot.startsWith("в ") || slot.startsWith("к ")) ? slot : `на ${slot}`;
 
       let receiptSummary = "";
       if (activeOrderState.carModel && activeOrderState.serviceName && activeOrderState.basePrice) {
@@ -2100,7 +2173,7 @@
       }
 
       return {
-        text: `Супер, контакт записал! 👍\n\nЗабронировал для вашего ${car} бокс на ${slot}${receiptSummary}.\n\nЯ уже передал заявку старшему мастеру смены. Он наберет вам (или напишет в ${effContact.display}), чтобы подтвердить время заезда и ответить на любые технические вопросы. До встречи в студии! 🤝`
+        text: `Супер, контакт записал! 👍\n\nЗабронировал для вашего ${car} бокс ${slotPrep}${receiptSummary}.\n\nЯ уже передал заявку старшему мастеру смены. Он наберет вам (или напишет в ${effContact.display}), чтобы подтвердить время заезда и ответить на любые технические вопросы. До встречи в студии! 🤝`
       };
     }
 
@@ -2165,6 +2238,35 @@
         text: `Без проблем, договорились! Сделаем только ${replyServiceWord} для вашего ${car}, без лишних допов 👍\n\nПо сумме всё выйдет ровно ${bPrice.toLocaleString("ru-RU")} ₽. И подарочный антидождь на переднюю полусферу по акции обязательно нанесем бесплатно 🤝\n\n${timingQ}`,
         estimate: est,
         rawText: JSON.stringify(est)
+      };
+    }
+
+    // 4.5. ВЫБОР ИЛИ УТОЧНЕНИЕ ВРЕМЕНИ ВИЗИТА («приеду в 2 часа», «в 14:00», «к двум», «давайте в 15»)
+    const parsedTime = parseTimeEntity(text);
+    if (parsedTime && !isEstimateRequest(text) && !entities.car.carModel) {
+      let dayPrefix = (entities.dateIntent.hasDate && entities.dateIntent.display !== 'это время') ? entities.dateIntent.display : null;
+      if (!dayPrefix && activeOrderState.slot) {
+        const lowSlot = activeOrderState.slot.toLowerCase();
+        if (lowSlot.includes("завтра")) dayPrefix = "на завтра";
+        else if (lowSlot.includes("сегодня")) dayPrefix = "на сегодня";
+        else if (lowSlot.includes("послезавтра")) dayPrefix = "на послезавтра";
+        else if (lowSlot.includes("суббот")) dayPrefix = "на субботу";
+        else if (lowSlot.includes("воскресень")) dayPrefix = "на воскресенье";
+        else if (lowSlot.includes("понедельник")) dayPrefix = "на понедельник";
+        else if (lowSlot.includes("вторник")) dayPrefix = "на вторник";
+        else if (lowSlot.includes("сред")) dayPrefix = "на среду";
+        else if (lowSlot.includes("четверг")) dayPrefix = "на четверг";
+        else if (lowSlot.includes("пятниц")) dayPrefix = "на пятницу";
+        else if (lowSlot.includes("выходн")) dayPrefix = "на выходные";
+      }
+
+      const fullSlot = dayPrefix ? `${dayPrefix} в ${parsedTime.formatted}` : `в ${parsedTime.formatted}`;
+      activeOrderState.slot = fullSlot;
+
+      const car = activeOrderState.carModel || "ваш автомобиль";
+
+      return {
+        text: `Договорились, зафиксировал время ${fullSlot}! 👍\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), чтобы старший мастер закрепил бокс за вами и связался для подтверждения деталей!`
       };
     }
 
@@ -2580,7 +2682,29 @@
       // Сохраняем пожелание по времени, если пользователь его указал
       const timePref = extractTimePreference(trimmed);
       if (timePref) {
-        activeOrderState.slot = timePref;
+        if (!timePref.includes('завтра') && !timePref.includes('сегодня') && !timePref.includes('суббот') && !timePref.includes('воскресень') && !timePref.includes('понедельник') && !timePref.includes('вторник') && !timePref.includes('сред') && !timePref.includes('четверг') && !timePref.includes('пятниц') && activeOrderState.slot) {
+          const lowSlot = activeOrderState.slot.toLowerCase();
+          let dayPrefix = '';
+          if (lowSlot.includes('завтра')) dayPrefix = 'на завтра';
+          else if (lowSlot.includes('сегодня')) dayPrefix = 'на сегодня';
+          else if (lowSlot.includes('послезавтра')) dayPrefix = 'на послезавтра';
+          else if (lowSlot.includes('суббот')) dayPrefix = 'на субботу';
+          else if (lowSlot.includes('воскресень')) dayPrefix = 'на воскресенье';
+          else if (lowSlot.includes('понедельник')) dayPrefix = 'на понедельник';
+          else if (lowSlot.includes('вторник')) dayPrefix = 'на вторник';
+          else if (lowSlot.includes('сред')) dayPrefix = 'на среду';
+          else if (lowSlot.includes('четверг')) dayPrefix = 'на четверг';
+          else if (lowSlot.includes('пятниц')) dayPrefix = 'на пятницу';
+          else if (lowSlot.includes('выходн')) dayPrefix = 'на выходные';
+
+          if (dayPrefix) {
+            activeOrderState.slot = `${dayPrefix} ${timePref}`;
+          } else {
+            activeOrderState.slot = timePref;
+          }
+        } else {
+          activeOrderState.slot = timePref;
+        }
       }
 
       // Анализ контакта и намерения
@@ -2735,6 +2859,8 @@
     detectCar: detectCar,
     detectCarDetails: detectCar,
     parseMessageEntities: parseMessageEntities,
+    parseTimeEntity: parseTimeEntity,
+    extractTimePreference: extractTimePreference,
     getSmartFallback: getSmartFallback,
     isEstimateRequest: isEstimateRequest,
     computeEstimateForCar: computeEstimateForCar,
