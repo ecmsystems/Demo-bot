@@ -19,7 +19,7 @@
   // ─── 1. КОНФИГУРАЦИЯ СТУДИИ И ПРАЙС ──────────────────────────────
   const STUDIO_CONFIG = {
     studio_id: 'default',
-    company_name: 'ECM Detailing Lab',
+    company_name: 'Detailing Lab',
     city: 'Москва, ул. Автозаводская, 23',
     slots: ['10:00', '12:00', '14:00', '16:00', '18:00'],
     services: (
@@ -2174,10 +2174,10 @@
     const low = norm;
     const entities = parseMessageEntities(text, activeOrderState);
 
-    // 0. Вопросы о руководителе, директоре, приобретении бота под ключ или партнерстве (B2B)
+    // 0. Вопросы о руководителе, директоре или партнерстве
     if (isLeadershipOrB2bQuery(text)) {
       return {
-        text: "Здравствуйте! Данный сервис — демонстрационная версия системы «ECM Systems» для детейлинг-центров и автобизнеса.\n\nПриобрести такого умного ИИ-бота и интерактивный виджет расчета сметы на сайт с установкой под ключ можно напрямую у нашего основателя и разработчика в Telegram: @godblessed77 (https://t.me/godblessed77).\n\n• Виджет встраивается в любой сайт в 1 строчку кода с полной адаптацией под ваш бренд.\n• CRM-таблица (Google Sheets) ведет учет всех заявок + мгновенные пуши в Telegram.\n• Тест-драйв 24 часа без предоплаты. Напишите основателю: @godblessed77"
+        text: "По вопросам сотрудничества, корпоративного обслуживания или связи с руководством студии, пожалуйста, оставьте ваш номер телефона или контакт в Telegram — управляющий свяжется с вами в ближайшее время."
       };
     }
 
@@ -2717,7 +2717,7 @@
         action: "create",
         id: String(Date.now()).slice(-6),
         created_at: new Date().toLocaleString("ru-RU"),
-        company: STUDIO_CONFIG.company_name || "ECM Detailing Lab",
+        company: STUDIO_CONFIG.company_name || "Detailing Lab",
         client: leadData.client || "Посетитель сайта",
         service: leadData.service || "Детейлинг-комплекс",
         price: leadData.price || "По прайсу",
@@ -2744,7 +2744,7 @@
     try {
       const cardText = `🔔 <b>НОВАЯ ЗАЯВКА ИЗ ВЕБ-ВИДЖЕТА (САЙТ)</b>\n` +
         `━━━━━━━━━━━━━━━\n` +
-        `🏢 <b>Филиал:</b> ${STUDIO_CONFIG.company_name || "ECM Detailing Lab"}\n` +
+        `🏢 <b>Филиал:</b> ${STUDIO_CONFIG.company_name || "Detailing Lab"}\n` +
         `👤 <b>Клиент:</b> ${leadData.client || "Посетитель сайта"}\n` +
         `🚗 <b>Автомобиль:</b> ${leadData.car || "Уточняется"}\n` +
         `🛠 <b>Услуги:</b> ${leadData.service || "Детейлинг-комплекс"}\n` +
@@ -2787,7 +2787,7 @@
         messages.push({
           role: 'bot',
           isEstimate: false,
-          text: 'В демо доступно 500 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке или напишите основателю: @godblessed77'
+          text: 'В демо доступно 500 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке.'
         });
         renderAllStreams();
         return;

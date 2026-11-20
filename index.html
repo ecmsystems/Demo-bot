@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ECM Systems — ИИ-администратор для детейлинга</title>
-  <meta name="description" content="Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и записывает клиента на свободное окно. Тест-драйв 24 часа без предоплаты.">
+  <title>Демо: ИИ-консультант для детейлинг-студии</title>
+  <meta name="description" content="Интерактивный пример работы умного виджета: расчет стоимости услуг, ответы по прайсу 24/7 и передача заявки менеджеру.">
   
   <!-- Open Graph / Telegram / WhatsApp -->
-  <meta property="og:title" content="ECM Systems — ИИ-администратор для детейлинга">
-  <meta property="og:description" content="Чат на сайте и в Telegram знает ваш прайс, предлагает керамику к полировке и записывает клиента на свободное окно. Тест-драйв 24 часа без предоплаты.">
+  <meta property="og:title" content="Демо: ИИ-консультант для детейлинг-студии">
+  <meta property="og:description" content="Интерактивный пример работы умного виджета: расчет стоимости услуг, ответы по прайсу 24/7 и передача заявки менеджеру.">
   <meta property="og:image" content="./og-image.png">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -1694,14 +1694,16 @@
   <header>
     <div class="container header-inner">
       <a href="./" class="logo">
-        <img src="./logo.png" alt="ECM" class="logo-img">
-        <span>ECM SYSTEMS</span>
+        <svg class="logo-img" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gold);">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span>DETAILING AI</span>
       </a>
 
       <nav class="header-nav">
         <a href="#how-it-works" class="nav-link">Как работает</a>
-        <a href="#calculator" class="nav-link">Калькулятор</a>
-        <a href="#pricing" class="nav-link">Тарифы</a>
+        <a href="#live-leads" class="nav-link">CRM-таблица</a>
+        <a href="#timeline" class="nav-link">Хронология</a>
         <a href="#faq" class="nav-link">Вопросы</a>
       </nav>
 
@@ -1724,9 +1726,9 @@
           </svg>
         </button>
 
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" title="Написать в Telegram">
-          Написать в Telegram
-        </a>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="focusDemoWidget()" title="Рассчитать стоимость в чате">
+          Рассчитать стоимость
+        </button>
       </div>
     </div>
   </header>
@@ -1746,10 +1748,10 @@
         </p>
 
         <div class="hero-action-group">
-          <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-pad">
-            Запустить на 24 часа без предоплаты
-          </a>
-          <span class="cta-subnote">Платите, только если довольны</span>
+          <button type="button" class="btn btn-pad" onclick="focusDemoWidget()">
+            Рассчитать стоимость в чате
+          </button>
+          <span class="cta-subnote">💡 Попробуйте спросить: «Сколько стоит оклейка BMW X5 в полиуретан?» или «Хочу полировку и керамику на Mercedes»</span>
         </div>
       </div>
 
@@ -1761,10 +1763,10 @@
           <div class="widget-bar">
             <div class="widget-bar-left">
               <div class="widget-badge-avatar">
-                <img src="./logo.png" alt="ECM">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gold);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
               </div>
               <div>
-                <div class="widget-title-text" id="widgetStudioName">ECM Detailing Lab</div>
+                <div class="widget-title-text" id="widgetStudioName">Detailing Lab</div>
                 <div class="widget-status-text">Заказ-наряд • Онлайн</div>
               </div>
             </div>
@@ -1777,7 +1779,7 @@
           <div class="widget-chat-body" id="widgetChatStream">
             <div class="chat-row bot">
               <div class="msg-bot-bubble" style="background: var(--card); border: 1px solid var(--border); border-radius: var(--r-btn); padding: 12px 14px; font-size: 14.5px; color: var(--ink); line-height: 1.45;">
-                Здравствуйте! Я ИИ-администратор студии «ECM Detailing Lab».<br><br>Ниже — образец готового заказ-наряда со сметой и бронью слота. Назовите вашу модель авто или выберите вопрос ниже — сделаю точный расчет под ваш автомобиль и запишу вас на удобное время!
+                Здравствуйте! Я виртуальный консультант студии детейлинга.<br><br>Ниже — образец готового заказ-наряда со сметой и бронью слота. Назовите вашу модель авто или выберите вопрос ниже — сделаю точный расчет под ваш автомобиль и запишу вас на удобное время!
               </div>
             </div>
 
@@ -2055,7 +2057,7 @@
 
   <!-- ─── 3. СЕКЦИЯ: ОДНА НОЧЬ БЕЗ БОТА И С БОТОМ ──────────────────────── -->
 
-  <section class="timeline-section">
+  <section class="timeline-section" id="timeline">
     <div class="container">
       
       <div class="section-header">
@@ -2104,9 +2106,9 @@
           </div>
         </div>
 
-        <!-- Колонка 2: С ботом ECM -->
+        <!-- Колонка 2: С ботом -->
         <div class="timeline-card success-side">
-          <h3 class="timeline-card-header">С ботом ECM Systems</h3>
+          <h3 class="timeline-card-header">С умным ИИ-консультантом</h3>
 
           <ul class="timeline-events-list">
             <li class="timeline-event-item">
@@ -2130,7 +2132,7 @@
             <li class="timeline-event-item">
               <span class="event-timestamp">23:09</span>
               <div class="event-body">
-                Слот удерживается на 15 минут, строка падает в Google Таблицу и дублируется пушем владельцу в Telegram.
+                Слот удерживается на 15 минут, строка падает в Google Таблицу и дублируется пушем мастеру/администратору.
               </div>
             </li>
             <li class="timeline-event-item">
@@ -2152,173 +2154,7 @@
     </div>
   </section>
 
-  <!-- ─── 4. СЕКЦИЯ: ПОСЧИТАЙТЕ, СКОЛЬКО УХОДИТ (КАЛЬКУЛЯТОР) ───────────── -->
-  <section class="calculator-section" id="calculator">
-    <div class="container">
-      
-      <div class="section-header">
-        <h2 class="section-title">Посчитайте, сколько уходит</h2>
-        <p class="section-desc">
-          Оцените объём упущенной выручки при задержке ответов в нерабочее время.
-        </p>
-      </div>
-
-      <div class="calc-box">
-        
-        <div class="calc-controls">
-          
-          <div class="calc-group">
-            <div class="calc-label-row">
-              <span>Вечерних и ночных обращений в месяц:</span>
-              <span class="calc-val-display" id="dispInquiries">15 обращений</span>
-            </div>
-            <input type="range" class="calc-range" id="inputInquiries" min="5" max="60" value="15" step="1">
-          </div>
-
-          <div class="calc-group">
-            <div class="calc-label-row">
-              <span>Средний чек студии:</span>
-              <span class="calc-val-display" id="dispCheck">35&nbsp;000&nbsp;₽</span>
-            </div>
-            <input type="range" class="calc-range" id="inputCheck" min="15000" max="80000" value="35000" step="5000">
-          </div>
-
-          <div class="calc-group">
-            <div class="calc-label-row">
-              <span>Доля уходящих к конкурентам при задержке:</span>
-              <span class="calc-val-display" id="dispChurn">40%</span>
-            </div>
-            <input type="range" class="calc-range" id="inputChurn" min="20" max="80" value="40" step="5">
-          </div>
-
-        </div>
-
-        <div class="calc-summary-panel">
-          <div class="calc-metric-title">Упущенная выручка в месяц:</div>
-          <div class="calc-big-loss" id="calcLossResult">210&nbsp;000&nbsp;₽</div>
-          
-          <p class="calc-compare-note">
-            При разовой стоимости внедрения системы ECM от <strong>6&nbsp;900&nbsp;₽</strong> или <strong>10&nbsp;900&nbsp;₽</strong>, инструмент окупается с первого же сохранённого заказа.
-          </p>
-
-          <span class="calc-fineprint">Оценка по вашим данным</span>
-        </div>
-
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── 5. СЕКЦИЯ: ТАРИФЫ (ЕДИНАЯ ТАБЛИЦА-НАРЯД) ──────────────────────── -->
-  <section class="pricing-section" id="pricing">
-    <div class="container">
-      
-      <div class="section-header">
-        <h2 class="section-title">Тарифы внедрения</h2>
-        <p class="section-desc">
-          Прозрачные форматы без скрытых платежей. Подключение на 24 часа без предоплаты.
-        </p>
-      </div>
-
-      <div class="pricing-toggle-wrap">
-        <div class="pricing-toggle-box">
-          <button class="pricing-toggle-btn active" id="btnPricingMonthly" onclick="setPricingMode('monthly')">
-            С сопровождением
-          </button>
-          <button class="pricing-toggle-btn" id="btnPricingLifetime" onclick="setPricingMode('lifetime')">
-            Выкуп навсегда (без подписок)
-          </button>
-        </div>
-      </div>
-
-      <div class="pricing-table-wrap">
-        <table class="pricing-table">
-          <thead>
-            <tr>
-              <th class="col-feature">Возможности</th>
-              <th>Telegram-бот</th>
-              <th>Виджет на сайт + CRM</th>
-              <th class="col-featured">Сайт + Telegram</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Стоимость внедрения</td>
-              <td>
-                <div class="price-num-main" id="pPrice1">6&nbsp;900&nbsp;₽</div>
-                <div class="price-period-sub" id="pPeriod1">+ 1&nbsp;500&nbsp;₽/мес</div>
-              </td>
-              <td>
-                <div class="price-num-main" id="pPrice2">10&nbsp;900&nbsp;₽</div>
-                <div class="price-period-sub" id="pPeriod2">+ 2&nbsp;000&nbsp;₽/мес</div>
-              </td>
-              <td class="col-featured">
-                <div class="price-num-main" id="pPrice3">14&nbsp;900&nbsp;₽</div>
-                <div class="price-period-sub" id="pPeriod3">+ 2&nbsp;500&nbsp;₽/мес</div>
-              </td>
-            </tr>
-            <tr>
-              <td>Расчёт сметы по классам авто</td>
-              <td>Да (седан / кросс / джип)</td>
-              <td>Да (седан / кросс / джип)</td>
-              <td class="col-featured">Да (седан / кросс / джип)</td>
-            </tr>
-            <tr>
-              <td>Автодопродажа керамики и допов</td>
-              <td>Да</td>
-              <td>Да</td>
-              <td class="col-featured">Да</td>
-            </tr>
-            <tr>
-              <td>Кастомный стиль под сайт</td>
-              <td>—</td>
-              <td>Да (под брендбук)</td>
-              <td class="col-featured">Да (под брендбук)</td>
-            </tr>
-            <tr>
-              <td>Запись в Google Таблицу + TG</td>
-              <td>Да</td>
-              <td>Да</td>
-              <td class="col-featured">Да</td>
-            </tr>
-            <tr>
-              <td>Единая база окон (без накладок)</td>
-              <td>В рамках бота</td>
-              <td>В рамках виджета</td>
-              <td class="col-featured"><strong>Единое расписание для сайта и TG</strong></td>
-            </tr>
-            <tr>
-              <td>Тест-драйв 24 часа без предоплаты</td>
-              <td>Да</td>
-              <td>Да</td>
-              <td class="col-featured"><strong>Да</strong></td>
-            </tr>
-            <tr>
-              <td>Подключение</td>
-              <td>
-                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                  Подключить бота
-                </a>
-              </td>
-              <td>
-                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                  Подключить виджет
-                </a>
-              </td>
-              <td class="col-featured">
-                <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer" class="btn btn-pad btn-sm">
-                  Выбрать комплекс
-                </a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ─── 6. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ───────────────────────── -->
+  <!-- ─── 4. СЕКЦИЯ: ЧАСТЫЕ ВОПРОСЫ (6 ВОПРОСОВ) ───────────────────────── -->
   <section class="faq-section" id="faq">
     <div class="container">
       
@@ -2360,9 +2196,9 @@
         </div>
 
         <div class="faq-item">
-          <h3 class="faq-q">Как проходят 24 часа без предоплаты?</h3>
+          <h3 class="faq-q">Как ИИ-консультант увеличивает средний чек студии?</h3>
           <p class="faq-a">
-            Мы подключаем бота к вашему сайту или Telegram, вносим ваш прайс-лист и активируем систему. Вы в течение 24 часов тестируете бота на реальных клиентах. Оплата производится только после завершения тестовых суток при вашем согласии.
+            При запросе базовой услуги (например, полировки или химчистки) бот ненавязчиво предлагает сопутствующие премиальные опции: нанесение керамики 9H, гидрофобную пропитку салона или антидождь в подарок. Это повышает чек на 30–50% без навязчивого давления на клиента.
           </p>
         </div>
 
@@ -2378,168 +2214,40 @@
     </div>
   </section>
 
-  <!-- ─── 7. ФУТЕР ─────────────────────────────────────────────────────── -->
+  <!-- ─── 5. ФУТЕР ─────────────────────────────────────────────────────── -->
   <footer>
     <div class="container footer-inner">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <img src="./logo.png" alt="ECM" class="footer-logo-img">
-        <span>© 2026 ECM Systems. Инструмент автоматизации для детейлинг-студий.</span>
+        <svg class="footer-logo-img" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gold);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>© 2026 Демонстрационный стенд ИИ-консультанта для детейлинг-студий.</span>
       </div>
       <div class="footer-links">
-        <a href="https://t.me/godblessed77" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
-        <a href="https://t.me/ecm_systems_demo_bot" target="_blank" rel="noopener noreferrer">Демо-бот в TG</a>
+        <span style="color: var(--muted); font-size: 13.5px;">г. Москва, ул. Примерная, 10 • +7 (999) 000-00-00</span>
         <a href="./privacy.html">Политика конфиденциальности</a>
       </div>
     </div>
   </footer>
 
-  <!-- ─── СКРИПТЫ: КАЛЬКУЛЯТОР, ТАРИФЫ, ДЕМО-ИНТЕРАКТИВ ────────────────── -->
+  <!-- ─── СКРИПТЫ: ДЕМО-ИНТЕРАКТИВ ────────────────────────────────────── -->
   <script>
-    // Высокопроизводительный калькулятор (плавная анимация без зума и лагов, 60-120 FPS)
-    let calcInputs = null;
-    let calcDisplays = null;
-    let calcResultEl = null;
-
-    let currentLoss = 210000;
-    let targetLoss = 210000;
-    let lossAnimRaf = null;
-
-    function getCalcElements() {
-      if (!calcInputs) {
-        calcInputs = {
-          inq: document.getElementById('inputInquiries'),
-          chk: document.getElementById('inputCheck'),
-          chr: document.getElementById('inputChurn')
-        };
-        calcDisplays = {
-          inq: document.getElementById('dispInquiries'),
-          chk: document.getElementById('dispCheck'),
-          chr: document.getElementById('dispChurn')
-        };
-        calcResultEl = document.getElementById('calcLossResult');
+    // Фокус и плавный скролл к виджету
+    function focusDemoWidget() {
+      const heroWidget = document.getElementById('ecm-demo');
+      if (heroWidget) {
+        const headerHeight = 74;
+        const elementPosition = heroWidget.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
-      return calcInputs;
-    }
-
-    function updateSliderTrack(slider) {
-      if (!slider) return;
-      const min = parseFloat(slider.min) || 0;
-      const max = parseFloat(slider.max) || 100;
-      const val = parseFloat(slider.value) || 0;
-      const pct = ((val - min) / (max - min)) * 100;
-      slider.style.background = `linear-gradient(to right, var(--pad) 0%, var(--pad) ${pct}%, var(--panel) ${pct}%, var(--panel) 100%)`;
-    }
-
-    // Плавное перетекание цифр итоговой сметы без деформации и зума
-    function renderLossNumber(immediate) {
-      if (!calcResultEl) return;
-      if (immediate) {
-        currentLoss = targetLoss;
-        if (lossAnimRaf) {
-          cancelAnimationFrame(lossAnimRaf);
-          lossAnimRaf = null;
-        }
-        calcResultEl.textContent = targetLoss.toLocaleString('ru-RU') + ' ₽';
-        calcResultEl.classList.remove('is-updating');
-        return;
+      const input = document.getElementById('widgetDemoInput');
+      if (input) {
+        setTimeout(() => {
+          input.focus();
+        }, 400);
       }
-
-      if (lossAnimRaf) return;
-
-      function step() {
-        const diff = targetLoss - currentLoss;
-        if (Math.abs(diff) < 200) {
-          currentLoss = targetLoss;
-          calcResultEl.textContent = targetLoss.toLocaleString('ru-RU') + ' ₽';
-          calcResultEl.classList.remove('is-updating');
-          lossAnimRaf = null;
-          return;
-        }
-        // Мягкий и быстрый lerp (35% за кадр = около 80-120 мс)
-        currentLoss += Math.round(diff * 0.35);
-        const rounded = Math.round(currentLoss / 100) * 100;
-        calcResultEl.textContent = rounded.toLocaleString('ru-RU') + ' ₽';
-        calcResultEl.classList.add('is-updating');
-        lossAnimRaf = requestAnimationFrame(step);
-      }
-
-      lossAnimRaf = requestAnimationFrame(step);
-    }
-
-    function calculateLoss(isInitial) {
-      getCalcElements();
-      if (!calcInputs.inq || !calcInputs.chk || !calcInputs.chr) return;
-
-      const inq = parseInt(calcInputs.inq.value, 10);
-      const chk = parseInt(calcInputs.chk.value, 10);
-      const chr = parseInt(calcInputs.chr.value, 10);
-
-      calcDisplays.inq.textContent = inq + ' обращений';
-      calcDisplays.chk.textContent = chk.toLocaleString('ru-RU') + ' ₽';
-      calcDisplays.chr.textContent = chr + '%';
-
-      updateSliderTrack(calcInputs.inq);
-      updateSliderTrack(calcInputs.chk);
-      updateSliderTrack(calcInputs.chr);
-
-      const lostClients = Math.round(inq * (chr / 100));
-      targetLoss = lostClients * chk;
-
-      renderLossNumber(isInitial);
-    }
-
-    // Инициализация событий перетягивания с пассивными слушателями
-    function initSliderDragEffects() {
-      getCalcElements();
-      const sliders = [
-        { el: calcInputs.inq, disp: calcDisplays.inq },
-        { el: calcInputs.chk, disp: calcDisplays.chk },
-        { el: calcInputs.chr, disp: calcDisplays.chr }
-      ];
-
-      sliders.forEach(({ el, disp }) => {
-        if (!el || !disp) return;
-
-        el.addEventListener('pointerdown', () => disp.classList.add('is-dragging'), { passive: true });
-        el.addEventListener('pointerup', () => disp.classList.remove('is-dragging'), { passive: true });
-        el.addEventListener('blur', () => disp.classList.remove('is-dragging'), { passive: true });
-
-        el.addEventListener('input', () => {
-          disp.classList.add('is-dragging');
-          calculateLoss(false);
-        }, { passive: true });
-
-        el.addEventListener('change', () => {
-          disp.classList.remove('is-dragging');
-          calculateLoss(false);
-        }, { passive: true });
-      });
-    }
-
-    // Переключение тарифов с плавной анимацией цифр
-    function setPricingMode(mode) {
-      const isMonthly = mode === 'monthly';
-      document.getElementById('btnPricingMonthly').classList.toggle('active', isMonthly);
-      document.getElementById('btnPricingLifetime').classList.toggle('active', !isMonthly);
-
-      const priceItems = [
-        { p: document.getElementById('pPrice1'), s: document.getElementById('pPeriod1'), val: isMonthly ? '6 900 ₽' : '11 900 ₽', sub: isMonthly ? '+ 1 500 ₽/мес' : 'разовый выкуп навсегда' },
-        { p: document.getElementById('pPrice2'), s: document.getElementById('pPeriod2'), val: isMonthly ? '10 900 ₽' : '17 900 ₽', sub: isMonthly ? '+ 2 000 ₽/мес' : 'разовый выкуп навсегда' },
-        { p: document.getElementById('pPrice3'), s: document.getElementById('pPeriod3'), val: isMonthly ? '14 900 ₽' : '24 900 ₽', sub: isMonthly ? '+ 2 500 ₽/мес' : 'разовый выкуп навсегда' }
-      ];
-
-      priceItems.forEach(item => {
-        if (item.p) {
-          item.p.style.opacity = '0';
-          item.p.style.transform = 'translateY(-6px)';
-          setTimeout(() => {
-            item.p.innerHTML = item.val.replace(/ /g, '&nbsp;');
-            if (item.s) item.s.textContent = item.sub;
-            item.p.style.opacity = '1';
-            item.p.style.transform = 'translateY(0)';
-          }, 140);
-        }
-      });
     }
 
     // Плавный скролл при клике на верхний бар ко всем секциям
@@ -2620,8 +2328,6 @@
     }
 
     // Инициализация при загрузке
-    calculateLoss(true);
-    initSliderDragEffects();
     initSmoothNavScroll();
     // Синхронизация состояния кнопок с начальной темой
     (function syncInitialThemeBtns() {
