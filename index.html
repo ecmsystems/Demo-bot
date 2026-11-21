@@ -1448,6 +1448,33 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sheets-open-link-btn {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: var(--ok);
+      padding: 6px 14px;
+      border-radius: var(--r-btn);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 4px rgba(34, 197, 94, 0.12);
+    }
+    .sheets-open-link-btn:hover {
+      background: rgba(34, 197, 94, 0.22);
+      border-color: var(--ok);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(34, 197, 94, 0.28);
+    }
+    .sheets-open-link-btn:active {
+      transform: translateY(0);
     }
 
     .sheets-counter-pill {
@@ -2005,12 +2032,21 @@
             <span id="sheetsStatusText">Синхронизация с Google Sheets • Обновляется автоматически</span>
           </div>
           <div class="sheets-actions">
-            <span class="sheets-counter-pill" id="sheetsRowCount">Заявок: 7</span>
+            <span class="sheets-counter-pill" id="sheetsRowCount">Заявок: 8</span>
+            <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit" id="sheetsExternalLink" target="_blank" rel="noopener noreferrer" class="sheets-open-link-btn" title="Открыть Google Таблицу онлайн в реальном времени">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <span>Открыть Google Таблицу онлайн ↗</span>
+            </a>
             <button class="sheets-refresh-btn" id="sheetsManualRefreshBtn" title="Обновить вручную">
               <svg class="refresh-icon" id="sheetsRefreshIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
               </svg>
-              <span>Обновить вручную</span>
+              <span>Обновить</span>
             </button>
           </div>
         </div>
@@ -2363,6 +2399,19 @@
     // Реалистичная база последних заявок детейлинг-мастерской
     const INITIAL_DEMO_LEADS = [
       {
+        id: 'lead-real-max',
+        time: 'Сегодня, 14:00',
+        client: 'Максим',
+        contact: '+7 999 •••-45-67 (Telegram)',
+        car: 'Mercedes G-Class (Гелик)',
+        service: 'Комплексная химчистка салона + антидождь (в подарок)',
+        price: '18 000 ₽',
+        source: 'Telegram-бот',
+        sourceType: 'telegram',
+        status: 'Слот забронирован',
+        statusType: 'confirmed'
+      },
+      {
         id: 'lead-1',
         time: 'Сегодня, 01:24',
         client: 'Александр',
@@ -2455,7 +2504,24 @@
       }
     ];
 
-    let currentLeadsList = [...INITIAL_DEMO_LEADS];
+    const LEADS_STORAGE_KEY = 'detailing_live_crm_leads_v3';
+    function loadSavedLeads() {
+      try {
+        const raw = localStorage.getItem(LEADS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+      return [...INITIAL_DEMO_LEADS];
+    }
+    function saveLeads(leads) {
+      try {
+        localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads.slice(0, 10)));
+      } catch (e) {}
+    }
+
+    let currentLeadsList = loadSavedLeads();
     let knownLeadSignatures = new Set(INITIAL_DEMO_LEADS.map(l => l.car + l.service + l.price));
     let pollingTimerId = null;
     const POLL_INTERVAL_MS = 4000;
@@ -2677,6 +2743,7 @@
         if (detail.contact && !/онлайн-диалог/i.test(detail.contact)) {
           currentLeadsList[existingIndex].contact = detail.contact;
         }
+        saveLeads(currentLeadsList);
         renderSheetsTable(currentLeadsList, new Set([sessionLeadId]));
       } else {
         const newLead = {
@@ -2693,10 +2760,11 @@
           statusType: /подтвержд|забронирован/i.test(detail.status || '') ? 'confirmed' : 'new'
         };
 
-        // Добавляем в начало таблицы и строго ограничиваем 7 записями
+        // Добавляем в начало таблицы и строго ограничиваем 8 записями
         currentLeadsList.unshift(newLead);
-        while (currentLeadsList.length > 7) currentLeadsList.pop();
+        while (currentLeadsList.length > 8) currentLeadsList.pop();
 
+        saveLeads(currentLeadsList);
         renderSheetsTable(currentLeadsList, new Set([sessionLeadId]));
       }
 
@@ -2716,6 +2784,6 @@
   </script>
 
   <!-- ─── ПОДКЛЮЧЕНИЕ ЧАТ-ВИДЖЕТА ──────────────────────────────────────── -->
-  <script src="./widget.js?v=3.3.0" data-studio="default"></script>
+  <script src="./widget.js?v=3.4.0" data-studio="default"></script>
 </body>
 </html>
