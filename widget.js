@@ -1,14 +1,7 @@
 /**
- * ECM Systems | Workshop AI Concierge Widget
- * -------------------------------------------------------------
- * Автономный чат-виджет в стиле «Заказ-наряд мастерской».
- * Поддерживает два режима работы:
- *  - Inline: встраивание в контейнер #ecm-demo в Hero-блоке
- *  - Floating: плавающая кнопка в углу экрана (с IntersectionObserver)
- *  - Автовоспроизведение первого диалога сметы (с уважением prefers-reduced-motion)
- *  - Динамическая смена тем: «Эпоксид», «Графит и медь», «Спорт»
- *  - Оформление сметы как бланка заказ-наряда с таймером брони 15:00
- *  - Полная изоляция в Shadow DOM
+ * Detailing Lab | Interactive Concierge Widget
+ * Shadow DOM chat widget with inline Hero embedding, scroll-triggered floating mode,
+ * smooth CSS-variable theming, typing/streaming replies, and CRM sync.
  */
 (function () {
   'use strict';
@@ -32,92 +25,29 @@
     quick_prompts: [
       'Хочу PPF на Mercedes GLE',
       'Сколько стоит полировка кузова?',
-      'Помоги мне с выбором',
+      'Помогите с выбором',
       'Записаться на удобное время'
     ]
   };
 
-  // Чтение параметров URL для персонализированного демо (?studio=<slug>)
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const studioParam = urlParams.get('studio');
     if (studioParam) {
       STUDIO_CONFIG.studio_id = studioParam;
     }
-  } catch(e) {}
+  } catch (e) {}
 
-
-  // ─── 2. СИСТЕМНЫЙ ПРОМПТ ДЛЯ ИИ-АДМИНИСТРАТОРА ────────────────────
-  const SYSTEM_PROMPT = `
-Ты — опытный, вовлеченный и экспертный мастер-приемщик премиального детейлинг-центра «${STUDIO_CONFIG.company_name}».
-ТВОЙ СТИЛЬ: Живой, естественный диалог профессионала. Без роботизированных анкет («1. Марку? 2. Новый или с пробегом? 3. Какую задачу?»). Задавай максимум 1–2 логичных вопроса за раз, органично подхватывая реплику клиента.
-
-ПРАЙС-ЛИСТ (СТРОГО ФИКСИРОВАННЫЙ):
-- Седан / Купе / Хэтчбек / Лифтбек (BMW 3/4/5/6/7, Mercedes C/E/S/CLA/CLS, Audi A3–A8, Zeekr 001/007, Camry, Preface, Emgrand, Arrizo, UNI-V, Omoda S5, Octavia, K5, Solaris): Полировка 18 000 ₽, Керамика 9H 25 000 ₽, PPF 65 000 ₽, Химчистка 15 000 ₽.
-- Кроссовер (Geely Monjaro/Tugella/Atlas/Coolray, Haval Jolion/F7/M6, Chery Tiggo, Exeed TXL/RX/LX, Omoda C5, Jaecoo J7, Changan UNI-K/UNI-T/CS55/CS75, Voyah Free, Audi Q3/Q5, BMW X1–X4, Mercedes GLC/GLA/GLB, Tiguan, RAV4, Sportage, Tucson): Полировка 22 000 ₽, Керамика 9H 30 000 ₽, PPF 75 000 ₽, Химчистка 18 000 ₽.
-- Джип / Внедорожник / Большой SUV (Tank 300/400/500/700, LiXiang L6/L7/L8/L9, Audi Q7/Q8/e-tron, BMW X5/X6/X7/XM, Mercedes G-Class (Гелик)/GLS/GLE, Land Cruiser 200/300/Prado, Lexus LX/GX, Porsche Cayenne, Haval Dargo/H9, Exeed VX, Jetour T2, GAC GS8, Aito M7/M9, Touareg, Palisade, Sorento): Полировка 26 000 ₽, Керамика 9H 30 000 ₽, PPF 75 000 ₽, Химчистка 18 000 ₽.
-- Микроавтобус / Минивэн (Mercedes V-Class/Vito, Zeekr 009, Voyah Dream, GAC M8, Toyota Alphard, VW Multivan, Kia Carnival, Hyundai Staria): Полировка 28 000 ₽, Керамика 9H 35 000 ₽, PPF 85 000 ₽, Химчистка 22 000 ₽.
-
-ПРАВИЛО ПАМЯТИ КОНТЕКСТА:
-Если в диалоге уже обсуждалась конкретная услуга (например, химчистка или полировка), а клиент пишет: «ой я приеду на танке 300 сколько будет стоить на нем» — НЕ переспрашивай заново услугу! Сразу пересчитай активную услугу по тарифу Внедорожника (18 000 ₽ для химчистки Tank 300), обнови смету и естественно прокомментируй перерасчет.
-
-ПРАВИЛО КЛАССИФИКАЦИИ (ЗАПРЕТ НА СЕДАН ПО УМОЛЧАНИЮ):
-Никогда не подставляй «Седан», если авто не названо или неизвестно. Вежливо уточни модель или тип кузова.
-Понимай русский сленг, опечатки и падежи: «на танке 300», «ку8», «лисян», «зикра», «гелик», «крузак», «бэха», «камрюха», «сольк», «скоко», «почем».
-
-ПРОФИЛЬНЫЕ ДЕТАЛИ:
-При упоминании авто отмечай его конструктивную особенность:
-- Tank 300: массивный рамный кузов, вертикальное лобовое стекло и расширители арок — особый акцент на защиту зон риска от трассового гравия и большой объем салона;
-- Audi Q8 / BMW X5: мускулистый рельефный кузов, оптика и глянцевые стойки Shadow Line;
-- Китайские авто (LiXiang, Zeekr, Geely, Exeed, Changan): деликатный заводской лак, требующий защиты полиуретаном или керамикой;
-- Седаны: акценты на передний бампер, капот, зеркала и глубокий глянец по бортам.
-
-ПРАВИЛО ДОПРОДАЖИ (UPSELL) И ОБЪЯСНЕНИЕ ЦЕННОСТИ:
-Никогда не предлагай услугу одной строчкой без объяснения, за что клиент платит и чем она полезна:
-- К химчистке: предлагай ТОЛЬКО защитную гидрофобную пропитку сидений и озонирование (+8 000 ₽) с пояснением: «Также, если вам интересно, можем дополнительно сделать озонирование и защитную гидрофобную пропитку сидений (+8 000 ₽) — пропитка создаст невидимый барьер, чтобы жидкости и грязь не впитывались в кожу и текстиль, а озонирование уничтожит бактерии и запахи». КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО предлагать нанокерамику для химчистки!
-- К полировке: предлагай нанокерамику 9H в 2 слоя, поясняя, что она защитит отполированный лак от реагентов и паутинки на 18 месяцев.
-- К оклейке PPF: предлагай нанокерамику на остальной кузов, поясняя, что она защитит открытые элементы и выровняет зеркальный глянец.
-- Если клиент просит только базовую услугу или без допов — соглашайся и считай только базовую цену.
-
-ОТЕЧЕСТВЕННЫЕ АВТО:
-Автомобили ВАЗ / Лада / УАЗ / Жигули не входят в профильный сегмент студии. Вежливо объясни, что мы специализируемся на современных иномарках бизнес- и премиум-класса.
-
-БРОНИРОВАНИЕ:
-Не назначай время сам. Всегда спрашивай: «На какой день и время вам удобно приехать?». Для закрепления брони уточни имя и номер телефона (или Telegram @никнейм).
-
-ПРАВИЛО «НИКОГДА НЕ ПЕРЕСПРАШИВАЙ ТО, ЧТО КЛИЕНТ УЖЕ НАПИСАЛ»:
-Если клиент уже указал автомобиль, услугу или день визита (например: «можно завтра будет заехать на прадик 200 химчистку сделать»):
-- КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО слать общий прайс-лист по всем классам и переспрашивать марку!
-- Сразу подтверди, что на завтра свободные окна есть, назови точную цену для Toyota Land Cruiser Prado (18 000 ₽ + антидождь в подарок), зафиксируй смету и спроси точное время визита и контакт для закрепления брони.
-
-ПРАВИЛО БЕЗОПАСНОСТИ И КОНФИДЕНЦИАЛЬНОСТИ (WHITE-LABEL):
-КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО раскрывать личные контакты создателя, разработчика или автора бота, личные Telegram @ники или телефоны!
-Ты — виртуальный ассистент и консультант детейлинг-студии «${STUDIO_CONFIG.company_name}».
-Если спрашивают: «кто создал бота», «можно связаться с создателем / воздателем / разработчиком», «хочу такого же бота»:
-Отвечай вежливо, что ты цифровой помощник студии, и предложи оставить контакт (телефон или ник в Telegram), чтобы управляющий студии связался по любым вопросам.
-Если спрашивают «дайте контакт главного», «руководство», «директор», «шеф», «позови человека»:
-Попроси оставить контакт (телефон или Telegram) для обратного звонка управляющего, либо укажи общий нейтральный телефон студии: +7 (999) 000-00-00.
-`.trim();
-
-  // ─── 3. ДЕМО-КЛЮЧ И СЕССИЯ ────────────────────────────────────────
-  const DEFAULT_KEY = (function () {
-    try {
-      return atob('QVEuQWI4Uk42S282X0wya0pnNzVaWjRrc3JxQkExb2ItcGdxSlpWQVpDdUdJWGtJd2VGdHc=');
-    } catch (e) { return ''; }
-  })();
-
+  // ─── 2. СЕССИЯ И ЛИМИТЫ ДЕМО ──────────────────────────────────────
   const SESSION_KEY = `ecm_session_${STUDIO_CONFIG.studio_id}`;
   const MSGS_KEY = `ecm_msgs_${STUDIO_CONFIG.studio_id}`;
   const USAGE_KEY = `ecm_usage_${STUDIO_CONFIG.studio_id}`;
   const MAX_DEMO_MESSAGES = 500;
 
-  function generateUUID() {
-    return 'ecm-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9);
-  }
-
   function getMessageCount() {
     try { return parseInt(localStorage.getItem(USAGE_KEY) || '0', 10); } catch (e) { return 0; }
   }
+
   function incrementMessageCount() {
     try {
       const c = getMessageCount() + 1;
@@ -126,126 +56,122 @@
     } catch (e) { return 1; }
   }
 
-  // ─── 4. ТЕМЫ СТИЛЕЙ СТУДИИ ────────────────────────────────────────
+  // ─── 3. ТЕМЫ ВИДЖЕТА (ПЛАВНАЯ СМЕНА ПЕРЕМЕННЫХ) ───────────────────
   const THEMES = {
     dark: {
       name: 'dark',
-      bg: '#090A0D',
-      panel: '#111319',
-      card_bg: '#161922',
-      ink: '#F1F3F7',
-      muted: '#8F97A6',
-      rule: '#232734',
-      accent: '#2563EB',
-      accent_ink: '#FFFFFF',
-      ok: '#22C55E',
-      hold_bg: 'rgba(37, 99, 235, 0.1)',
-      hold_text: '#60A5FA',
-      upsell_bg: 'rgba(37, 99, 235, 0.14)',
-      upsell_tag_bg: '#2563EB',
-      upsell_tag_color: '#FFFFFF',
-      upsell_tag_shadow: '0 1px 2px rgba(0,0,0,0.7)',
-      upsell_tag_stroke: '0.2px rgba(0,0,0,0.5)',
-      avatar_bg: 'rgba(255, 255, 255, 0.08)',
-      avatar_border: 'rgba(255, 255, 255, 0.14)',
-      logo_filter: 'none',
-      radius_win: '14px',
-      radius_card: '4px',
-      radius_btn: '6px',
-      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif"
+      bg: '#09090B',
+      panel: '#0E0E11',
+      card_bg: '#151519',
+      elevated_bg: '#1B1B20',
+      ink: '#F4F4F5',
+      muted: '#A1A1AA',
+      faint: '#71717A',
+      rule: 'rgba(255, 255, 255, 0.08)',
+      rule_strong: 'rgba(255, 255, 255, 0.14)',
+      accent: '#F4F4F5',
+      accent_ink: '#09090B',
+      champagne: '#D6B37C',
+      upsell_bg: 'rgba(214, 179, 124, 0.07)',
+      tag_bg: 'rgba(214, 179, 124, 0.14)',
+      tag_ink: '#E5C694',
+      tag_border: 'rgba(214, 179, 124, 0.28)',
+      hold_bg: 'rgba(255, 255, 255, 0.025)',
+      hold_ink: '#A1A1AA',
+      avatar_bg: '#18181D',
+      avatar_border: 'rgba(255, 255, 255, 0.12)',
+      chip_bg: '#151519',
+      chip_hover: '#1F1F25',
+      input_bg: '#121215',
+      radius_win: '16px',
+      radius_card: '10px',
+      radius_btn: '8px',
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     },
     copper: {
       name: 'copper',
-      bg: '#15181B',
-      panel: '#1F2327',
-      card_bg: '#1A1E22',
-      ink: '#ECEEEF',
-      muted: '#9AA2A9',
-      rule: '#2C3238',
-      accent: '#D97736',
-      accent_ink: '#FFFFFF',
-      ok: '#FDBA74',
-      hold_bg: 'rgba(217, 119, 54, 0.12)',
-      hold_text: '#FDBA74',
-      upsell_bg: 'rgba(217, 119, 54, 0.14)',
-      upsell_tag_bg: '#D97706',
-      upsell_tag_color: '#FFFFFF',
-      upsell_tag_shadow: '0 1px 2px rgba(0, 0, 0, 0.6)',
-      upsell_tag_stroke: 'none',
-      avatar_bg: 'rgba(255, 255, 255, 0.08)',
-      avatar_border: 'rgba(255, 255, 255, 0.14)',
-      logo_filter: 'none',
-      radius_win: '14px',
-      radius_card: '6px',
-      radius_btn: '6px',
-      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif"
+      bg: '#101012',
+      panel: '#141417',
+      card_bg: '#1C1C20',
+      elevated_bg: '#242429',
+      ink: '#F4F4F5',
+      muted: '#A1A1AA',
+      faint: '#787882',
+      rule: 'rgba(214, 179, 124, 0.14)',
+      rule_strong: 'rgba(214, 179, 124, 0.28)',
+      accent: '#D6B37C',
+      accent_ink: '#09090B',
+      champagne: '#E3C38E',
+      upsell_bg: 'rgba(214, 179, 124, 0.1)',
+      tag_bg: 'rgba(214, 179, 124, 0.18)',
+      tag_ink: '#F0D4A6',
+      tag_border: 'rgba(214, 179, 124, 0.36)',
+      hold_bg: 'rgba(214, 179, 124, 0.06)',
+      hold_ink: '#D6B37C',
+      avatar_bg: 'rgba(214, 179, 124, 0.1)',
+      avatar_border: 'rgba(214, 179, 124, 0.28)',
+      chip_bg: '#1C1C20',
+      chip_hover: '#26262C',
+      input_bg: '#111114',
+      radius_win: '16px',
+      radius_card: '10px',
+      radius_btn: '8px',
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     },
     epoxy: {
       name: 'epoxy',
-      bg: '#E7E9EA',
-      panel: '#F6F7F7',
+      bg: '#F2F2F5',
+      panel: '#FAFAFC',
       card_bg: '#FFFFFF',
-      ink: '#1A1D21',
-      muted: '#5E666D',
-      rule: '#C5CACE',
-      accent: '#F5C518',
-      accent_ink: '#1A1D21',
-      ok: '#1B6E44',
-      hold_bg: 'rgba(27, 110, 68, 0.08)',
-      hold_text: '#1B6E44',
-      upsell_bg: 'rgba(245, 197, 24, 0.12)',
-      upsell_tag_bg: '#F5C518',
-      upsell_tag_color: '#1A1D21',
-      upsell_tag_shadow: 'none',
-      upsell_tag_stroke: 'none',
-      avatar_bg: '#EAECEE',
-      avatar_border: '#C5CACE',
-      logo_filter: 'invert(1)',
-      radius_win: '14px',
-      radius_card: '4px',
-      radius_btn: '6px',
-      font: "'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif",
-      font_head: "'Fira Sans Extra Condensed', sans-serif"
+      elevated_bg: '#EFEFF3',
+      ink: '#111113',
+      muted: '#52525B',
+      faint: '#71717A',
+      rule: 'rgba(0, 0, 0, 0.08)',
+      rule_strong: 'rgba(0, 0, 0, 0.16)',
+      accent: '#111113',
+      accent_ink: '#FFFFFF',
+      champagne: '#8E6A33',
+      upsell_bg: 'rgba(180, 138, 74, 0.08)',
+      tag_bg: 'rgba(180, 138, 74, 0.14)',
+      tag_ink: '#755320',
+      tag_border: 'rgba(180, 138, 74, 0.3)',
+      hold_bg: 'rgba(0, 0, 0, 0.03)',
+      hold_ink: '#52525B',
+      avatar_bg: '#EFEFF3',
+      avatar_border: 'rgba(0, 0, 0, 0.1)',
+      chip_bg: '#FFFFFF',
+      chip_hover: '#EFEFF3',
+      input_bg: '#F4F4F7',
+      radius_win: '16px',
+      radius_card: '10px',
+      radius_btn: '8px',
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     }
   };
 
-  const prefersDarkInitial = (function() {
-    try {
-      const attr = document.documentElement.getAttribute('data-site-theme');
-      if (attr) return attr === 'dark';
-      const saved = localStorage.getItem('ecm_site_theme');
-      if (saved) return saved === 'dark';
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    } catch (e) { return false; }
-  })();
+  let activeTheme = THEMES.dark;
 
-  let activeTheme = prefersDarkInitial ? THEMES.dark : THEMES.epoxy;
-
-  // ─── 5. SVG ИКОНКИ (ТЕХНИЧЕСКИЕ) ──────────────────────────────────
-  const SVG_CHAT = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
-  `;
-
+  // ─── 4. SVG ИКОНКИ (СТРОГИЙ ТЕХНИЧЕСКИЙ МИНИМАЛИЗМ) ──────────────
   const SVG_CLOSE = `
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="6" x2="6" y2="18"/>
       <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   `;
 
   const SVG_SEND = `
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="19" x2="12" y2="5"/>
       <polyline points="5 12 12 5 19 12"/>
     </svg>
   `;
 
   const SVG_RESET = `
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
       <path d="M3 3v5h5"/>
       <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
@@ -253,671 +179,893 @@
     </svg>
   `;
 
-  // Фирменные векторные SVG-иконки для White-Label студии детейлинга
-  const SVG_STUDIO_LOGO = `
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--w-pad, #f5c518); display:block;">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+  const SVG_STUDIO_MARK = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 17l6-10h4l6 10"/>
+      <path d="M7.5 14h9"/>
     </svg>
   `;
 
   const SVG_LAUNCHER_CHAT = `
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#ffffff; display:block;">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   `;
 
-  // ─── 6. СТИЛИ ТЕНЕВОГО DOM (ДИНАМИЧЕСКИЕ ТОКЕНЫ) ─────────────────
-  function generateStyles(theme) {
+  // ─── 5. СТИЛИ SHADOW DOM (ПЕРЕМЕННЫЕ И БАЗОВАЯ СТИЛИСТИКА) ────────
+  function generateThemeVarsCss(theme) {
     return `
       :host {
         --w-bg: ${theme.bg};
         --w-panel: ${theme.panel};
         --w-card: ${theme.card_bg};
+        --w-elevated: ${theme.elevated_bg};
         --w-ink: ${theme.ink};
         --w-muted: ${theme.muted};
+        --w-faint: ${theme.faint};
         --w-rule: ${theme.rule};
+        --w-rule-strong: ${theme.rule_strong};
         --w-accent: ${theme.accent};
         --w-accent-ink: ${theme.accent_ink};
-        --w-ok: ${theme.ok};
+        --w-champagne: ${theme.champagne};
+        --w-upsell-bg: ${theme.upsell_bg};
+        --w-tag-bg: ${theme.tag_bg};
+        --w-tag-ink: ${theme.tag_ink};
+        --w-tag-border: ${theme.tag_border};
+        --w-hold-bg: ${theme.hold_bg};
+        --w-hold-ink: ${theme.hold_ink};
+        --w-avatar-bg: ${theme.avatar_bg};
+        --w-avatar-border: ${theme.avatar_border};
+        --w-chip-bg: ${theme.chip_bg};
+        --w-chip-hover: ${theme.chip_hover};
+        --w-input-bg: ${theme.input_bg};
         --w-r-win: ${theme.radius_win};
         --w-r-card: ${theme.radius_card};
         --w-r-btn: ${theme.radius_btn};
         --w-font: ${theme.font};
-        --w-font-head: ${theme.font_head};
-
-        font-family: var(--w-font);
-        color: var(--w-ink);
-        line-height: 1.5;
-        -webkit-font-smoothing: antialiased;
-        box-sizing: border-box;
-      }
-
-      *, *::before, *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: inherit;
-      }
-
-      .tabular {
-        font-variant-numeric: tabular-nums;
-      }
-
-      /* Плавающий режим: кнопка в углу (фирменный скругленный блок ECM) */
-      .ecm-floating-launcher {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        width: 56px;
-        height: 56px;
-        border-radius: 14px;
-        background: #111114;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2147483647;
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
-        user-select: none;
-        padding: 0;
-        outline: none;
-      }
-      .ecm-floating-launcher:hover {
-        background: #17171C;
-        border-color: rgba(255, 255, 255, 0.28);
-        transform: translateY(-2px);
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
-      }
-      .ecm-floating-launcher:active {
-        transform: translateY(0);
-      }
-      .ecm-floating-launcher:focus-visible {
-        outline: 2px solid var(--w-ink);
-        outline-offset: 3px;
-      }
-
-      .ecm-launcher-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.2s ease;
-        color: #FAFAFA;
-      }
-      .ecm-launcher-icon svg {
-        display: block;
-      }
-      .ecm-launcher-dot {
-        position: absolute;
-        top: -2px;
-        right: -2px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #22C55E;
-        border: 2px solid #08080A;
-        box-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
-      }
-      .ecm-floating-launcher.is-open .ecm-launcher-dot {
-        display: none;
-      }
-
-      /* Окно чата (Floating & Inline) */
-      .ecm-chat-window {
-        background: var(--w-panel);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-win);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
-      }
-
-      /* Модальный плавающий контейнер */
-      .ecm-modal-overlay {
-        position: fixed;
-        bottom: 86px;
-        right: 24px;
-        width: 380px;
-        height: 580px;
-        max-height: calc(100vh - 100px);
-        max-width: calc(100vw - 32px);
-        z-index: 2147483647;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
-        border-radius: var(--w-r-win);
-        display: flex;
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(12px);
-        transition: opacity 0.2s ease, transform 0.2s ease;
-      }
-      .ecm-modal-overlay.open {
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-      }
-
-      /* Шапка виджета */
-      .ecm-header {
-        background: var(--w-card);
-        border-bottom: 1px solid var(--w-rule);
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .ecm-header-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .ecm-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: var(--w-r-btn);
-        background: ${theme.avatar_bg || 'rgba(255, 255, 255, 0.08)'};
-        border: 1px solid ${theme.avatar_border || 'rgba(255, 255, 255, 0.14)'};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .ecm-avatar svg {
-        display: block;
-      }
-
-      .ecm-title {
-        font-size: 14.5px;
-        font-weight: 600;
-        color: var(--w-ink);
-        letter-spacing: -0.01em;
-      }
-
-      .ecm-sub {
-        font-size: 11.5px;
-        color: var(--w-muted);
-      }
-
-      .ecm-actions {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .ecm-icon-btn {
-        background: transparent;
-        border: none;
-        color: var(--w-muted);
-        width: 28px;
-        height: 28px;
-        border-radius: var(--w-r-btn);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.15s ease, background-color 0.15s ease;
-      }
-      .ecm-icon-btn:hover {
-        color: var(--w-ink);
-        background-color: rgba(0, 0, 0, 0.05);
-      }
-
-      /* Область сообщений */
-      .ecm-stream {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      /* Пузыри сообщений */
-      .ecm-msg {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        max-width: 90%;
-        animation: ecmFadeIn 0.18s ease-out;
-      }
-      @keyframes ecmFadeIn {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .ecm-msg.user {
-        align-self: flex-end;
-      }
-      .ecm-msg.bot {
-        align-self: flex-start;
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .ecm-user-text {
-        background: var(--w-card);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-btn);
-        padding: 9px 13px;
-        font-size: 14.5px;
-        color: var(--w-ink);
-        white-space: pre-wrap;
-        line-height: 1.45;
-        word-break: break-word;
-      }
-
-      /* Бланк Заказ-наряда */
-      .ecm-order-card {
-        background: var(--w-card);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-card);
-        overflow: hidden;
-        margin-top: 4px;
-      }
-
-      .ecm-order-meta {
-        background: var(--w-panel);
-        border-bottom: 1px solid var(--w-rule);
-        padding: 8px 12px;
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--w-muted);
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .ecm-order-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13.5px;
-      }
-
-      .ecm-order-table td {
-        padding: 9px 12px;
-        border-bottom: 1px solid var(--w-rule);
-        color: var(--w-ink);
-      }
-
-      .ecm-order-table td.col-price {
-        text-align: right;
-        font-family: var(--w-font-head);
-        font-size: 16px;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-
-      .ecm-row-upsell {
-        background: ${theme.upsell_bg || 'rgba(245, 197, 24, 0.12)'};
-      }
-
-      .ecm-upsell-tag {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 700;
-        color: ${theme.upsell_tag_color || '#FFFFFF'};
-        background: ${theme.upsell_tag_bg || 'var(--w-accent)'};
-        padding: 2px 7px;
-        border-radius: 4px;
-        margin-left: 6px;
-        letter-spacing: 0.02em;
-        text-shadow: ${theme.upsell_tag_shadow || 'none'};
-        -webkit-text-stroke: ${theme.upsell_tag_stroke || 'none'};
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-      }
-
-      .ecm-row-total {
-        background: var(--w-panel);
-        font-weight: 600;
-        border-top: 1px solid var(--w-rule);
-      }
-      .ecm-row-total td {
-        border-bottom: none;
-        padding: 10px 12px;
-      }
-      .ecm-row-total .col-price {
-        font-size: 18px;
-        color: var(--w-ink);
-      }
-
-      .ecm-hold-banner {
-        padding: 7px 12px;
-        background: ${theme.hold_bg || 'rgba(27, 110, 68, 0.08)'};
-        border-top: 1px solid var(--w-rule);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 12px;
-        color: ${theme.hold_text || 'var(--w-ok)'};
-        font-weight: 500;
-      }
-
-      /* Индикатор набора */
-      .ecm-typing {
-        align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: var(--w-card);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-btn);
-        padding: 8px 12px;
-      }
-      .ecm-typing-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: var(--w-muted);
-        animation: ecmBounce 1.2s infinite ease-in-out both;
-      }
-      .ecm-typing-dot:nth-child(1) { animation-delay: -0.32s; }
-      .ecm-typing-dot:nth-child(2) { animation-delay: -0.16s; }
-      .ecm-typing-dot:nth-child(3) { animation-delay: 0s; }
-      @keyframes ecmBounce {
-        0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-        40% { transform: scale(1.1); opacity: 1; background: var(--w-ink); }
-      }
-
-      /* Чипы быстрых вопросов */
-      .ecm-chips-strip {
-        padding: 0 14px 8px 14px;
-        display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .ecm-chips-strip::-webkit-scrollbar { display: none; }
-
-      .ecm-chip-btn {
-        background: var(--w-card);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-btn);
-        padding: 5px 10px;
-        font-size: 12px;
-        color: var(--w-ink);
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background-color 0.15s ease;
-      }
-      .ecm-chip-btn:hover {
-        background-color: var(--w-panel);
-      }
-
-      /* Поле ввода */
-      .ecm-footer {
-        padding: 10px 14px;
-        background: var(--w-card);
-        border-top: 1px solid var(--w-rule);
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .ecm-input {
-        flex: 1;
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-btn);
-        padding: 8px 12px;
-        font-family: inherit;
-        font-size: 16px; /* Предотвращает зум в iOS Safari */
-        color: var(--w-ink);
-        background: var(--w-panel);
-        outline: none;
-      }
-      .ecm-input:focus {
-        border-color: var(--w-ink);
-      }
-
-      .ecm-send {
-        background: var(--w-accent);
-        color: var(--w-accent-ink);
-        border: 1px solid var(--w-rule);
-        border-radius: var(--w-r-btn);
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: opacity 0.15s ease;
-      }
-      .ecm-send:hover {
-        opacity: 0.9;
-      }
-      .ecm-send:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-
-      .ecm-chip-btn, .ecm-send, .ecm-icon-btn, .ecm-floating-launcher {
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-        -webkit-user-select: none;
-      }
-      .ecm-chip-btn:active, .ecm-send:active {
-        transform: scale(0.96);
-        transition: transform 0.08s ease;
-      }
-      .ecm-chat-window, .ecm-stream, .ecm-msg, .ecm-order-card {
-        transform: translateZ(0);
-        -webkit-transform: translateZ(0);
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-      }
-
-      /* Мобильный полноэкранный лист (< 640px) */
-      @media (max-width: 640px) {
-        .ecm-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          width: 100vw;
-          width: 100dvw;
-          height: 100vh;
-          height: 100dvh;
-          max-width: none;
-          max-height: none;
-          border-radius: 0;
-          z-index: 2147483647;
-          background: var(--w-panel);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        .ecm-chat-window {
-          border-radius: 0;
-          border: none;
-          height: 100%;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          background: var(--w-panel);
-        }
-        .ecm-header {
-          padding-top: max(16px, env(safe-area-inset-top, 16px));
-          padding-left: max(16px, env(safe-area-inset-left, 16px));
-          padding-right: max(16px, env(safe-area-inset-right, 16px));
-          padding-bottom: 12px;
-          min-height: calc(54px + env(safe-area-inset-top, 0px));
-          flex-shrink: 0;
-          background: var(--w-card);
-          border-bottom: 1px solid var(--w-rule);
-        }
-        .ecm-stream {
-          flex: 1 1 auto;
-          min-height: 0;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
-          padding: 14px 14px 10px 14px;
-          gap: 10px;
-        }
-        .ecm-chips-strip {
-          flex-shrink: 0;
-          padding: 4px max(14px, env(safe-area-inset-left, 14px)) 8px max(14px, env(safe-area-inset-right, 14px));
-          gap: 6px;
-        }
-        .ecm-footer {
-          flex-shrink: 0;
-          padding-top: 8px;
-          padding-left: max(12px, env(safe-area-inset-left, 12px));
-          padding-right: max(12px, env(safe-area-inset-right, 12px));
-          padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
-          background: var(--w-card);
-          border-top: 1px solid var(--w-rule);
-        }
-        .ecm-floating-launcher {
-          bottom: max(16px, env(safe-area-inset-bottom, 16px));
-          right: 16px;
-          width: 50px;
-          height: 50px;
-        }
-        .ecm-order-card {
-          margin-top: 2px;
-        }
-        .ecm-order-table td {
-          padding: 7px 10px;
-          font-size: 13px;
-        }
-        .ecm-order-table td.col-price {
-          font-size: 15px;
-        }
-        .ecm-row-total .col-price {
-          font-size: 17px;
-        }
+        --w-font-mono: ${theme.font_mono};
       }
     `;
   }
 
-  // ─── 7. ГЕНЕРАЦИЯ HTML ДИАЛОГА ────────────────────────────────────
-  function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot, serviceName, upsellName) {
+  const BASE_SHADOW_CSS = `
+    :host {
+      font-family: var(--w-font);
+      color: var(--w-ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: inherit;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+      font-family: var(--w-font-mono);
+    }
+
+    /* Плавающий лаунчер: скрыт по умолчанию, появляется при скролле ниже Hero */
+    .ecm-floating-launcher {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(18, 18, 22, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+        0 12px 32px rgba(0, 0, 0, 0.55);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2147483647;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(12px) scale(0.92);
+      transition:
+        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.25s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+      user-select: none;
+      padding: 0;
+      outline: none;
+      color: #F4F4F5;
+    }
+    .ecm-floating-launcher.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+    .ecm-floating-launcher.is-visible:hover {
+      background: rgba(26, 26, 32, 0.94);
+      border-color: rgba(214, 179, 124, 0.45);
+      transform: translateY(-2px) scale(1);
+    }
+    .ecm-floating-launcher:focus-visible {
+      outline: 2px solid #D6B37C;
+      outline-offset: 3px;
+    }
+
+    .ecm-launcher-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ecm-launcher-dot {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #D6B37C;
+      box-shadow: 0 0 0 2px rgba(18, 18, 22, 0.9);
+    }
+    .ecm-floating-launcher.is-open .ecm-launcher-dot {
+      display: none;
+    }
+
+    /* Основное окно чата */
+    .ecm-chat-window {
+      background: var(--w-panel);
+      border: 1px solid var(--w-rule);
+      border-radius: var(--w-r-win);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    /* Плавающее окно диалога */
+    .ecm-modal-overlay {
+      position: fixed;
+      bottom: 88px;
+      right: 24px;
+      width: 396px;
+      height: 580px;
+      max-height: calc(100vh - 110px);
+      max-width: calc(100vw - 32px);
+      z-index: 2147483647;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+      border-radius: var(--w-r-win);
+      display: flex;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(12px) scale(0.98);
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease;
+    }
+    .ecm-modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Шапка виджета */
+    .ecm-header {
+      background: var(--w-card);
+      border-bottom: 1px solid var(--w-rule);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      transition: background-color 0.28s ease, border-color 0.28s ease;
+    }
+
+    .ecm-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .ecm-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--w-r-btn);
+      background: var(--w-avatar-bg);
+      border: 1px solid var(--w-avatar-border);
+      color: var(--w-champagne);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--w-ink);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.28s ease;
+    }
+
+    .ecm-sub {
+      font-size: 11.5px;
+      color: var(--w-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      transition: color 0.28s ease;
+    }
+
+    .ecm-online-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--w-champagne);
+      flex-shrink: 0;
+    }
+
+    .ecm-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .ecm-icon-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--w-muted);
+      width: 30px;
+      height: 30px;
+      border-radius: var(--w-r-btn);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .ecm-icon-btn:hover {
+      color: var(--w-ink);
+      background-color: var(--w-elevated);
+      border-color: var(--w-rule);
+    }
+
+    /* Поток сообщений: строго flex-start + отступ сверху, чтобы приветствие не обрезалось шапкой */
+    .ecm-stream {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px 16px 16px 16px;
+      scroll-padding-top: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--w-rule-strong) transparent;
+    }
+    .ecm-stream::-webkit-scrollbar {
+      width: 5px;
+    }
+    .ecm-stream::-webkit-scrollbar-thumb {
+      background: var(--w-rule-strong);
+      border-radius: 999px;
+    }
+
+    /* Сообщения */
+    .ecm-msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 90%;
+      flex-shrink: 0;
+      animation: ecmFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes ecmFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ecm-msg.user {
+      align-self: flex-end;
+    }
+    .ecm-msg.bot {
+      align-self: flex-start;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .ecm-user-text {
+      background: var(--w-elevated);
+      border: 1px solid var(--w-rule);
+      border-radius: 12px 12px 4px 12px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      color: var(--w-ink);
+      white-space: pre-wrap;
+      line-height: 1.5;
+      word-break: break-word;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-bot-bubble {
+      background: var(--w-card);
+      border: 1px solid var(--w-rule);
+      border-radius: 12px 12px 12px 4px;
+      padding: 11px 14px;
+      font-size: 13.5px;
+      color: var(--w-ink);
+      white-space: pre-wrap;
+      line-height: 1.52;
+      word-break: break-word;
+      max-width: 94%;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-stream-caret {
+      display: inline-block;
+      width: 2px;
+      height: 13px;
+      background: var(--w-champagne);
+      margin-left: 3px;
+      vertical-align: -2px;
+      animation: ecmCaretBlink 0.75s infinite;
+    }
+    @keyframes ecmCaretBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    /* Карточка «Предварительный расчёт» в монохромной эстетике */
+    .ecm-order-card {
+      background: var(--w-card);
+      border: 1px solid var(--w-rule);
+      border-radius: var(--w-r-card);
+      overflow: hidden;
+      margin-top: 2px;
+      transition: background-color 0.28s ease, border-color 0.28s ease;
+    }
+
+    .ecm-order-meta {
+      background: var(--w-elevated);
+      border-bottom: 1px solid var(--w-rule);
+      padding: 9px 13px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--w-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-order-title {
+      color: var(--w-ink);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .ecm-order-car {
+      font-family: var(--w-font-mono);
+      font-size: 11px;
+      color: var(--w-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ecm-order-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .ecm-order-table td {
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--w-rule);
+      color: var(--w-ink);
+      vertical-align: middle;
+      transition: border-color 0.28s ease, color 0.28s ease, background-color 0.28s ease;
+    }
+
+    .ecm-order-table td.col-price {
+      text-align: right;
+      font-family: var(--w-font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--w-ink);
+    }
+
+    .ecm-row-upsell {
+      background: var(--w-upsell-bg);
+    }
+
+    .ecm-rec-tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--w-tag-ink);
+      background: var(--w-tag-bg);
+      border: 1px solid var(--w-tag-border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.01em;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-gift-val {
+      color: var(--w-champagne);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .ecm-row-total {
+      background: var(--w-panel);
+      font-weight: 600;
+      transition: background-color 0.28s ease;
+    }
+    .ecm-row-total td {
+      border-bottom: none;
+      padding: 10px 13px;
+      font-size: 13.5px;
+    }
+    .ecm-row-total .col-price {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--w-ink);
+    }
+
+    .ecm-hold-banner {
+      padding: 8px 13px;
+      background: var(--w-hold-bg);
+      border-top: 1px solid var(--w-rule);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 11.5px;
+      color: var(--w-hold-ink);
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    .ecm-slot-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ecm-slot-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--w-champagne);
+      flex-shrink: 0;
+    }
+
+    /* Поочередное появление позиций сметы (stagger animation) */
+    .ecm-order-card.is-staggered tr.stagger-row {
+      opacity: 0;
+      transform: translateY(6px);
+      animation: ecmRowReveal 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .ecm-order-card.is-staggered tr.stagger-1 { animation-delay: 60ms; }
+    .ecm-order-card.is-staggered tr.stagger-2 { animation-delay: 200ms; }
+    .ecm-order-card.is-staggered tr.stagger-3 { animation-delay: 340ms; }
+    .ecm-order-card.is-staggered tr.stagger-4 { animation-delay: 460ms; }
+    .ecm-order-card.is-staggered .ecm-hold-banner {
+      opacity: 0;
+      animation: ecmRowReveal 0.32s cubic-bezier(0.16, 1, 0.3, 1) 560ms forwards;
+    }
+    @keyframes ecmRowReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Индикатор набора «печатает...» */
+    .ecm-typing {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--w-card);
+      border: 1px solid var(--w-rule);
+      border-radius: 12px 12px 12px 4px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--w-muted);
+    }
+    .ecm-typing-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+    }
+    .ecm-typing-dot {
+      width: 4.5px;
+      height: 4.5px;
+      border-radius: 50%;
+      background: var(--w-muted);
+      animation: ecmBounce 1.2s infinite ease-in-out both;
+    }
+    .ecm-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .ecm-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    .ecm-typing-dot:nth-child(3) { animation-delay: 0s; }
+    @keyframes ecmBounce {
+      0%, 80%, 100% { transform: scale(0.65); opacity: 0.35; }
+      40% { transform: scale(1.1); opacity: 1; background: var(--w-champagne); }
+    }
+
+    /* Горизонтальный скролл чипсов с мягкой маской затухания по краям */
+    .ecm-chips-wrap {
+      flex-shrink: 0;
+      padding: 2px 0 8px 0;
+      background: var(--w-panel);
+      transition: background-color 0.28s ease;
+    }
+    .ecm-chips-strip {
+      padding: 0 16px;
+      scroll-padding-inline: 16px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%);
+    }
+    .ecm-chips-strip.mask-both {
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 calc(100% - 28px), transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 calc(100% - 28px), transparent 100%);
+    }
+    .ecm-chips-strip.mask-left {
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 100%);
+    }
+    .ecm-chips-strip.mask-none {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .ecm-chips-strip::-webkit-scrollbar { display: none; }
+
+    .ecm-chip-btn {
+      background: var(--w-chip-bg);
+      border: 1px solid var(--w-rule);
+      border-radius: var(--w-r-btn);
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--w-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .ecm-chip-btn:hover {
+      background-color: var(--w-chip-hover);
+      border-color: var(--w-rule-strong);
+      color: var(--w-ink);
+    }
+
+    /* Поле ввода */
+    .ecm-footer {
+      padding: 10px 14px;
+      background: var(--w-card);
+      border-top: 1px solid var(--w-rule);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-shrink: 0;
+      transition: background-color 0.28s ease, border-color 0.28s ease;
+    }
+
+    .ecm-input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--w-rule);
+      border-radius: var(--w-r-btn);
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--w-ink);
+      background: var(--w-input-bg);
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.28s ease, color 0.28s ease;
+    }
+    .ecm-input::placeholder {
+      color: var(--w-faint);
+    }
+    .ecm-input:focus {
+      border-color: var(--w-rule-strong);
+    }
+
+    .ecm-send {
+      background: var(--w-accent);
+      color: var(--w-accent-ink);
+      border: none;
+      border-radius: var(--w-r-btn);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.28s ease, color 0.28s ease;
+    }
+    .ecm-send:hover {
+      opacity: 0.9;
+    }
+    .ecm-send:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .ecm-chip-btn, .ecm-send, .ecm-icon-btn, .ecm-floating-launcher {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .ecm-chip-btn:active, .ecm-send:active {
+      transform: scale(0.96);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ecm-msg, .ecm-order-card.is-staggered tr.stagger-row, .ecm-order-card.is-staggered .ecm-hold-banner {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .ecm-stream-caret {
+        display: none;
+      }
+    }
+
+    /* Мобильный полноэкранный лист (< 640px) */
+    @media (max-width: 640px) {
+      .ecm-input {
+        font-size: 16px; /* Исключает зум в iOS Safari */
+      }
+      .ecm-modal-overlay {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        width: 100dvw;
+        height: 100vh;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+      }
+      .ecm-modal-overlay .ecm-chat-window {
+        border-radius: 0;
+        border: none;
+      }
+      .ecm-modal-overlay .ecm-header {
+        padding-top: max(14px, env(safe-area-inset-top, 14px));
+        padding-left: max(16px, env(safe-area-inset-left, 16px));
+        padding-right: max(16px, env(safe-area-inset-right, 16px));
+      }
+      .ecm-modal-overlay .ecm-footer {
+        padding-left: max(12px, env(safe-area-inset-left, 12px));
+        padding-right: max(12px, env(safe-area-inset-right, 12px));
+        padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
+      }
+      .ecm-stream {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding: 16px 14px 12px 14px;
+        scroll-padding-top: 16px;
+        gap: 10px;
+      }
+      .ecm-floating-launcher {
+        bottom: max(16px, env(safe-area-inset-bottom, 16px));
+        right: 16px;
+        width: 48px;
+        height: 48px;
+      }
+      .ecm-order-table td {
+        padding: 8px 10px;
+        font-size: 12.5px;
+      }
+      .ecm-order-table td.col-price {
+        font-size: 12.5px;
+      }
+      .ecm-row-total .col-price {
+        font-size: 15px;
+      }
+    }
+  `;
+
+  // ─── 6. ГЕНЕРАЦИЯ КАРТОЧКИ «ПРЕДВАРИТЕЛЬНЫЙ РАСЧЁТ» ───────────────
+  function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot, serviceName, upsellName, options = {}) {
     const sName = serviceName || 'Восстановительная полировка кузова';
     const bPrice = (basePrice !== undefined && basePrice !== null) ? Number(basePrice) : 18000;
     const uPrice = (upsellPrice !== undefined && upsellPrice !== null && !isNaN(upsellPrice)) ? Number(upsellPrice) : 25000;
     const hasUpsell = uPrice > 0;
     const uName = upsellName || (hasUpsell ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций');
     const tPrice = (totalPrice !== undefined && totalPrice !== null) ? Number(totalPrice) : (bPrice + uPrice);
-    const totalLabel = hasUpsell ? 'Итого с допродажей:' : 'Итого к оплате:';
-    const displaySlot = (slot && slot !== 'суббота 14:00' && !slot.includes('суббота 14:00')) ? slot : 'на ваш выбор (по согласованию)';
+    const displaySlot = (slot && slot !== 'суббота 14:00' && !slot.includes('суббота 14:00')) ? slot : 'по согласованию';
+    const isStaggered = !!options.stagger;
+    const initialDisplayedTotal = (typeof options.initialTotalStart === 'number') ? options.initialTotalStart : tPrice;
 
     const upsellRowHtml = hasUpsell ? `
-      <tr class="ecm-row-upsell">
+      <tr class="ecm-row-upsell ${isStaggered ? 'stagger-row stagger-2' : ''}">
         <td>
-          ${uName}
-          <span class="ecm-upsell-tag">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽ к заказу</span>
+          <span>${uName}</span>
+          <span class="ecm-rec-tag">Рекомендуем</span>
         </td>
         <td class="col-price">+${uPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
       </tr>
     ` : `
-      <tr style="opacity: 0.65; font-size: 12.5px;">
+      <tr class="${isStaggered ? 'stagger-row stagger-2' : ''}" style="opacity: 0.65;">
         <td>${uName}</td>
-        <td class="col-price" style="font-size: 13px; color: var(--w-muted);">0&nbsp;₽</td>
+        <td class="col-price" style="color: var(--w-muted);">0&nbsp;₽</td>
       </tr>
     `;
 
     return `
-      <div class="ecm-order-card">
+      <div class="ecm-order-card ${isStaggered ? 'is-staggered' : ''}">
         <div class="ecm-order-meta">
-          <span>Предварительный заказ-наряд</span>
-          <span class="tabular">${carModel} • ${carClass}</span>
+          <span class="ecm-order-title">Предварительный расчёт</span>
+          <span class="ecm-order-car tabular">${carModel} · ${carClass}</span>
         </div>
         <table class="ecm-order-table">
           <tbody>
-            <tr>
+            <tr class="${isStaggered ? 'stagger-row stagger-1' : ''}">
               <td>${sName}</td>
               <td class="col-price">${bPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
             </tr>
             ${upsellRowHtml}
-            <tr>
+            <tr class="${isStaggered ? 'stagger-row stagger-3' : ''}">
               <td>Гидрофобный антидождь передней полусферы</td>
-              <td class="col-price" style="color: var(--w-ok); font-size: 13px;">0&nbsp;₽ (в подарок)</td>
+              <td class="col-price"><span class="ecm-gift-val">В подарок</span></td>
             </tr>
-            <tr class="ecm-row-total">
-              <td>${totalLabel}</td>
-              <td class="col-price">${tPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+            <tr class="ecm-row-total ${isStaggered ? 'stagger-row stagger-4' : ''}">
+              <td>Итого</td>
+              <td class="col-price"><span class="ecm-total-num">${initialDisplayedTotal.toLocaleString('ru-RU')}</span>&nbsp;₽</td>
             </tr>
           </tbody>
         </table>
         <div class="ecm-hold-banner">
-          <span>Время визита: ${displaySlot}</span>
-          <span class="tabular">Окно брони: <span class="ecm-timer-val">15:00</span></span>
+          <span class="ecm-slot-status"><span class="ecm-slot-dot"></span>Слот: ${displaySlot}</span>
+          <span class="tabular">Резерв: <span class="ecm-timer-val">15:00</span></span>
         </div>
       </div>
     `;
   }
 
-  // ─── 8. СОЗДАНИЕ SHADOW DOM ХОСТА ─────────────────────────────────
+  // ─── 7. СОЗДАНИЕ SHADOW DOM ХОСТА ─────────────────────────────────
   const host = document.createElement('div');
   host.id = 'ecm-ai-widget-host';
   document.body.appendChild(host);
 
   const shadow = host.attachShadow({ mode: 'open' });
 
-  const styleEl = document.createElement('style');
-  styleEl.textContent = generateStyles(activeTheme);
-  shadow.appendChild(styleEl);
+  const floatingVarsStyleEl = document.createElement('style');
+  floatingVarsStyleEl.textContent = generateThemeVarsCss(activeTheme);
+  shadow.appendChild(floatingVarsStyleEl);
+
+  const floatingBaseStyleEl = document.createElement('style');
+  floatingBaseStyleEl.textContent = BASE_SHADOW_CSS;
+  shadow.appendChild(floatingBaseStyleEl);
 
   const wrapper = document.createElement('div');
   wrapper.className = 'ecm-root';
   wrapper.innerHTML = `
-    <!-- Floating Launcher (Фирменный значок с индикатором) -->
-    <button class="ecm-floating-launcher" id="floatingLauncher" aria-label="Открыть диалог с виртуальным консультантом" title="Открыть чат" aria-expanded="false">
+    <button class="ecm-floating-launcher" id="floatingLauncher" aria-label="Открыть чат с консультантом" title="Открыть чат" aria-expanded="false">
       <div class="ecm-launcher-icon" id="floatingLauncherIcon">
         ${SVG_LAUNCHER_CHAT}
       </div>
       <div class="ecm-launcher-dot" id="floatingLauncherDot"></div>
     </button>
 
-    <!-- Floating Modal Container -->
     <div class="ecm-modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="Чат с консультантом">
-      <div class="ecm-chat-window" id="floatingChatWindow">
-        <!-- Будет заполняться динамически -->
-      </div>
+      <div class="ecm-chat-window" id="floatingChatWindow"></div>
     </div>
   `;
   shadow.appendChild(wrapper);
 
-  // ─── 9. ЛОГИКА ДИАЛОГА И СМЕТЫ ────────────────────────────────────
+  // ─── 8. ЛОГИКА НАЧАЛЬНОГО ДИАЛОГА И ПРОКРУТКИ ЧИПСОВ ──────────────
   function getInitialMessages() {
     return [
       {
         role: 'bot',
         isEstimate: false,
         isInitialSample: true,
-        text: `Здравствуйте! Я виртуальный консультант студии «${STUDIO_CONFIG.company_name}».\n\nНиже — образец готового заказ-наряда со сметой и бронью слота. Назовите вашу модель авто или выберите вопрос ниже — сделаю точный расчет под ваш автомобиль и запишу вас на удобное время!`
+        text: `Здравствуйте. Я онлайн-консультант ${STUDIO_CONFIG.company_name}.\nНиже — пример предварительного расчёта. Назовите модель автомобиля или выберите запрос ниже — подготовлю смету и свободные окна.`
       },
       {
         role: 'bot',
         isEstimate: true,
         isInitialSample: true,
-        carModel: 'BMW 5 / Седан',
-        carClass: 'Образец сметы',
-        serviceName: 'Комплексная восстановительная полировка кузова',
+        carModel: 'BMW 5',
+        carClass: 'Седан',
+        serviceName: 'Восстановительная полировка кузова',
         basePrice: 18000,
         upsellName: 'Нанокерамика 9H (2 слоя)',
         upsellPrice: 25000,
         totalPrice: 43000,
-        slot: 'на ваш выбор (по согласованию)'
+        slot: 'суббота 14:00'
       }
     ];
   }
 
-  let messages = getInitialMessages();
+  let messages = [];
+  let inlineStream = null;
+  let inlineInput = null;
+  let inlineSend = null;
+  let floatingStream = null;
+  let floatingInput = null;
+  let floatingSend = null;
 
-  function createMessageElement(m) {
+  function updateChipStripMask(strip) {
+    if (!strip) return;
+    const maxScroll = strip.scrollWidth - strip.clientWidth;
+    if (maxScroll <= 2) {
+      strip.classList.remove('mask-both', 'mask-left');
+      strip.classList.add('mask-none');
+      return;
+    }
+    strip.classList.remove('mask-none');
+    const atStart = strip.scrollLeft <= 2;
+    const atEnd = strip.scrollLeft >= maxScroll - 2;
+    strip.classList.toggle('mask-both', !atStart && !atEnd);
+    strip.classList.toggle('mask-left', !atStart && atEnd);
+  }
+
+  function bindChipStrip(winEl) {
+    const strip = winEl.querySelector('.ecm-chips-strip');
+    if (!strip) return;
+    requestAnimationFrame(() => updateChipStripMask(strip));
+    strip.addEventListener('scroll', () => updateChipStripMask(strip), { passive: true });
+    strip.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) {
+        e.preventDefault();
+        strip.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+    window.addEventListener('resize', () => updateChipStripMask(strip), { passive: true });
+  }
+
+  function createMessageElement(m, options = {}) {
     const msgRow = document.createElement('div');
     msgRow.className = `ecm-msg ${m.role}`;
 
     if (m.role === 'user') {
-      msgRow.innerHTML = `<div class="ecm-user-text">${m.text}</div>`;
+      const bubble = document.createElement('div');
+      bubble.className = 'ecm-user-text';
+      bubble.textContent = m.text;
+      msgRow.appendChild(bubble);
     } else if (m.isEstimate) {
       msgRow.innerHTML = buildOrderCardHtml(
         m.carModel,
@@ -927,15 +1075,19 @@
         m.totalPrice,
         m.slot,
         m.serviceName,
-        m.upsellName
+        m.upsellName,
+        options
       );
     } else {
-      msgRow.innerHTML = `<div class="ecm-user-text" style="background:var(--w-card); white-space:pre-wrap; line-height:1.45;">${m.text}</div>`;
+      const bubble = document.createElement('div');
+      bubble.className = 'ecm-bot-bubble';
+      bubble.textContent = m.text;
+      msgRow.appendChild(bubble);
     }
     return msgRow;
   }
 
-  function renderMessagesInto(containerEl) {
+  function renderMessagesInto(containerEl, scrollMode = 'bottom') {
     if (!containerEl) return;
     containerEl.innerHTML = '';
     const fragment = document.createDocumentFragment();
@@ -943,11 +1095,15 @@
     containerEl.appendChild(fragment);
 
     requestAnimationFrame(() => {
-      containerEl.scrollTop = containerEl.scrollHeight;
+      if (scrollMode === 'top') {
+        containerEl.scrollTop = 0;
+      } else {
+        containerEl.scrollTop = containerEl.scrollHeight;
+      }
     });
   }
 
-  // ─── 10. МОНТИРОВАНИЕ В ИНЛАЙН-РЕЖИМЕ (HERO #ECM-DEMO) ────────────
+  // ─── 9. МОНТИРОВАНИЕ В ИНЛАЙН И ПЛАВАЮЩИЙ РЕЖИМЫ ──────────────────
   const inlineContainer = document.getElementById('ecm-demo');
   let isFloatingOpen = false;
 
@@ -959,48 +1115,44 @@
     return `
       <div class="ecm-header">
         <div class="ecm-header-left">
-          <div class="ecm-avatar">
-            ${SVG_STUDIO_LOGO}
-          </div>
-          <div>
+          <div class="ecm-avatar">${SVG_STUDIO_MARK}</div>
+          <div style="min-width:0;">
             <div class="ecm-title">${STUDIO_CONFIG.company_name}</div>
-            <div class="ecm-sub">Заказ-наряд • Онлайн</div>
+            <div class="ecm-sub"><span class="ecm-online-dot"></span><span>Онлайн-расчёт</span></div>
           </div>
         </div>
         <div class="ecm-actions">
-          <button class="ecm-icon-btn reset-btn" title="Сбросить диалог">${SVG_RESET}</button>
-          ${!isInline ? `<button class="ecm-icon-btn close-btn" title="Закрыть">${SVG_CLOSE}</button>` : ''}
+          <button type="button" class="ecm-icon-btn reset-btn" title="Сбросить диалог" aria-label="Сбросить диалог">${SVG_RESET}</button>
+          ${!isInline ? `<button type="button" class="ecm-icon-btn close-btn" title="Закрыть" aria-label="Закрыть">${SVG_CLOSE}</button>` : ''}
         </div>
       </div>
 
       <div class="ecm-stream" aria-live="polite"></div>
 
-      <div class="ecm-chips-strip">
-        ${STUDIO_CONFIG.quick_prompts.map(q => `<button class="ecm-chip-btn">${q}</button>`).join('')}
+      <div class="ecm-chips-wrap">
+        <div class="ecm-chips-strip">
+          ${STUDIO_CONFIG.quick_prompts.map(q => `<button type="button" class="ecm-chip-btn">${q}</button>`).join('')}
+        </div>
       </div>
 
       <div class="ecm-footer">
-        <input type="text" class="ecm-input" placeholder="Напишите вопрос или модель авто..." aria-label="Сообщение">
-        <button class="ecm-send" title="Отправить" aria-label="Отправить">${SVG_SEND}</button>
+        <input type="text" class="ecm-input" placeholder="Модель авто или вопрос..." aria-label="Сообщение">
+        <button type="button" class="ecm-send" title="Отправить" aria-label="Отправить">${SVG_SEND}</button>
       </div>
     `;
   }
 
-  // Настройка плавающего окна
   floatingChatWindow.innerHTML = buildChatWindowMarkup(false);
-  const floatingStream = floatingChatWindow.querySelector('.ecm-stream');
-  const floatingInput = floatingChatWindow.querySelector('.ecm-input');
-  const floatingSend = floatingChatWindow.querySelector('.ecm-send');
+  floatingStream = floatingChatWindow.querySelector('.ecm-stream');
+  floatingInput = floatingChatWindow.querySelector('.ecm-input');
+  floatingSend = floatingChatWindow.querySelector('.ecm-send');
   const floatingClose = floatingChatWindow.querySelector('.close-btn');
   const floatingReset = floatingChatWindow.querySelector('.reset-btn');
+  bindChipStrip(floatingChatWindow);
 
-  // Если есть инлайн-контейнер в Hero: встраиваем полнофункциональный инлайн виджет
-  let inlineStream = null;
-  let inlineInput = null;
-  let inlineSend = null;
+  let inlineVarsStyleEl = null;
 
   if (inlineContainer) {
-    // Монтируем инлайн структуру в теневой DOM или контейнер
     const inlineHost = document.createElement('div');
     inlineHost.id = 'ecm-inline-shadow-host';
     inlineHost.style.width = '100%';
@@ -1009,9 +1161,14 @@
     inlineContainer.appendChild(inlineHost);
 
     const inlineShadow = inlineHost.attachShadow({ mode: 'open' });
-    const inlineStyle = document.createElement('style');
-    inlineStyle.textContent = generateStyles(activeTheme);
-    inlineShadow.appendChild(inlineStyle);
+
+    inlineVarsStyleEl = document.createElement('style');
+    inlineVarsStyleEl.textContent = generateThemeVarsCss(activeTheme);
+    inlineShadow.appendChild(inlineVarsStyleEl);
+
+    const inlineBaseStyleEl = document.createElement('style');
+    inlineBaseStyleEl.textContent = BASE_SHADOW_CSS;
+    inlineShadow.appendChild(inlineBaseStyleEl);
 
     const inlineWin = document.createElement('div');
     inlineWin.className = 'ecm-chat-window';
@@ -1022,8 +1179,8 @@
     inlineInput = inlineWin.querySelector('.ecm-input');
     inlineSend = inlineWin.querySelector('.ecm-send');
     const inlineReset = inlineWin.querySelector('.reset-btn');
+    bindChipStrip(inlineWin);
 
-    // Чипы в инлайне
     inlineWin.querySelectorAll('.ecm-chip-btn').forEach(btn => {
       btn.addEventListener('click', () => handleUserSend(btn.textContent.trim()));
     });
@@ -1045,14 +1202,9 @@
       }
     });
 
-    inlineReset.addEventListener('click', () => {
-      resetConversation();
-    });
-
-// Плавающая кнопка всегда видна статично (без скрытия по скроллу)
+    inlineReset.addEventListener('click', () => resetConversation());
   }
 
-  // Чипы в плавающем окне
   floatingChatWindow.querySelectorAll('.ecm-chip-btn').forEach(btn => {
     btn.addEventListener('click', () => handleUserSend(btn.textContent.trim()));
   });
@@ -1089,9 +1241,9 @@
       floatingLauncher.classList.add('is-open');
       floatingLauncher.setAttribute('aria-expanded', 'true');
       if (icon) icon.innerHTML = SVG_CLOSE;
-      renderAllStreams();
+      renderMessagesInto(floatingStream, messages.length <= 2 ? 'top' : 'bottom');
       if (window.innerWidth > 640) {
-        setTimeout(() => floatingInput && floatingInput.focus(), 150);
+        setTimeout(() => floatingInput && floatingInput.focus(), 160);
       }
     } else {
       modalOverlay.classList.remove('open');
@@ -1104,50 +1256,55 @@
 
   floatingLauncher.addEventListener('click', () => toggleFloating());
 
-  // Скрываем плавающую кнопку, если на экране уже виден инлайн-виджет (устраняет захламление на мобильных)
+  // Показываем плавающую кнопку ТОЛЬКО после прокрутки ниже Hero-виджета (или сразу если #ecm-demo нет)
+  function syncFloatingLauncherVisibility() {
+    if (!inlineContainer) {
+      floatingLauncher.classList.add('is-visible');
+      return;
+    }
+    const rect = inlineContainer.getBoundingClientRect();
+    const isHeroVisible = rect.bottom > 100 && rect.top < window.innerHeight;
+    if (isHeroVisible) {
+      floatingLauncher.classList.remove('is-visible');
+      if (isFloatingOpen) toggleFloating(false);
+    } else {
+      floatingLauncher.classList.add('is-visible');
+    }
+  }
+
   if (inlineContainer && window.IntersectionObserver) {
     try {
       const heroObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            floatingLauncher.style.transform = 'scale(0)';
-            floatingLauncher.style.opacity = '0';
-            floatingLauncher.style.pointerEvents = 'none';
+            floatingLauncher.classList.remove('is-visible');
           } else {
-            floatingLauncher.style.transform = 'scale(1)';
-            floatingLauncher.style.opacity = '1';
-            floatingLauncher.style.pointerEvents = 'auto';
+            floatingLauncher.classList.add('is-visible');
           }
         });
-      }, { threshold: 0.15 });
+      }, { threshold: 0.12 });
       heroObserver.observe(inlineContainer);
-    } catch(e) {}
+      syncFloatingLauncherVisibility();
+    } catch (e) {
+      window.addEventListener('scroll', syncFloatingLauncherVisibility, { passive: true });
+      syncFloatingLauncherVisibility();
+    }
+  } else {
+    floatingLauncher.classList.add('is-visible');
   }
 
-  // Закрытие по клавише Esc
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isFloatingOpen) {
       toggleFloating(false);
     }
   });
 
-  function renderAllStreams() {
-    if (inlineStream) renderMessagesInto(inlineStream);
-    if (floatingStream) renderMessagesInto(floatingStream);
+  function renderAllStreams(scrollMode = 'bottom') {
+    if (inlineStream) renderMessagesInto(inlineStream, scrollMode);
+    if (floatingStream) renderMessagesInto(floatingStream, scrollMode);
   }
 
-  function resetConversation() {
-    try {
-      localStorage.removeItem(USAGE_KEY);
-      localStorage.removeItem(MSGS_KEY);
-    } catch(e) {}
-    resetActiveOrderState();
-    messages = getInitialMessages();
-    renderAllStreams();
-  }
-
-  // ─── 11. ИНТЕЛЛЕКТУАЛЬНЫЙ AI-ОТВЕТЧИК ДЛЯ ЧАТА ─────────────────────
-
+  // ─── 10. СОСТОЯНИЕ ЗАКАЗА И ИНТЕЛЛЕКТУАЛЬНЫЙ ПАРСЕР ──────────────
   let activeOrderState = {
     carModel: null,
     carClass: null,
@@ -1158,7 +1315,7 @@
     upsellName: null,
     upsellPrice: 0,
     totalPrice: 0,
-    slot: 'на ваш выбор (по согласованию)',
+    slot: 'по согласованию',
     upsellExcluded: false,
     carAge: null,
     stage: 'idle'
@@ -1175,7 +1332,7 @@
       upsellName: null,
       upsellPrice: 0,
       totalPrice: 0,
-      slot: 'на ваш выбор (по согласованию)',
+      slot: 'по согласованию',
       upsellExcluded: false,
       carAge: null,
       stage: 'idle'
@@ -1186,13 +1343,11 @@
     if (!text) return null;
     const trimmed = text.trim();
 
-    // 1. Телефон: +7 / 8 с цифрами или 10-11 цифр подряд
     const phoneMatch = trimmed.match(/(?:\+?7|8)[\s\-\(]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}\b/) || trimmed.match(/\b\d{10,11}\b/);
     if (phoneMatch) {
       const cleanWithoutPhone = trimmed.replace(phoneMatch[0], '').replace(/[+\-()]/g, '').replace(/тел[ефон]*[.:]?/i, '').replace(/меня зовут/i, '').trim();
       const nameMatch = cleanWithoutPhone.match(/[a-zA-Zа-яА-ЯёЁ]{2,20}/);
       const clientName = nameMatch ? nameMatch[0] : null;
-
       return {
         type: 'phone',
         value: phoneMatch[0],
@@ -1202,7 +1357,6 @@
       };
     }
 
-    // 2. Telegram: t.me/link, @handle или "тг: handle"
     const tgUrl = trimmed.match(/(?:https?:\/\/)?t\.me\/([a-zA-Z0-9_]{3,32})/i);
     if (tgUrl) {
       const cleanWithoutTg = trimmed.replace(tgUrl[0], '').replace(/меня зовут/i, '').trim();
@@ -1243,7 +1397,6 @@
       };
     }
 
-    // 3. ВКонтакте: ссылка vk.com/handle или "вк: handle"
     const vkUrl = trimmed.match(/(?:https?:\/\/)?(?:www\.)?vk\.(?:com|ru)\/([a-zA-Z0-9_\.]{2,50})/i);
     if (vkUrl) {
       return {
@@ -1268,54 +1421,51 @@
 
   function parseTimeEntity(text) {
     if (!text) return null;
-    const raw = text.toLowerCase().replace(/ё/g, "е");
+    const raw = text.toLowerCase().replace(/ё/g, 'е');
 
-    // 1. Формат ЧЧ:ММ или ЧЧ.ММ (например 14:00, 14.30, 9:15)
     const exactMatch = raw.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
     if (exactMatch) {
       const h = parseInt(exactMatch[1], 10);
       const m = exactMatch[2];
-      const hh = h < 10 ? "0" + h : "" + h;
+      const hh = h < 10 ? '0' + h : '' + h;
       return { hour: h, minute: parseInt(m, 10), formatted: `${hh}:${m}`, raw: exactMatch[0] };
     }
 
-    // 2. Словесные формы: проверяем сначала конкретные числа (два, три...), а потом уже единицу/час
     const wordItems = [
-      { words: ["два", "двум", "двух", "двумя"], h: 14 },
-      { words: ["три", "трем", "трех", "тремя"], h: 15 },
-      { words: ["четыре", "четырем", "четырех"], h: 16 },
-      { words: ["пять", "пяти"], h: 17 },
-      { words: ["шесть", "шести"], h: 18 },
-      { words: ["семь", "семи"], h: 19 },
-      { words: ["восемь", "восьми"], h: 20 },
-      { words: ["девять", "девяти"], h: 9 },
-      { words: ["десять", "десяти"], h: 10 },
-      { words: ["одиннадцать", "одиннадцати"], h: 11 },
-      { words: ["двенадцать", "двенадцати"], h: 12 },
-      { words: ["полдень"], h: 12 },
-      { words: ["обед"], h: 13 },
-      { words: ["час", "часу", "один", "одному", "единицу"], h: 13 }
+      { words: ['два', 'двум', 'двух', 'двумя'], h: 14 },
+      { words: ['три', 'трем', 'трех', 'тремя'], h: 15 },
+      { words: ['четыре', 'четырем', 'четырех'], h: 16 },
+      { words: ['пять', 'пяти'], h: 17 },
+      { words: ['шесть', 'шести'], h: 18 },
+      { words: ['семь', 'семи'], h: 19 },
+      { words: ['восемь', 'восьми'], h: 20 },
+      { words: ['девять', 'девяти'], h: 9 },
+      { words: ['десять', 'десяти'], h: 10 },
+      { words: ['одиннадцать', 'одиннадцати'], h: 11 },
+      { words: ['двенадцать', 'двенадцати'], h: 12 },
+      { words: ['полдень'], h: 12 },
+      { words: ['обед'], h: 13 },
+      { words: ['час', 'часу', 'один', 'одному', 'единицу'], h: 13 }
     ];
 
     for (const item of wordItems) {
       for (const w of item.words) {
-        const rx = new RegExp("(?:^|\\s)(?:(?:в|к|около|примерно|часа? в)\\s+)?" + w + "(?:\\s+час[а-я]*)?(?:\\s+(?:дня|вечера|утра|ночи))?(?:\\s|$|[.,!?;:])", "i");
+        const rx = new RegExp('(?:^|\\s)(?:(?:в|к|около|примерно|часа? в)\\s+)?' + w + '(?:\\s+час[а-я]*)?(?:\\s+(?:дня|вечера|утра|ночи))?(?:\\s|$|[.,!?;:])', 'i');
         if (rx.test(raw)) {
           const hasTimeMarker = /(?:^|\s)(?:в|к|около|примерно|часа? в|приеду|буду|заеду|записат|свободно)/i.test(raw) ||
-                                raw.includes("час") || raw.includes("дня") || raw.includes("утра") || raw.includes("вечера");
+            raw.includes('час') || raw.includes('дня') || raw.includes('утра') || raw.includes('вечера');
           if (hasTimeMarker) {
             let h = item.h;
-            if (raw.includes("утра") && h >= 12) h -= 12;
-            const hh = h < 10 ? "0" + h : "" + h;
+            if (raw.includes('утра') && h >= 12) h -= 12;
+            const hh = h < 10 ? '0' + h : '' + h;
             return { hour: h, minute: 0, formatted: `${hh}:00`, raw: w };
           }
         }
       }
     }
 
-    // 3. Цифры с предлогом времени или словом час/дня/вечера/утра
     const hasDigitTimeContext = /(?:^|\s)(?:в|к|около|примерно|после|до)\s+(\d{1,2})(?:\s*(?:ч|час|часа|часов|дня|вечера|утра|ночи))?(?:\s|$|[.,!?;:])/i.test(raw) ||
-                                /(?:^|\s)(\d{1,2})\s*(?:ч\b|час|часа|часов|дня|вечера|утра|ночи)(?:\s|$|[.,!?;:])/i.test(raw);
+      /(?:^|\s)(\d{1,2})\s*(?:ч\b|час|часа|часов|дня|вечера|утра|ночи)(?:\s|$|[.,!?;:])/i.test(raw);
 
     if (hasDigitTimeContext) {
       const m = raw.match(/(?:(?:^|\s)(?:в|к|около|примерно|после|до)\s+(\d{1,2}))|(?:(?:^|\s)(\d{1,2})\s*(?:ч\b|час|часа|часов|дня|вечера|утра|ночи))/i);
@@ -1323,12 +1473,10 @@
         const numStr = m[1] || m[2];
         let num = parseInt(numStr, 10);
         if (num >= 0 && num <= 24) {
-          if (num >= 1 && num <= 7) {
-            if (!raw.includes("ночи") && !raw.includes("утра")) {
-              num += 12;
-            }
+          if (num >= 1 && num <= 7 && !raw.includes('ночи') && !raw.includes('утра')) {
+            num += 12;
           }
-          const hh = num < 10 ? "0" + num : "" + num;
+          const hh = num < 10 ? '0' + num : '' + num;
           return { hour: num, minute: 0, formatted: `${hh}:00`, raw: m[0].trim() };
         }
       }
@@ -1341,7 +1489,7 @@
     if (!text) return null;
     const parsedTime = parseTimeEntity(text);
     const dayMatch = text.match(/(?:в\s+)?(?:понедельник|вторник|среду|четверг|пятницу|субботу|воскресенье|завтра|сегодня|выходные|будни)/i);
-    
+
     if (dayMatch && parsedTime) {
       return `${dayMatch[0].trim()} в ${parsedTime.formatted}`;
     }
@@ -1354,41 +1502,40 @@
     return null;
   }
 
+  function normalizeCarText(text) {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()?"«»]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function isUpsellExclusionQuery(text) {
     if (!text) return false;
-    const norm = normalizeCarText(text || "").toLowerCase();
+    const norm = normalizeCarText(text || '').toLowerCase();
 
-    // Исключаем нейтральные фразы вроде «без проблем», «без опозданий», «без разницы»
-    if (norm.includes("без проблем") || norm.includes("без разниц") || norm.includes("без опоздан") || norm.includes("без задерж")) {
+    if (norm.includes('без проблем') || norm.includes('без разниц') || norm.includes('без опоздан') || norm.includes('без задерж')) {
       return false;
     }
-
-    // 1. «только / просто / чисто» + услуга с опечатками (только, тольео, толька, тольк, ток, тока, проста, просто, чисто)
     if (/(?:^|\s)(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)\s+(?:одну\s+)?(?:хим\s*чист|чистк|химк|полиров|пленк|оклейк|баз|салон|одну|один)/i.test(norm)) {
       return true;
     }
-
-    // 2. «только / просто» + сумма («только за 18к», «только 18000», «только базу»)
     if (/(?:^|\s)(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)\s+(?:за\s+)?(?:\d+\s*(?:к|тыс|руб|р)?|баз)/i.test(norm)) {
       return true;
     }
-
-    // 3. «давайте / давате / хочу / можно / сделайте / оставьте» + «только / просто» с опечатками
     if (/(?:давайте|давате|давай|хочу|можно|мне|нам|сделайте|оставьте|будем)\s+(?:толь[кеоае]{1,2}|толк|тока|ток|прост[оа]?|чист[оа]?|лишь)(?:\s|$)/i.test(norm)) {
       return true;
     }
-
-    // 4. Любое «без ...»
-    if (norm.includes("без ")) {
+    if (norm.includes('без ')) {
       if (/без\s+(?:защитн[а-я]*\s+)?(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек)/i.test(norm)) {
         return true;
       }
-      if (/(?:давайте|давате|давай|можно|хочу|лучше|только|будем|мне|нам)\s+без(?:\s|$)/i.test(norm) || norm.startsWith("без ")) {
+      if (/(?:давайте|давате|давай|можно|хочу|лучше|только|будем|мне|нам)\s+без(?:\s|$)/i.test(norm) || norm.startsWith('без ')) {
         return true;
       }
     }
-
-    // 5. Прямые указания убрать доп / отказ от допа
     if (/доп[а-я]*\s+(?:не\s+(?:нужн|надо)|не\s+хочу)/i.test(norm) || /не\s+(?:нужн|надо)\s+доп/i.test(norm)) {
       return true;
     }
@@ -1401,27 +1548,19 @@
     if (/уберите\s+(?:керамик|нано|пропит|припит|доп|лишн|это|ее|его)/i.test(norm)) {
       return true;
     }
-
-    // 6. «[услуга] и все», «[услуга] без всего», «больше ничего»
     if (/(?:хим\s*чист|чистк|полиров|оклейк|пленк)[а-я]*\s+(?:и\s+все|больше\s+ничего|без\s+всего)/i.test(norm)) {
       return true;
     }
-
-    // 7. «одну услугу», «только базу», «без допов»
-    if (norm.includes("одну услуг") || norm.includes("один комплекс") || norm.includes("только баз") || norm.includes("без доп")) {
+    if (norm.includes('одну услуг') || norm.includes('один комплекс') || norm.includes('только баз') || norm.includes('без доп')) {
       return true;
     }
-
     return false;
   }
 
   function isBookingRequest(text) {
     if (!text) return false;
     const low = text.toLowerCase();
-    // Если клиент просит убрать доп или только одну услугу — это НЕ запрос на запись!
-    if (isUpsellExclusionQuery(low)) {
-      return false;
-    }
+    if (isUpsellExclusionQuery(low)) return false;
     const bookingWords = [
       'запис', 'забронир', 'брон', 'подходит', 'согласен', 'зафиксир', 'слот',
       'заехать', 'приехать', 'сделать', 'можно к вам', 'привезу', 'подъехать',
@@ -1434,7 +1573,6 @@
     const lowU = (userText || '').toLowerCase().replace(/ё/g, 'е').trim();
     const lowB = (botText || '').toLowerCase().replace(/ё/g, 'е').trim();
 
-    // Непрофильные отечественные авто или работы
     const refusalWords = [
       'лада', 'lada', 'ваз', 'vaz', 'газ', 'уаз', 'москвич', 'приора', 'гранта', 'веста', 'калина', 'нива',
       'жигули', 'жигуль', 'шестерка', 'семерка', 'девятка', 'четырка', 'буханка', 'патриот',
@@ -1445,7 +1583,6 @@
       if (rx.test(lowU)) return true;
     }
 
-    // Фразы отказа в ответе бота
     const botRefusalPhrases = [
       'не входят в список', 'не сможем предложить', 'к сожалению, не сможем',
       'не принимаем', 'не занимаемся', 'не обслуживаем', 'отечественного производства'
@@ -1460,58 +1597,27 @@
   function isCreatorOrDevQuery(text) {
     if (!text) return false;
     const low = text.toLowerCase();
-    if (/[св]о[зс]д[аое]тел|[св]а[зс]д[аое]тел/i.test(low)) {
-      return true;
-    }
-    if (/разработчик|разраб[а-я]*|программист|автор[а-я]*/i.test(low)) {
-      return true;
-    }
-    if (/кто\s+(?:тебя|тебе|вас|бота|виджет)\s+(?:[св]оздал|[св]делал|написал|[св]очинил|придумал|разработал)/i.test(low)) {
-      return true;
-    }
-    if (/кто\s+(?:твой|ваш)\s+(?:[св]оздатель|[св]оздател|автор|разработчик|хозяин|папа|шеф)/i.test(low)) {
-      return true;
-    }
-    if (/связаться\s+с\s+(?:[св]оздател|разработчик|автор|тем\s+кто|кем\s+то\s+кто\s+сделал)/i.test(low)) {
-      return true;
-    }
-    if (/(?:купить|заказать|сделать|хочу|подключить)\s+(?:такого\s*(?:же\s*)?)?(?:бота|виджет|систему|чат)/i.test(low)) {
-      return true;
-    }
-    if (/сколько\s+стоит\s+(?:бот|виджет|чат|система)/i.test(low)) {
-      return true;
-    }
+    if (/[св]о[зс]д[аое]тел|[св]а[зс]д[аое]тел/i.test(low)) return true;
+    if (/разработчик|разраб[а-я]*|программист|автор[а-я]*/i.test(low)) return true;
+    if (/кто\s+(?:тебя|тебе|вас|бота|виджет)\s+(?:[св]оздал|[св]делал|написал|[св]очинил|придумал|разработал)/i.test(low)) return true;
+    if (/кто\s+(?:твой|ваш)\s+(?:[св]оздатель|[св]оздател|автор|разработчик|хозяин|папа|шеф)/i.test(low)) return true;
+    if (/связаться\s+с\s+(?:[св]оздател|разработчик|автор|тем\s+кто|кем\s+то\s+кто\s+сделал)/i.test(low)) return true;
+    if (/(?:купить|заказать|сделать|хочу|подключить)\s+(?:такого\s*(?:же\s*)?)?(?:бота|виджет|систему|чат)/i.test(low)) return true;
+    if (/сколько\s+стоит\s+(?:бот|виджет|чат|система)/i.test(low)) return true;
     return false;
   }
 
   function isLeadershipQuery(text) {
     if (!text) return false;
     const low = text.toLowerCase();
-    if (/главн[а-я]*|руковод[а-я]*|директор[а-я]*|владел[а-я]*|собственник[а-я]*|начальни[а-я]*|шеф[а-я]*|босс[а-я]*|управляющ[а-я]*/i.test(low)) {
-      return true;
-    }
-    if (/(?:контакт|номер|телефон|связь|поговорить|позовите|позови|свяжите|свяжи|связать)\s+(?:с\s+)?(?:главн|старш|руковод|директор|управляющ|шеф|босс|человек|оператор|живым)/i.test(low)) {
-      return true;
-    }
-    if (/живой\s+(?:человек|оператор|менеджер)|позови\s+человека|дай\s+человека|человек[а-я]*\s+позови|свяжи\s+с\s+человеком/i.test(low)) {
-      return true;
-    }
+    if (/главн[а-я]*|руковод[а-я]*|директор[а-я]*|владел[а-я]*|собственник[а-я]*|начальни[а-я]*|шеф[а-я]*|босс[а-я]*|управляющ[а-я]*/i.test(low)) return true;
+    if (/(?:контакт|номер|телефон|связь|поговорить|позовите|позови|свяжите|свяжи|связать)\s+(?:с\s+)?(?:главн|старш|руковод|директор|управляющ|шеф|босс|человек|оператор|живым)/i.test(low)) return true;
+    if (/живой\s+(?:человек|оператор|менеджер)|позови\s+человека|дай\s+человека|человек[а-я]*\s+позови|свяжи\s+с\s+человеком/i.test(low)) return true;
     return false;
   }
 
   function isLeadershipOrB2bQuery(text) {
     return isCreatorOrDevQuery(text) || isLeadershipQuery(text);
-  }
-
-  // ─── КАТАЛОГ И ИНТЕЛЛЕКТУАЛЬНОЕ РАСПОЗНАВАНИЕ АВТОМОБИЛЕЙ ───────────
-  function normalizeCarText(text) {
-    if (!text) return '';
-    return text
-      .toLowerCase()
-      .replace(/ё/g, 'е')
-      .replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()?"«»]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
   }
 
   function parseDateIntent(text) {
@@ -1521,38 +1627,27 @@
     let time = null;
 
     if (norm.includes('завтра')) {
-      hasDate = true;
-      display = 'завтра';
+      hasDate = true; display = 'завтра';
     } else if (norm.includes('послезавтра')) {
-      hasDate = true;
-      display = 'послезавтра';
+      hasDate = true; display = 'послезавтра';
     } else if (norm.includes('сегодня')) {
-      hasDate = true;
-      display = 'сегодня';
+      hasDate = true; display = 'сегодня';
     } else if (norm.includes('суббот')) {
-      hasDate = true;
-      display = 'эту субботу';
+      hasDate = true; display = 'эту субботу';
     } else if (norm.includes('воскресень')) {
-      hasDate = true;
-      display = 'это воскресенье';
+      hasDate = true; display = 'это воскресенье';
     } else if (norm.includes('пятниц')) {
-      hasDate = true;
-      display = 'эту пятницу';
+      hasDate = true; display = 'эту пятницу';
     } else if (norm.includes('четверг')) {
-      hasDate = true;
-      display = 'этот четверг';
+      hasDate = true; display = 'этот четверг';
     } else if (norm.includes('сред')) {
-      hasDate = true;
-      display = 'эту среду';
+      hasDate = true; display = 'эту среду';
     } else if (norm.includes('вторник')) {
-      hasDate = true;
-      display = 'этот вторник';
+      hasDate = true; display = 'этот вторник';
     } else if (norm.includes('понедельник')) {
-      hasDate = true;
-      display = 'этот понедельник';
+      hasDate = true; display = 'этот понедельник';
     } else if (norm.includes('выходн')) {
-      hasDate = true;
-      display = 'эти выходные';
+      hasDate = true; display = 'эти выходные';
     }
 
     const parsedTime = parseTimeEntity(text);
@@ -1592,13 +1687,13 @@
       return { category: 'ppf', name: 'Оклейка зон риска пленкой PPF' };
     }
     if (/полиров|палиров|глянец|блеск|паутинк|царапин/i.test(norm)) {
-      return { category: 'polishing', name: 'Комплексная восстановительная полировка кузова' };
+      return { category: 'polishing', name: 'Восстановительная полировка кузова' };
     }
     if (norm.includes('керамик') || norm.includes('9h') || norm.includes('жидкое стекло')) {
       return { category: 'ceramic', name: 'Нанокерамика 9H (2 слоя)' };
     }
     if (norm.includes('шумк') || norm.includes('шумоизоляц')) {
-      return { category: 'noise', name: 'Премиальная шумоизоляция' };
+      return { category: 'noise', name: 'Шумоизоляция салона' };
     }
     if (norm.includes('антидожд')) {
       return { category: 'antirain', name: 'Гидрофобный антидождь' };
@@ -1618,7 +1713,6 @@
       return rx.test(norm);
     }
 
-    // 1. Отечественные авто (ВАЗ / Лада / УАЗ / Жигули)
     if (hasRx('жигул[иейяь]?|жигуле|жигуль|ваз|таз|девятк[аеуоы]|четырк[аеуоы]|сем[ее]рк[аеуоы]|приор[аеуоы]|priora|грант[аеуоы]|granta|вест[аеуоы]|vesta|лада|lada')) {
       if (hasRx('нив[аеуоы]|niva')) {
         return { carModel: 'Lada Niva', carClass: 'Внедорожник', brand: 'Lada', isDomestic: true, rawMention: null };
@@ -1629,14 +1723,12 @@
       return { carModel: 'УАЗ Патриот', carClass: 'Внедорожник', brand: 'UAZ', isDomestic: true, rawMention: null };
     }
 
-    // 2. Toyota / Lexus (Прадо / Прадик / Крузак / Двухсотка / Трехсотка / LC 200 / LC 300 / 200 / 300)
     const hasPradoWord = hasRx('прад(?:ик[аеуом]?|[оеауы]|ом)?|prado');
     const hasCruiserWord = hasRx('крузак[аеуом]?|крузер[аеуом]?|двухсотк[аеуоы]?|трехсотк[аеуоы]?|land\\s*cruiser|тлк|lc\\s*(?:200|300)?|лс\\s*(?:200|300)?');
     const has200or300 = hasRx('(?:200|300|150|120|100)(?:\\s*(?:ка|ку|ке))?');
 
     if (hasPradoWord || (hasCruiserWord && hasRx('прад')) || (has200or300 && hasRx('прад(?:ик[аеуом]?|[оеауы]|ом)?'))) {
-      const model = 'Toyota Land Cruiser Prado';
-      return { carModel: model, carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false, rawMention: null };
+      return { carModel: 'Toyota Land Cruiser Prado', carClass: 'Внедорожник', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
     if (hasCruiserWord || (has200or300 && (hasRx('тойот|круз|крузак|тлк|lc|лс') || norm.includes('круз')))) {
       const model = hasRx('300|трехсотк') ? 'Toyota Land Cruiser 300' : 'Toyota Land Cruiser 200';
@@ -1665,10 +1757,8 @@
     if (hasRx('rx\\s*(?:350|300|500)?|рх|nx\\s*(?:200|250|300)?|нх')) {
       return { carModel: 'Lexus RX/NX', carClass: 'Кроссовер', brand: 'Lexus', isDomestic: false, rawMention: null };
     }
-    if (hasRx('es|ес|is|ис|ls|лс')) {
-      if (hasRx('лех|лексус|lexus|тойот')) {
-        return { carModel: 'Lexus ES/LS', carClass: 'Бизнес-седан', brand: 'Lexus', isDomestic: false, rawMention: null };
-      }
+    if (hasRx('es|ес|is|ис|ls|лс') && hasRx('лех|лексус|lexus|тойот')) {
+      return { carModel: 'Lexus ES/LS', carClass: 'Бизнес-седан', brand: 'Lexus', isDomestic: false, rawMention: null };
     }
     if (hasRx('лех[аеуоы]|лехус[аеуом]?|лексус[аеуом]?|lexus')) {
       return { carModel: 'Lexus', carClass: 'Внедорожник', brand: 'Lexus', isDomestic: false, rawMention: null };
@@ -1677,9 +1767,8 @@
       return { carModel: 'Toyota', carClass: 'Кроссовер', brand: 'Toyota', isDomestic: false, rawMention: null };
     }
 
-    // 3. Mercedes-Benz
     if (hasRx('гелик[аеуом]?|гелендваген[аеуом]?|g\\s*class|г\\s*класс|g\\s*63|g\\s*500|g63|g500')) {
-      return { carModel: 'Mercedes G-Class (Гелик)', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
+      return { carModel: 'Mercedes G-Class', carClass: 'Внедорожник', brand: 'Mercedes', isDomestic: false, rawMention: null };
     }
     if (hasRx('63\\s*амг|амг\\s*63|amg\\s*63|63\\s*amg|амг|amg') && hasRx('мерс|мерин|мерседес|mercedes|63')) {
       if (hasRx('гелик|г\\s*класс|g\\s*class|джип|внедорожник')) {
@@ -1709,7 +1798,6 @@
       return { carModel: 'Mercedes-Benz', carClass: 'Бизнес-седан', brand: 'Mercedes', isDomestic: false, rawMention: null };
     }
 
-    // 4. BMW
     if (hasRx('х\\s*[567]|x\\s*[567]|икс\\s*[567]|xm|хм|х5|х6|х7|x5|x6|x7')) {
       return { carModel: 'BMW X5/X6/X7', carClass: 'Внедорожник', brand: 'BMW', isDomestic: false, rawMention: null };
     }
@@ -1723,7 +1811,6 @@
       return { carModel: 'BMW', carClass: 'Седан', brand: 'BMW', isDomestic: false, rawMention: null };
     }
 
-    // 5. Audi
     if (hasRx('ку\\s*[78]|q\\s*[78]|ку7|ку8|q7|q8|e\\s*tron|етрон')) {
       return { carModel: 'Audi Q7/Q8', carClass: 'Внедорожник', brand: 'Audi', isDomestic: false, rawMention: null };
     }
@@ -1737,7 +1824,6 @@
       return { carModel: 'Audi', carClass: 'Седан', brand: 'Audi', isDomestic: false, rawMention: null };
     }
 
-    // 6. Porsche
     if (hasRx('кай|кайен[аеуом]?|cayenne')) {
       return { carModel: 'Porsche Cayenne', carClass: 'Внедорожник', brand: 'Porsche', isDomestic: false, rawMention: null };
     }
@@ -1751,7 +1837,6 @@
       return { carModel: 'Porsche', carClass: 'Внедорожник', brand: 'Porsche', isDomestic: false, rawMention: null };
     }
 
-    // 7. Tank (300, 400, 500, 700)
     if (hasRx('танк[аеуом]?|tank')) {
       let model = 'Tank 300';
       if (hasRx('500|пятьсот')) model = 'Tank 500';
@@ -1760,7 +1845,6 @@
       return { carModel: model, carClass: 'Внедорожник', brand: 'Tank', isDomestic: false, rawMention: null };
     }
 
-    // 8. LiXiang / Li Auto (L6, L7, L8, L9)
     if (hasRx('лисян[аеуом]?|ли\\s*сян|li\\s*auto|lixiang|ли\\s*[6789]|li\\s*[6789]|l[6789]|л[6789]')) {
       let model = 'Li Auto L9';
       if (hasRx('8|л8|l8')) model = 'Li Auto L8';
@@ -1769,42 +1853,22 @@
       return { carModel: model, carClass: 'Внедорожник', brand: 'LiXiang', isDomestic: false, rawMention: null };
     }
 
-    // 9. Zeekr (001, 009, 7X, X, 007)
     if (hasRx('зикр[аеуом]?|zeekr')) {
       if (hasRx('009')) return { carModel: 'Zeekr 009', carClass: 'Микроавтобус', brand: 'Zeekr', isDomestic: false, rawMention: null };
       if (hasRx('7x|7х|x|х|икс')) return { carModel: 'Zeekr X/7X', carClass: 'Кроссовер', brand: 'Zeekr', isDomestic: false, rawMention: null };
       return { carModel: 'Zeekr 001', carClass: 'Бизнес-седан / Лифтбек', brand: 'Zeekr', isDomestic: false, rawMention: null };
     }
 
-    // 10. Geely (Monjaro, Tugella, Atlas, Coolray, Preface, Emgrand)
-    if (hasRx('монжар[оеауы]?|монж[аеуом]?|monjaro')) {
-      return { carModel: 'Geely Monjaro', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('тугелл?[аеуоы]?|tugella')) {
-      return { carModel: 'Geely Tugella', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('атлас[аеуом]?|atlas|кулрей[аеуом]?|coolray|окаванго|okavango')) {
-      return { carModel: 'Geely Atlas / Coolray', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('префейс[аеуом]?|preface|эмгранд[аеуом]?|emgrand')) {
-      return { carModel: 'Geely Preface / Emgrand', carClass: 'Седан', brand: 'Geely', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('джили|geely')) {
-      return { carModel: 'Geely', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
-    }
+    if (hasRx('монжар[оеауы]?|монж[аеуом]?|monjaro')) return { carModel: 'Geely Monjaro', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    if (hasRx('тугелл?[аеуоы]?|tugella')) return { carModel: 'Geely Tugella', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    if (hasRx('атлас[аеуом]?|atlas|кулрей[аеуом]?|coolray|окаванго|okavango')) return { carModel: 'Geely Atlas / Coolray', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
+    if (hasRx('префейс[аеуом]?|preface|эмгранд[аеуом]?|emgrand')) return { carModel: 'Geely Preface / Emgrand', carClass: 'Седан', brand: 'Geely', isDomestic: false, rawMention: null };
+    if (hasRx('джили|geely')) return { carModel: 'Geely', carClass: 'Кроссовер', brand: 'Geely', isDomestic: false, rawMention: null };
 
-    // 11. Haval (Dargo, H9, Jolion, F7, M6)
-    if (hasRx('дарг[оеауы]?|dargo|h\\s*9|н\\s*9')) {
-      return { carModel: 'Haval Dargo / H9', carClass: 'Внедорожник', brand: 'Haval', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('джолион[аеуом]?|jolion|f\\s*7|ф\\s*7|m\\s*6|м\\s*6')) {
-      return { carModel: 'Haval Jolion / F7', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('хавал[аеуом]?|хавейл[аеуом]?|haval')) {
-      return { carModel: 'Haval', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
-    }
+    if (hasRx('дарг[оеауы]?|dargo|h\\s*9|н\\s*9')) return { carModel: 'Haval Dargo / H9', carClass: 'Внедорожник', brand: 'Haval', isDomestic: false, rawMention: null };
+    if (hasRx('джолион[аеуом]?|jolion|f\\s*7|ф\\s*7|m\\s*6|м\\s*6')) return { carModel: 'Haval Jolion / F7', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
+    if (hasRx('хавал[аеуом]?|хавейл[аеуом]?|haval')) return { carModel: 'Haval', carClass: 'Кроссовер', brand: 'Haval', isDomestic: false, rawMention: null };
 
-    // 12. Chery / Exeed / Jetour / Omoda / Jaecoo / Changan / Voyah
     if (hasRx('тигг[оеауы]?|tiggo|аризз[оеауы]|arrizo|черей|chery')) {
       if (hasRx('аризз|arrizo')) return { carModel: 'Chery Arrizo', carClass: 'Седан', brand: 'Chery', isDomestic: false, rawMention: null };
       return { carModel: 'Chery Tiggo', carClass: 'Кроссовер', brand: 'Chery', isDomestic: false, rawMention: null };
@@ -1813,63 +1877,29 @@
       if (hasRx('vx|вх')) return { carModel: 'Exeed VX', carClass: 'Внедорожник', brand: 'Exeed', isDomestic: false, rawMention: null };
       return { carModel: 'Exeed TXL/RX', carClass: 'Кроссовер', brand: 'Exeed', isDomestic: false, rawMention: null };
     }
-    if (hasRx('джетур[аеуом]?|jetour|т\\s*2|t\\s*2|дашинг|dashing')) {
-      return { carModel: 'Jetour T2 / Dashing', carClass: 'Внедорожник', brand: 'Jetour', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('омод[аеуоы]|omoda|с\\s*5|c\\s*5|s\\s*5|с5|c5|s5|джейк[уо]|jaecoo|j\\s*7|j7')) {
-      return { carModel: 'Omoda C5 / Jaecoo J7', carClass: 'Кроссовер', brand: 'Omoda', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('чанган[аеуом]?|changan|юни|uni|cs\\s*55|cs\\s*75')) {
-      return { carModel: 'Changan UNI / CS', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false, rawMention: null };
-    }
+    if (hasRx('джетур[аеуом]?|jetour|т\\s*2|t\\s*2|дашинг|dashing')) return { carModel: 'Jetour T2 / Dashing', carClass: 'Внедорожник', brand: 'Jetour', isDomestic: false, rawMention: null };
+    if (hasRx('омод[аеуоы]|omoda|с\\s*5|c\\s*5|s\\s*5|с5|c5|s5|джейк[уо]|jaecoo|j\\s*7|j7')) return { carModel: 'Omoda C5 / Jaecoo J7', carClass: 'Кроссовер', brand: 'Omoda', isDomestic: false, rawMention: null };
+    if (hasRx('чанган[аеуом]?|changan|юни|uni|cs\\s*55|cs\\s*75')) return { carModel: 'Changan UNI / CS', carClass: 'Кроссовер', brand: 'Changan', isDomestic: false, rawMention: null };
     if (hasRx('воях[аеуом]?|вой[яеи]|voyah')) {
       if (hasRx('дрим|dream')) return { carModel: 'Voyah Dream', carClass: 'Микроавтобус', brand: 'Voyah', isDomestic: false, rawMention: null };
       return { carModel: 'Voyah Free', carClass: 'Кроссовер', brand: 'Voyah', isDomestic: false, rawMention: null };
     }
 
-    // 13. VW / Skoda
-    if (hasRx('туарег[аеуом]?|touareg|терамонт[аеуом]?|teramont')) {
-      return { carModel: 'VW Touareg', carClass: 'Внедорожник', brand: 'VW', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('тиг[аеуоы]|тигуан[аеуом]?|tiguan|кодиак[аеуом]?|kodiaq|карок[аеуом]?|karoq|таос|taos')) {
-      return { carModel: 'VW Tiguan / Skoda Kodiaq', carClass: 'Кроссовер', brand: 'VW', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('октах[аеуоы]?|октави[яиею]|octavia|суперб[аеуом]?|superb|рапид[аеуом]?|rapid|поло|polo|пассат[аеуом]?|passat|джетт[аеуоы]|jetta|гольф|golf')) {
-      return { carModel: 'Skoda / VW', carClass: 'Седан', brand: 'VW', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('мультивен|multivan|каравелл[аеуоы]|caravelle')) {
-      return { carModel: 'VW Multivan', carClass: 'Микроавтобус', brand: 'VW', isDomestic: false, rawMention: null };
-    }
+    if (hasRx('туарег[аеуом]?|touareg|терамонт[аеуом]?|teramont')) return { carModel: 'VW Touareg', carClass: 'Внедорожник', brand: 'VW', isDomestic: false, rawMention: null };
+    if (hasRx('тиг[аеуоы]|тигуан[аеуом]?|tiguan|кодиак[аеуом]?|kodiaq|карок[аеуом]?|karoq|таос|taos')) return { carModel: 'VW Tiguan / Skoda Kodiaq', carClass: 'Кроссовер', brand: 'VW', isDomestic: false, rawMention: null };
+    if (hasRx('октах[аеуоы]?|октави[яиею]|octavia|суперб[аеуом]?|superb|рапид[аеуом]?|rapid|поло|polo|пассат[аеуом]?|passat|джетт[аеуоы]|jetta|гольф|golf')) return { carModel: 'Skoda / VW', carClass: 'Седан', brand: 'VW', isDomestic: false, rawMention: null };
+    if (hasRx('мультивен|multivan|каравелл[аеуоы]|caravelle')) return { carModel: 'VW Multivan', carClass: 'Микроавтобус', brand: 'VW', isDomestic: false, rawMention: null };
 
-    // 14. Kia / Hyundai
-    if (hasRx('сорент[оеауы]|sorento|мохав[еауы]?|mohave|палисад[аеуом]?|palisade|санта\\s*фе|santa\\s*fe')) {
-      return { carModel: 'Kia Sorento / Hyundai Palisade', carClass: 'Внедорожник', brand: 'Kia', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('спортейдж[аеуом]?|спортидж[аеуом]?|sportage|туссан[аеуом]?|тусон|tucson|крет[аеуоы]|creta|селтос[аеуом]?|seltos')) {
-      return { carModel: 'Kia Sportage / Hyundai Tucson', carClass: 'Кроссовер', brand: 'Kia', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('карнивал[аеуом]?|carnival|стари[яиею]|staria')) {
-      return { carModel: 'Kia Carnival / Hyundai Staria', carClass: 'Микроавтобус', brand: 'Kia', isDomestic: false, rawMention: null };
-    }
-    if (hasRx('солярис[аеуом]?|соляр[аеуоы]?|solaris|рио|rio|к\\s*5|k\\s*5|к5|k5|оптим[аеуоы]|optima|сонат[аеуоы]|sonata|церато|cerato|элантр[аеуоы]|elantra|круз[аеуом]?|cruze|генезис|genesis')) {
-      return { carModel: 'Kia / Hyundai / Chevrolet', carClass: 'Седан', brand: 'Kia', isDomestic: false, rawMention: null };
-    }
+    if (hasRx('сорент[оеауы]|sorento|мохав[еауы]?|mohave|палисад[аеуом]?|palisade|санта\\s*фе|santa\\s*fe')) return { carModel: 'Kia Sorento / Hyundai Palisade', carClass: 'Внедорожник', brand: 'Kia', isDomestic: false, rawMention: null };
+    if (hasRx('спортейдж[аеуом]?|спортидж[аеуом]?|sportage|туссан[аеуом]?|тусон|tucson|крет[аеуоы]|creta|селтос[аеуом]?|seltos')) return { carModel: 'Kia Sportage / Hyundai Tucson', carClass: 'Кроссовер', brand: 'Kia', isDomestic: false, rawMention: null };
+    if (hasRx('карнивал[аеуом]?|carnival|стари[яиею]|staria')) return { carModel: 'Kia Carnival / Hyundai Staria', carClass: 'Микроавтобус', brand: 'Kia', isDomestic: false, rawMention: null };
+    if (hasRx('солярис[аеуом]?|соляр[аеуоы]?|solaris|рио|rio|к\\s*5|k\\s*5|к5|k5|оптим[аеуоы]|optima|сонат[аеуоы]|sonata|церато|cerato|элантр[аеуоы]|elantra|круз[аеуом]?|cruze|генезис|genesis')) return { carModel: 'Kia / Hyundai / Chevrolet', carClass: 'Седан', brand: 'Kia', isDomestic: false, rawMention: null };
 
-    // 15. Общие родовые термины кузова
-    if (hasRx('внедорожник[аеуом]?|джип[аеуом]?|рамник[аеуом]?|пикап[аеуом]?')) {
-      return { carModel: 'Внедорожник', carClass: 'Внедорожник', brand: null, isDomestic: false, rawMention: null };
-    }
-    if (hasRx('кроссовер[аеуом]?|паркетник[аеуом]?')) {
-      return { carModel: 'Кроссовер', carClass: 'Кроссовер', brand: null, isDomestic: false, rawMention: null };
-    }
-    if (hasRx('микроавтобус[аеуом]?|минивэн[аеуом]?|минивен[аеуом]?|бус[аеуом]?')) {
-      return { carModel: 'Микроавтобус', carClass: 'Микроавтобус', brand: null, isDomestic: false, rawMention: null };
-    }
-    if (hasRx('седан[аеуом]?|хэтчбек[аеуом]?|универсал[аеуом]?|купе|лифтбек[аеуом]?')) {
-      return { carModel: 'Седан', carClass: 'Седан', brand: null, isDomestic: false, rawMention: null };
-    }
+    if (hasRx('внедорожник[аеуом]?|джип[аеуом]?|рамник[аеуом]?|пикап[аеуом]?')) return { carModel: 'Внедорожник', carClass: 'Внедорожник', brand: null, isDomestic: false, rawMention: null };
+    if (hasRx('кроссовер[аеуом]?|паркетник[аеуом]?')) return { carModel: 'Кроссовер', carClass: 'Кроссовер', brand: null, isDomestic: false, rawMention: null };
+    if (hasRx('микроавтобус[аеуом]?|минивэн[аеуом]?|минивен[аеуом]?|бус[аеуом]?')) return { carModel: 'Микроавтобус', carClass: 'Микроавтобус', brand: null, isDomestic: false, rawMention: null };
+    if (hasRx('седан[аеуом]?|хэтчбек[аеуом]?|универсал[аеуом]?|купе|лифтбек[аеуом]?')) return { carModel: 'Седан', carClass: 'Седан', brand: null, isDomestic: false, rawMention: null };
 
-    // 16. Извлечение незнакомой модели («на [X]», «у меня [X]»)
     const rawMatch = norm.match(/(?:^|\s)(?:на|у меня|для|машин[аеу]|авто|автомобил[еяь])\s+([a-zа-я0-9\s]{2,25}?)(?=\s+(?:химчист|полиров|оклейк|пленк|брон|керамик|сделать|заехать|приехать|записат|почистит|покрыт|$))/i);
     if (rawMatch) {
       const candidate = rawMatch[1].trim();
@@ -1882,84 +1912,73 @@
     return { carModel: null, carClass: null, brand: null, isDomestic: false, rawMention: null };
   }
 
-  function parseMessageEntities(text, activeOrderState) {
-    const norm = normalizeCarText(text || '');
-    const detectedCar = detectCar(text);
-    const service = parseServiceIntent(text);
-    const dateIntent = parseDateIntent(text);
-    const bookingIntent = parseBookingIntent(text);
-    const contactInfo = extractContactInfo(text);
-
+  function parseMessageEntities(text) {
     return {
-      norm: norm,
-      car: detectedCar,
-      service: service,
-      dateIntent: dateIntent,
-      bookingIntent: bookingIntent,
-      contactInfo: contactInfo
+      norm: normalizeCarText(text || ''),
+      car: detectCar(text),
+      service: parseServiceIntent(text),
+      dateIntent: parseDateIntent(text),
+      bookingIntent: parseBookingIntent(text),
+      contactInfo: extractContactInfo(text)
     };
   }
 
-  // Алиас для обратной совместимости
   const detectCarDetails = detectCar;
 
   function getCarExpertDetail(carModel, carClass, brand) {
     const low = (carModel || '').toLowerCase();
     const cClass = carClass || '';
 
-    if (low.includes('prado') || low.includes('прадо') || low.includes('прадик') || low.includes('land cruiser') || low.includes('крузак')) {
-      return 'На Прадо и Крузаках салон просторный, с хорошей плотной кожей — после правильной чистки вернем заводскую матовость и свежесть.';
+    if (low.includes('prado') || low.includes('прадо') || low.includes('land cruiser') || low.includes('крузак')) {
+      return 'На Land Cruiser просторный салон с плотной кожей — вернём заводскую матовость и аккуратно проработаем все стыки.';
     }
     if (low.includes('tank') || low.includes('танк')) {
-      return 'Танк — отличный брутальный рамник! Лобовое у него вертикальное, поэтому на трассе часто ловит гравий, а в салоне главное — аккуратно вычистить фактурный пластик и сиденья.';
+      return 'У Tank 300 вертикальное лобовое стекло и массивные расширители арок — зона риска по трассе, а фактурный пластик в салоне требует бережной чистки.';
     }
     if (low.includes('audi q8') || low.includes('ку8')) {
-      return 'Q8 — шикарный кузов с мускулистым рельефом и глянцем Shadow Line. После правильного детейлинга машина выглядит как с витрины!';
+      return 'У Q8 сложный рельеф кузова и глянцевые стойки Shadow Line — уделим внимание каждой кромке.';
     }
-    if (low.includes('bmw x5') || low.includes('х5') || low.includes('x6') || low.includes('x7')) {
-      return 'Иксы — классика премиума! Рельефные формы и богатый салон — уделим максимум внимания коже и всем скрытым полостям.';
+    if (low.includes('bmw x5') || low.includes('x6') || low.includes('x7')) {
+      return 'Для крупных BMW особое внимание уделяем деликатному глянцу, оптике и коже салона.';
     }
-    if (low.includes('гелик') || low.includes('g-class') || low.includes('г-класс')) {
-      return 'Гелик — культовый аппарат! Салон массивный и фактурный, вычистим каждую строчку кожи и все труднодоступные места.';
+    if (low.includes('g-class') || low.includes('гелик')) {
+      return 'У G-Class плоский вертикальный кузов и рельефный интерьер — работаем точечно по каждой панели и строчке.';
     }
     if (low.includes('gle') || low.includes('gls')) {
-      return 'На GLE/GLS премиальная деликатная отделка — бережно обработаем немецкими составами Koch Chemie, чтобы салон пах новым авто.';
+      return 'На GLE/GLS деликатная отделка и большой объём фронтальных деталей — используем составы Koch Chemie и полиуретан 200 мкм.';
     }
-    if (brand === 'LiXiang' || low.includes('li auto') || low.includes('лисян')) {
-      return 'На Лисяне роскошный светлый салон и мягкий заводской лак — бережно очистим кожу и защитим от затирания джинсами.';
+    if (brand === 'LiXiang' || low.includes('li auto')) {
+      return 'На Li Auto мягкий заводской лак и светлый салон — защита полиуретаном и пропиткой кожи здесь критична.';
     }
-    if (brand === 'Zeekr' || low.includes('zeekr') || low.includes('зикр')) {
-      return 'Зикр — очень стильный и технологичный. Бережно вычистим весь салон и глянцевые панели без малейших разводов.';
+    if (brand === 'Zeekr' || low.includes('zeekr')) {
+      return 'У Zeekr обилие глянцевых панелей и аэродинамичный передок — полируем и защищаем без голограмм и шагрени.';
     }
-    if (brand === 'Geely' || low.includes('monjaro') || low.includes('монжаро') || low.includes('тугелла')) {
-      return 'На Монжаро отличный комбинированный салон с замшей и кожей — деликатно вычистим все материалы без переувлажнения.';
+    if (brand === 'Geely' || low.includes('monjaro')) {
+      return 'На Monjaro комбинированный салон с алькантарой и мягкий лак — работаем низкообразивными пастами без перегрева.';
     }
-    if (brand === 'Haval' || low.includes('dargo') || low.includes('дарго') || low.includes('f7')) {
-      return 'Отличная семейная машина! Тщательно вычистим сиденья, ковролин и багажник, чтобы в салоне было максимально свежо.';
+    if (brand === 'Mercedes' || low.includes('mercedes')) {
+      return 'Для Mercedes используем составы под заводскую фактуру кожи и лака с высокой твёрдостью.';
     }
-    if (low.includes('мерс') || low.includes('mercedes') || brand === 'Mercedes') {
-      return 'У Mercedes благородные материалы отделки — бережно вычистим премиальную кожу и алькантару немецкими составами Koch Chemie.';
+    if (brand === 'BMW' || low.includes('bmw')) {
+      return 'На BMW с твёрдым лаком и элементами Shadow Line требуется многоступенчатая полировка и аккуратная фиксация плёнки.';
     }
-    if (low.includes('бмв') || low.includes('bmw') || brand === 'BMW') {
-      return 'Салон BMW с рельефной отделкой — уделим максимум внимания фактурной коже и всем элементам интерьера.';
+    if (brand === 'Audi' || low.includes('audi')) {
+      return 'На Audi выводим лак в чистое зеркало и сохраняем матовую текстуру декоративных вставок.';
     }
-    if (low.includes('ауди') || low.includes('audi') || brand === 'Audi') {
-      return 'В салоне Audi премиальная эргономика — вернем коже матовость и чистоту, деликатно очистим все стыки.';
+    if (brand === 'Porsche' || low.includes('porsche')) {
+      return 'Для Porsche работаем по стандартам премиальной приёмки — без жирного блеска на коже и с подворотом плёнки без видимых швов.';
     }
-    if (low.includes('порш') || low.includes('porsche') || brand === 'Porsche') {
-      return 'У Порше эталонный интерьер — деликатно обработаем кожу и алькантару, сохранив заводскую матовую текстуру без жирного блеска.';
-    }
-    if (low.includes('lexus') || low.includes('лексус') || brand === 'Lexus') {
-      return 'На Лексусе очень мягкая и приятная кожа — обработаем бережными защитными бальзамами, вернем мягкость и свежесть.';
+    if (brand === 'Lexus' || low.includes('lexus')) {
+      return 'У Lexus мягкий заводской лак и тонкая кожа — подбираем деликатные круги и защитные бальзамы.';
     }
     if (cClass === 'Внедорожник') {
-      return 'Для большого внедорожника с просторным салоном комплексный уход вернет ощущение нового автомобиля из салона.';
+      return 'Для полноразмерного внедорожника учитываем увеличенную площадь кузова и объём салона.';
     }
     if (cClass === 'Кроссовер') {
-      return 'Отличный городской кроссовер — тщательно обновим интерьер, чтобы в салоне было приятно и комфортно каждый день.';
+      return 'Для кроссовера просчитываем фронтальную проекцию и все уязвимые зоны пластика.';
     }
     if (cClass.includes('Седан')) {
-      return 'Для седана сделаем идеальный лоск — сиденья и пластик будут чистыми, свежими и приятными на ощупь.';
+      return 'Для седана уделяем внимание передней части кузова, оптике и глубине глянца по бортам.';
     }
     return '';
   }
@@ -1969,18 +1988,14 @@
     if (isLeadershipOrB2bQuery(userText)) return false;
     const norm = normalizeCarText(userText);
 
-    // Прямой вопрос о стоимости/расчете (с толерантностью к опечаткам вроде «солько», «скоко», «почем», «стоит»)
     const priceKws = [
       'скольк', 'сольк', 'скоко', 'скока', 'склько', 'почем',
       'цен', 'стоимост', 'стоит', 'прайс', 'рассчит', 'посчит', 'тариф',
       'смет', 'расчет', 'оцен', 'выход', 'выйдет', 'обойдет'
     ];
     if (priceKws.some(k => norm.includes(k))) return true;
-
-    // Исключение допов / пересчет / запрос одной услуги
     if (isUpsellExclusionQuery(norm)) return true;
 
-    // Услуга + автомобиль или намерение
     const parsedSvc = parseServiceIntent(userText);
     const hasService = !!parsedSvc.category || /ppf|ппф|пленк|оклейк|полиров|керамик|хим\s*чист|химчист|чистк|почист|салон/i.test(norm);
     const detectedCar = detectCar(userText);
@@ -1988,8 +2003,6 @@
 
     if (hasService && hasCar) return true;
     if (norm.startsWith('хочу') && (hasService || hasCar)) return true;
-
-    // Смена авто при активной услуге («ой я приеду на танке 300 сколько будет стоить на нем»)
     if (hasCar && (norm.includes('на нем') || norm.includes('на нее') || norm.includes('на него') || norm.includes('приеду')) && activeOrderState.serviceName) {
       return true;
     }
@@ -2003,12 +2016,9 @@
 
     let carClass = detected.carClass || (baseState && baseState.carClass) || null;
     let carModel = detected.carModel || (baseState && baseState.carModel) || null;
-
-    // КРИТИЧЕСКОЕ ПРАВИЛО: никогда не подставлять Седан по умолчанию для неизвестного авто!
     if (!carClass) return null;
 
     const isExcl = isUpsellExclusionQuery(norm) || !!(baseState && baseState.upsellExcluded);
-
     const svcIntent = parseServiceIntent(userText);
     const hasPPFInText = svcIntent.category === 'ppf' || /ppf|ппф|пленк|плёнк|оклейк|оклеить|заклеит|затянут|закатат|брон/i.test(norm);
     const hasCleanInText = svcIntent.category === 'clean' || /хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|кожа|пропитк|озонир|химк/i.test(norm);
@@ -2016,30 +2026,18 @@
 
     let isPPF = false;
     let isClean = false;
-    let isPolishing = false;
 
-    if (hasCleanInText) {
-      isClean = true;
-    } else if (hasPPFInText) {
-      isPPF = true;
-    } else if (hasPolishingInText) {
-      isPolishing = true;
-    } else if (baseState && (baseState.serviceCategory || baseState.serviceName)) {
-      if (baseState.serviceCategory === 'clean' || (baseState.serviceName && baseState.serviceName.includes('химчист'))) {
-        isClean = true;
-      } else if (baseState.serviceCategory === 'ppf' || (baseState.serviceName && (baseState.serviceName.includes('PPF') || baseState.serviceName.includes('пленк')))) {
-        isPPF = true;
-      } else {
-        isPolishing = true;
-      }
-    } else {
-      isPolishing = true;
+    if (hasCleanInText) isClean = true;
+    else if (hasPPFInText) isPPF = true;
+    else if (!hasPolishingInText && baseState && (baseState.serviceCategory || baseState.serviceName)) {
+      if (baseState.serviceCategory === 'clean' || (baseState.serviceName && baseState.serviceName.includes('химчист'))) isClean = true;
+      else if (baseState.serviceCategory === 'ppf' || (baseState.serviceName && (baseState.serviceName.includes('PPF') || baseState.serviceName.includes('пленк')))) isPPF = true;
     }
 
     const dateIntent = parseDateIntent(userText);
-    let curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'на ваш выбор (по согласованию)';
+    let curSlot = (baseState && baseState.slot && baseState.slot !== 'суббота 14:00') ? baseState.slot : 'по согласованию';
     if (dateIntent && dateIntent.hasDate) {
-      curSlot = dateIntent.display + (dateIntent.time ? (' в ' + dateIntent.time) : ' (время на ваш выбор)');
+      curSlot = dateIntent.display + (dateIntent.time ? (' в ' + dateIntent.time) : ' (время на выбор)');
     }
 
     if (isPPF) {
@@ -2048,7 +2046,7 @@
       else if (carClass === 'Микроавтобус') bp = 85000;
 
       const up = isExcl ? 0 : (carClass === 'Седан' || carClass === 'Бизнес-седан' || carClass === 'Бизнес-седан / Лифтбек' ? 25000 : 30000);
-      const uName = isExcl ? 'Без нанокерамики (только базовый комплекс PPF)' : 'Нанокерамика 9H на остальной кузов';
+      const uName = isExcl ? 'Без дополнительных опций' : 'Нанокерамика 9H на остальной кузов';
       return {
         isEstimate: true,
         carModel: carModel || 'Автомобиль',
@@ -2062,13 +2060,15 @@
         slot: curSlot,
         upsellExcluded: isExcl
       };
-    } else if (isClean) {
+    }
+
+    if (isClean) {
       let bp = 15000;
       if (carClass === 'Внедорожник' || carClass === 'Кроссовер') bp = 18000;
       else if (carClass === 'Микроавтобус') bp = 22000;
 
       const up = isExcl ? 0 : 8000;
-      const uName = isExcl ? 'Без защитной пропитки (только базовая химчистка)' : 'Озонирование + защитная пропитка';
+      const uName = isExcl ? 'Без дополнительных опций' : 'Озонирование и защитная пропитка салона';
       return {
         isEstimate: true,
         carModel: carModel || 'Автомобиль',
@@ -2082,28 +2082,28 @@
         slot: curSlot,
         upsellExcluded: isExcl
       };
-    } else {
-      let bp = 18000;
-      if (carClass === 'Внедорожник') bp = 26000;
-      else if (carClass === 'Кроссовер') bp = 22000;
-      else if (carClass === 'Микроавтобус') bp = 28000;
-
-      const up = isExcl ? 0 : (carClass === 'Седан' || carClass === 'Бизнес-седан' || carClass === 'Бизнес-седан / Лифтбек' ? 25000 : 30000);
-      const uName = isExcl ? 'Без керамического покрытия (только восстановительная полировка)' : 'Нанокерамика 9H (2 слоя)';
-      return {
-        isEstimate: true,
-        carModel: carModel || 'Автомобиль',
-        carClass: carClass,
-        serviceCategory: 'polishing',
-        serviceName: 'Комплексная восстановительная полировка кузова',
-        basePrice: bp,
-        upsellName: uName,
-        upsellPrice: up,
-        totalPrice: bp + up,
-        slot: curSlot,
-        upsellExcluded: isExcl
-      };
     }
+
+    let bp = 18000;
+    if (carClass === 'Внедорожник') bp = 26000;
+    else if (carClass === 'Кроссовер') bp = 22000;
+    else if (carClass === 'Микроавтобус') bp = 28000;
+
+    const up = isExcl ? 0 : (carClass === 'Седан' || carClass === 'Бизнес-седан' || carClass === 'Бизнес-седан / Лифтбек' ? 25000 : 30000);
+    const uName = isExcl ? 'Без дополнительных опций' : 'Нанокерамика 9H (2 слоя)';
+    return {
+      isEstimate: true,
+      carModel: carModel || 'Автомобиль',
+      carClass: carClass,
+      serviceCategory: 'polishing',
+      serviceName: 'Восстановительная полировка кузова',
+      basePrice: bp,
+      upsellName: uName,
+      upsellPrice: up,
+      totalPrice: bp + up,
+      slot: curSlot,
+      upsellExcluded: isExcl
+    };
   }
 
   function extractEstimate(rawText, userText, contactInfo) {
@@ -2111,13 +2111,8 @@
 
     const isEstReq = isEstimateRequest(userText);
     const hasContact = !isLeadershipOrB2bQuery(userText) && !!contactInfo;
+    if (!isEstReq && !hasContact) return null;
 
-    // Смета формируется ТОЛЬКО по прямому вопросу о цене/расчете ИЛИ при подтверждении контакта
-    if (!isEstReq && !hasContact) {
-      return null;
-    }
-
-    // 1. Полноценный JSON из ответа ИИ
     if (rawText) {
       const jsonMatch = rawText.match(/\{[\s\S]*"(?:isEstimate|carModel)"[\s\S]*\}/);
       if (jsonMatch) {
@@ -2142,12 +2137,12 @@
               carModel: chosenModel || 'Автомобиль',
               carClass: chosenClass,
               serviceCategory: autoCalc ? autoCalc.serviceCategory : 'polishing',
-              serviceName: parsed.serviceName || (autoCalc ? autoCalc.serviceName : 'Комплексная восстановительная полировка кузова'),
+              serviceName: parsed.serviceName || (autoCalc ? autoCalc.serviceName : 'Восстановительная полировка кузова'),
               basePrice: bp,
               upsellName: isExcl ? 'Без дополнительных опций' : (parsed.upsellName || (autoCalc ? autoCalc.upsellName : 'Нанокерамика 9H (2 слоя)')),
               upsellPrice: up,
               totalPrice: isExcl ? bp : ((parsed.totalPrice !== undefined && parsed.totalPrice !== null) ? Number(parsed.totalPrice) : (bp + up)),
-              slot: parsed.slot || activeOrderState.slot || 'по согласованию (на ваш выбор)',
+              slot: parsed.slot || activeOrderState.slot || 'по согласованию',
               upsellExcluded: isExcl
             };
             activeOrderState = Object.assign({}, activeOrderState, res);
@@ -2156,7 +2151,6 @@
         } catch (e) {}
       }
 
-      // 2. Если JSON был обрезан нейросетью
       const cutMatch = rawText.match(/\{[\s\S]*"(?:isEstimate|carModel)"[\s\S]*/);
       if (cutMatch) {
         const autoCalc = computeEstimateForCar(userText, activeOrderState);
@@ -2167,7 +2161,6 @@
       }
     }
 
-    // 3. Автоматический интеллектуальный расчет сметы по авто клиента
     const autoEst = computeEstimateForCar(userText, activeOrderState);
     if (autoEst) {
       activeOrderState = Object.assign({}, activeOrderState, autoEst);
@@ -2180,14 +2173,13 @@
     const hasCurrentDate = entities && entities.dateIntent && entities.dateIntent.hasDate;
     const currentDay = hasCurrentDate ? entities.dateIntent.display : null;
     const currentTime = hasCurrentDate && entities.dateIntent.time ? entities.dateIntent.time : null;
-
-    const prevSlot = (state && state.slot && state.slot !== 'на ваш выбор (по согласованию)' && state.slot !== 'суббота 14:00' && state.slot !== 'по согласованию (на ваш выбор)') ? state.slot : null;
+    const prevSlot = (state && state.slot && state.slot !== 'по согласованию' && state.slot !== 'суббота 14:00') ? state.slot : null;
 
     if (currentDay && currentTime) {
-      return `На ${currentDay} в ${currentTime} бокс зарезервирован! Оставьте ваш контакт (номер телефона или Telegram), чтобы старший мастер закрепил бронь за вами 🤝`;
+      return `На ${currentDay} в ${currentTime} окно свободно. Оставьте контакт (номер телефона или Telegram), чтобы старший мастер зафиксировал бронь.`;
     }
     if (currentDay) {
-      return `По времени на ${currentDay}: к скольки вам удобнее подъехать — до обеда (например, к 11:30) или во второй половине дня (14:00 / 16:30)? И подскажите контакт (телефон или Telegram), чтобы закрепить бокс.`;
+      return `По времени на ${currentDay}: удобнее первая половина дня (к 11:30) или вторая (14:00 / 16:30)? И оставьте контакт для закрепления бокса.`;
     }
     if (prevSlot) {
       const lowSlot = prevSlot.toLowerCase();
@@ -2205,190 +2197,166 @@
       else if (lowSlot.includes('выходн')) dayMention = 'на выходных';
 
       if (dayMention) {
-        return `По времени ${dayMention}: к скольки вам удобнее заехать — в первой половине дня или ближе к вечеру? И оставьте контакт (телефон или ник в Telegram), чтобы мастер зафиксировал за вами бокс.`;
+        return `По времени ${dayMention}: удобнее утром или ближе к вечеру? Оставьте также телефон или Telegram для подтверждения записи.`;
       }
     }
-    return `В какой день вам было бы удобнее приехать: в будни или на выходных? Подберу для вас самое удобное свободное окно!`;
+    return `В какой день вам удобнее приехать — в будни или на выходных? Подберу свободное окно.`;
   }
 
   function getSmartFallback(text, contactInfo) {
-    const norm = normalizeCarText(text || "");
-    const low = norm;
-    const entities = parseMessageEntities(text, activeOrderState);
+    const norm = normalizeCarText(text || '');
+    const entities = parseMessageEntities(text);
 
-    // 0.1. Вопросы о создателе / разработчике бота (White-Label: никаких контактов разработчика!)
     if (isCreatorOrDevQuery(text)) {
       return {
-        text: `Я — виртуальный консультант и ассистент студии «${STUDIO_CONFIG.company_name}» 🤖\n\nМоя задача — рассчитывать точную смету по прайсу, рассказывать о технологиях защиты кузова и бронировать удобные слоты в боксе для гостей студии.\n\nПо любым вопросам сотрудничества или для связи с нашей командой, пожалуйста, оставьте ваш номер телефона или Telegram — управляющий студии свяжется с вами в течение 10–15 минут! 👍`
+        text: `Я онлайн-консультант студии «${STUDIO_CONFIG.company_name}». Помогаю рассчитать стоимость работ по прайсу и подобрать свободное окно.\n\nПо вопросам сотрудничества оставьте ваш телефон или Telegram — управляющий свяжется с вами в течение 15 минут.`
       };
     }
 
-    // 0.2. Вопросы о руководстве, директоре или «контакте главного»
     if (isLeadershipQuery(text)) {
       return {
-        text: `Для связи с руководством или управляющим студии, пожалуйста, оставьте ваше имя и номер телефона (или Telegram @никнейм) — я передам информацию, и старший менеджер свяжется с вами в течение 10–15 минут для решения любого вопроса! 🤝\n\nТакже вы можете набрать нас напрямую по общему номеру студии: +7 (999) 000-00-00 (ежедневно с 10:00 до 21:00).`
+        text: `Оставьте, пожалуйста, имя и номер телефона (или @ник в Telegram) — управляющий студии перезвонит вам в течение 10–15 минут.\n\nТакже доступен дежурный номер: +7 (999) 000-00-00 (ежедневно 10:00–21:00).`
       };
     }
 
-    // 1. Проверка на непрофильные отечественные автомобили (ВАЗ / Лада / Жигули / УАЗ)
     if (entities.car && entities.car.isDomestic) {
       return {
-        text: `Здравствуйте! К сожалению, мы специализируемся исключительно на современных иномарках бизнес- и премиум-сегмента (BMW, Mercedes, Audi, Porsche, LiXiang, Tank, Zeekr, Geely и др.), поэтому автомобили ${entities.car.carModel || "отечественного автопрома"} в работу не берем. Спасибо за понимание и удачи на дорогах! 🤝`
+        text: `Мы специализируемся на современных иномарках бизнес- и премиум-класса, поэтому ${entities.car.carModel || 'данные автомобили'} в работу не берём. Спасибо за обращение.`
       };
     }
 
-    // 2. ОТКАЗ КЛИЕНТА ОТ ДИАЛОГА («спасибо, не надо», «я передумал», «нет, пока не нужно»)
-    if (norm.includes("не надо") || norm.includes("не нужн") || norm.includes("передумал") || norm.includes("отмена") || norm.includes("отбой") || (norm.includes("нет") && norm.includes("спасибо"))) {
+    if (norm.includes('не надо') || norm.includes('не нужн') || norm.includes('передумал') || norm.includes('отмена') || norm.includes('отбой') || (norm.includes('нет') && norm.includes('спасибо'))) {
       return {
-        text: "Понял вас, без проблем! Будут вопросы по уходу или защите автомобиля — пишите в любое время. Всегда рады видеть в студии! 🤝"
+        text: 'Хорошо, без проблем. Если появятся вопросы по защите или уходу за автомобилем — обращайтесь в любое время.'
       };
     }
 
-    // 3. ЕСЛИ КЛИЕНТ ОСТАВИЛ КОНТАКТ (ТЕЛЕФОН, ТЕЛЕГРАМ, ВК)
     const effContact = contactInfo || entities.contactInfo;
     if (effContact) {
-      const timePref = extractTimePreference(text) || (entities.dateIntent.hasDate ? (entities.dateIntent.display + (entities.dateIntent.time ? (" в " + entities.dateIntent.time) : "")) : null);
+      const timePref = extractTimePreference(text) || (entities.dateIntent.hasDate ? (entities.dateIntent.display + (entities.dateIntent.time ? (' в ' + entities.dateIntent.time) : '')) : null);
       if (timePref) activeOrderState.slot = timePref;
 
-      // Если автомобиль еще не обсуждался (клиент оставил контакт для связи с руководством / по административному вопросу)
       if (!activeOrderState.carModel) {
         return {
-          text: `Супер, контакт записал! 👍\n\nЯ уже передал заявку управляющему студии. Он наберет вам (или напишет в ${effContact.display}) в течение 10–15 минут для решения вашего вопроса. До связи! 🤝`
+          text: `Контакт записал. Передал заявку управляющему студии — он свяжется с вами (${effContact.display}) в ближайшее время.`
         };
       }
 
-      const car = activeOrderState.carModel || "ваш автомобиль";
-      const slot = activeOrderState.slot || "в удобное для вас время";
-      const slotPrep = (slot.startsWith("на ") || slot.startsWith("в ") || slot.startsWith("к ")) ? slot : `на ${slot}`;
+      const car = activeOrderState.carModel || 'ваш автомобиль';
+      const slot = activeOrderState.slot || 'по согласованию';
+      const slotPrep = (slot.startsWith('на ') || slot.startsWith('в ') || slot.startsWith('к ')) ? slot : `на ${slot}`;
 
-      let receiptSummary = "";
+      let receiptSummary = '';
       if (activeOrderState.carModel && activeOrderState.serviceName && activeOrderState.basePrice) {
-        receiptSummary = ` на комплекс: ${activeOrderState.serviceName} (${activeOrderState.totalPrice.toLocaleString("ru-RU")} ₽)`;
+        receiptSummary = ` (${activeOrderState.serviceName} · ${activeOrderState.totalPrice.toLocaleString('ru-RU')} ₽)`;
       }
 
       return {
-        text: `Супер, контакт записал! 👍\n\nЗабронировал для вашего ${car} бокс ${slotPrep}${receiptSummary}.\n\nЯ уже передал заявку старшему мастеру смены. Он наберет вам (или напишет в ${effContact.display}), чтобы подтвердить время заезда и ответить на любые технические вопросы. До встречи в студии! 🤝`
+        text: `Заявка оформлена. Зарезервировал слот для ${car} ${slotPrep}${receiptSummary}.\n\nСтарший мастер получил карточку и свяжется с вами (${effContact.display}), чтобы подтвердить заезд.`
       };
     }
 
-    // 4. ИСКЛЮЧЕНИЕ ДОПРОДАЖИ: «Можно без керамики», «давайте без допов», «только химчистка», «без защитной пропитки»
     if (isUpsellExclusionQuery(norm)) {
-      const car = (entities.car && entities.car.carModel) || activeOrderState.carModel || "автомобиля";
-      const cClass = (entities.car && entities.car.carClass) || activeOrderState.carClass || "Внедорожник";
-      let sName = activeOrderState.serviceName || "Комплексная восстановительная полировка кузова";
+      const car = (entities.car && entities.car.carModel) || activeOrderState.carModel || 'автомобиля';
+      const cClass = (entities.car && entities.car.carClass) || activeOrderState.carClass || 'Внедорожник';
+      let sName = activeOrderState.serviceName || 'Восстановительная полировка кузова';
       let bPrice = 18000;
-      let uName = "Без дополнительных опций";
-      let replyServiceWord = "базовый комплекс";
+      let uName = 'Без дополнительных опций';
+      let replyServiceWord = 'базовый комплекс';
 
-      const isClean = (entities.service && entities.service.category === "clean") || /хим\s*чист|чистк|салон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes("химчист"));
-      const isPPF = (entities.service && entities.service.category === "ppf") || /ppf|пленк|оклейк|брон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes("PPF"));
+      const isClean = (entities.service && entities.service.category === 'clean') || /хим\s*чист|чистк|салон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('химчист'));
+      const isPPF = (entities.service && entities.service.category === 'ppf') || /ppf|пленк|оклейк|брон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('PPF'));
 
       if (isClean) {
-        sName = "Полная химчистка салона";
-        bPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? 15000 : 18000;
-        uName = "Без защитной пропитки (только базовая химчистка)";
-        replyServiceWord = "полную химчистку салона";
+        sName = 'Полная химчистка салона';
+        bPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? 15000 : 18000;
+        replyServiceWord = 'полную химчистку салона';
       } else if (isPPF) {
-        sName = "Оклейка зон риска пленкой PPF";
-        bPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? 65000 : 75000;
-        uName = "Без нанокерамики (только базовый комплекс PPF)";
-        replyServiceWord = "оклейку зон риска пленкой PPF";
+        sName = 'Оклейка зон риска пленкой PPF';
+        bPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? 65000 : 75000;
+        replyServiceWord = 'оклейку зон риска пленкой PPF';
       } else {
-        sName = "Комплексная восстановительная полировка кузова";
-        bPrice = (cClass === "Внедорожник") ? 26000 : ((cClass === "Кроссовер") ? 22000 : 18000);
-        uName = "Без нанокерамики (только восстановительная полировка)";
-        replyServiceWord = "восстановительную полировку кузова";
+        sName = 'Восстановительная полировка кузова';
+        bPrice = (cClass === 'Внедорожник') ? 26000 : ((cClass === 'Кроссовер') ? 22000 : 18000);
+        replyServiceWord = 'восстановительную полировку кузова';
       }
 
       const est = {
         isEstimate: true,
         carModel: car,
         carClass: cClass,
-        serviceCategory: isClean ? "clean" : (isPPF ? "ppf" : "polishing"),
+        serviceCategory: isClean ? 'clean' : (isPPF ? 'ppf' : 'polishing'),
         serviceName: sName,
         basePrice: bPrice,
         upsellName: uName,
         upsellPrice: 0,
         totalPrice: bPrice,
-        slot: activeOrderState.slot || "по согласованию (на ваш выбор)",
+        slot: activeOrderState.slot || 'по согласованию',
         upsellExcluded: true
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
 
       const hasKnownCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
       if (!hasKnownCar) {
-        const sedPrice = isClean ? "15 000 ₽" : (isPPF ? "65 000 ₽" : "18 000 ₽");
-        const suvPrice = isClean ? "18 000 ₽" : (isPPF ? "75 000 ₽" : "22 000 ₽");
+        const sedPrice = isClean ? '15 000 ₽' : (isPPF ? '65 000 ₽' : '18 000 ₽');
+        const suvPrice = isClean ? '18 000 ₽' : (isPPF ? '75 000 ₽' : '22 000 ₽');
         return {
-          text: `Без проблем, договорились! Сделаем только ${replyServiceWord} без лишних допов 👍\n\nПо базовой стоимости:\n• Седаны и купе — ${sedPrice}\n• Кроссоверы и внедорожники — ${suvPrice}\n\nПодарочный антидождь на переднюю полусферу по акции обязательно сделаем бесплатно 🤝\n\nПодскажите, какая у вас марка и модель авто? Сразу назову точную цену под ваш кузов и подберу время!`,
+          text: `Хорошо, посчитаем только ${replyServiceWord} без допуслуг.\n• Седан / купе — ${sedPrice}\n• Кроссовер / внедорожник — ${suvPrice}\n\nАнтидождь передней полусферы остаётся в подарок. Подскажите модель вашего авто для точного расчёта.`,
           estimate: est,
           rawText: JSON.stringify(est)
         };
       }
 
       const timingQ = getFollowUpTimingQuestion(activeOrderState, entities);
-
       return {
-        text: `Без проблем, договорились! Сделаем только ${replyServiceWord} для вашего ${car}, без лишних допов 👍\n\nПо сумме всё выйдет ровно ${bPrice.toLocaleString("ru-RU")} ₽. И подарочный антидождь на переднюю полусферу по акции обязательно нанесем бесплатно 🤝\n\n${timingQ}`,
+        text: `Принято, оставляем только ${replyServiceWord} для ${car} — ${bPrice.toLocaleString('ru-RU')} ₽. Антидождь передней полусферы включён в подарок.\n\n${timingQ}`,
         estimate: est,
         rawText: JSON.stringify(est)
       };
     }
 
-    // 4.5. ВЫБОР ИЛИ УТОЧНЕНИЕ ВРЕМЕНИ ВИЗИТА («приеду в 2 часа», «в 14:00», «к двум», «давайте в 15»)
     const parsedTime = parseTimeEntity(text);
     if (parsedTime && !isEstimateRequest(text) && !entities.car.carModel) {
       let dayPrefix = (entities.dateIntent.hasDate && entities.dateIntent.display !== 'это время') ? entities.dateIntent.display : null;
       if (!dayPrefix && activeOrderState.slot) {
         const lowSlot = activeOrderState.slot.toLowerCase();
-        if (lowSlot.includes("завтра")) dayPrefix = "на завтра";
-        else if (lowSlot.includes("сегодня")) dayPrefix = "на сегодня";
-        else if (lowSlot.includes("послезавтра")) dayPrefix = "на послезавтра";
-        else if (lowSlot.includes("суббот")) dayPrefix = "на субботу";
-        else if (lowSlot.includes("воскресень")) dayPrefix = "на воскресенье";
-        else if (lowSlot.includes("понедельник")) dayPrefix = "на понедельник";
-        else if (lowSlot.includes("вторник")) dayPrefix = "на вторник";
-        else if (lowSlot.includes("сред")) dayPrefix = "на среду";
-        else if (lowSlot.includes("четверг")) dayPrefix = "на четверг";
-        else if (lowSlot.includes("пятниц")) dayPrefix = "на пятницу";
-        else if (lowSlot.includes("выходн")) dayPrefix = "на выходные";
+        if (lowSlot.includes('завтра')) dayPrefix = 'на завтра';
+        else if (lowSlot.includes('сегодня')) dayPrefix = 'на сегодня';
+        else if (lowSlot.includes('послезавтра')) dayPrefix = 'на послезавтра';
+        else if (lowSlot.includes('суббот')) dayPrefix = 'на субботу';
+        else if (lowSlot.includes('воскресень')) dayPrefix = 'на воскресенье';
+        else if (lowSlot.includes('понедельник')) dayPrefix = 'на понедельник';
+        else if (lowSlot.includes('вторник')) dayPrefix = 'на вторник';
+        else if (lowSlot.includes('сред')) dayPrefix = 'на среду';
+        else if (lowSlot.includes('четверг')) dayPrefix = 'на четверг';
+        else if (lowSlot.includes('пятниц')) dayPrefix = 'на пятницу';
+        else if (lowSlot.includes('выходн')) dayPrefix = 'на выходных';
       }
 
       const fullSlot = dayPrefix ? `${dayPrefix} в ${parsedTime.formatted}` : `в ${parsedTime.formatted}`;
       activeOrderState.slot = fullSlot;
-
-      const car = activeOrderState.carModel || "ваш автомобиль";
-
       return {
-        text: `Договорились, зафиксировал время ${fullSlot}! 👍\n\nПодскажите, пожалуйста, ваше имя и номер телефона (или Telegram @никнейм), чтобы старший мастер закрепил бокс за вами и связался для подтверждения деталей!`
+        text: `Зафиксировал удобное время: ${fullSlot}.\nПодскажите ваше имя и телефон (или Telegram), чтобы закрепить слот в расписании.`
       };
     }
 
-    // 5. РАСПОЗНАН АВТОМОБИЛЬ ИЛИ НЕЗНАКОМАЯ МОДЕЛЬ
     const detectedCar = entities.car;
     const isCarMentioned = !!(detectedCar.carModel || detectedCar.carClass);
     const hasActiveCar = !!(activeOrderState.carModel && activeOrderState.carClass);
 
-    // 5.0. Незнакомая модель («на эклэир», «у меня [X]»)
     if (detectedCar.rawMention && !detectedCar.carClass && !hasActiveCar) {
       const rawCar = detectedCar.rawMention;
-      let sName = "детейлинг-комплекс";
-      if (entities.service.category === "clean" || norm.includes("химчист")) {
-        sName = "полную химчистку салона";
-      } else if (entities.service.category === "ppf" || norm.includes("пленк") || norm.includes("ppf")) {
-        sName = "оклейку зон риска пленкой PPF";
-      } else if (entities.service.category === "polishing" || norm.includes("полиров")) {
-        sName = "восстановительную полировку кузова";
-      }
-      const datePart = entities.dateIntent.hasDate
-        ? `На ${entities.dateIntent.display} у нас как раз есть свободные окна в боксе 👍`
-        : "Свободные окна на этой неделе есть 👍";
+      let sName = 'детейлинг-комплекс';
+      if (entities.service.category === 'clean' || norm.includes('химчист')) sName = 'полную химчистку салона';
+      else if (entities.service.category === 'ppf' || norm.includes('пленк') || norm.includes('ppf')) sName = 'оклейку зон риска пленкой PPF';
+      else if (entities.service.category === 'polishing' || norm.includes('полиров')) sName = 'восстановительную полировку кузова';
+
+      const datePart = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} в графике есть свободные окна.` : 'Свободные окна на неделе открыты.';
       return {
-        text: `Понял вас! На ${rawCar} с удовольствием сделаем ${sName}! ${datePart}\n\nПодскажите только, какой у вас тип кузова — седан или кроссовер/внедорожник, чтобы назвать точную сумму сметы и закрепить бокс?`
+        text: `Принято, по ${rawCar} выполним ${sName}. ${datePart}\nУточните класс кузова (седан или кроссовер/внедорожник), чтобы назвать точную смету.`
       };
     }
 
-    // 5.1. Автомобиль распознан (или уже был сохранен ранее)
     const hasServiceInMsg = !!entities.service.category;
     const hasServiceActive = !!activeOrderState.serviceName;
     const isPriceQuery = isEstimateRequest(text);
@@ -2401,287 +2369,240 @@
       }
 
       const currentCarModel = activeOrderState.carModel || detectedCar.carModel;
-      const currentCarClass = activeOrderState.carClass || detectedCar.carClass || "Внедорожник";
+      const currentCarClass = activeOrderState.carClass || detectedCar.carClass || 'Внедорожник';
       const expertNote = getCarExpertDetail(currentCarModel, currentCarClass, activeOrderState.brand || detectedCar.brand);
 
-      // А. Названа услуга ИЛИ был запрос цены ИЛИ идет смена авто при активной услуге
       if (hasServiceInMsg || hasServiceActive || isPriceQuery) {
         const est = computeEstimateForCar(text, activeOrderState);
         if (est) {
           activeOrderState = Object.assign({}, activeOrderState, est);
-
           if (entities.dateIntent.hasDate) {
-            const dateSlot = entities.dateIntent.display + (entities.dateIntent.time ? (" в " + entities.dateIntent.time) : " (время на ваш выбор)");
+            const dateSlot = entities.dateIntent.display + (entities.dateIntent.time ? (' в ' + entities.dateIntent.time) : ' (время на выбор)');
             est.slot = dateSlot;
             activeOrderState.slot = dateSlot;
           }
 
-          const isClean = est.serviceCategory === "clean" || (est.serviceName || "").includes("химчист") || (est.serviceName || "").includes("салон");
-          const isPPF = est.serviceCategory === "ppf" || (est.serviceName || "").includes("PPF") || (est.serviceName || "").includes("пленк");
+          const isClean = est.serviceCategory === 'clean' || (est.serviceName || '').includes('химчист');
+          const isPPF = est.serviceCategory === 'ppf' || (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
 
-          let serviceDesc = `Оклейка зон риска полиуретаном PPF (200 мкм) выйдет ${est.basePrice.toLocaleString("ru-RU")} ₽. В комплекс входит бронь капота, бампера, передних крыльев, фар, зеркал и стоек премиальной американской пленкой Stek/Llumar`;
+          let serviceDesc = `Оклейка зон риска полиуретаном PPF (200 мкм) — ${est.basePrice.toLocaleString('ru-RU')} ₽. Включает капот, бампер, крылья, фары, зеркала и стойки (Stek / Llumar)`;
           if (isClean) {
-            serviceDesc = `Комплексная детейлинг-химчистка выйдет ровно ${est.basePrice.toLocaleString("ru-RU")} ₽. В работу входит полная глубокая чистка сидений (кожа/текстиль), пола, потолка, багажника, антибактериальное озонирование и деликатная сушка`;
+            serviceDesc = `Полная химчистка салона — ${est.basePrice.toLocaleString('ru-RU')} ₽. Глубокая очистка кожи и текстиля, пола, потолка, багажника и антибактериальное озонирование`;
           } else if (!isPPF) {
-            serviceDesc = `Восстановительная полировка кузова выйдет ${est.basePrice.toLocaleString("ru-RU")} ₽. Удалим до 95% паутинки от моек и мелких царапин, вернем глубокий зеркальный глянец`;
+            serviceDesc = `Восстановительная полировка кузова — ${est.basePrice.toLocaleString('ru-RU')} ₽. Удаляем до 95% мелкой сетки царапин и возвращаем глубину глянца`;
           }
 
-          let upsellDesc = "";
+          let upsellDesc = '';
           if (est.upsellPrice > 0) {
             if (isClean) {
-              upsellDesc = `\n\nКстати, по желанию можем сразу нанести защитную гидрофобную пропитку сидений (+${est.upsellPrice.toLocaleString("ru-RU")} ₽). Она создает невидимый барьер: если случайно прольете кофе или воду, жидкость не впитается, а просто соберется каплями на поверхности. Добавим или пока только базовую химчистку?`;
+              upsellDesc = `\nДополнительно рекомендуем защитную пропитку сидений (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — состав создаёт гидрофобный барьер против влаги и окрашивания кожей одежды.`;
             } else if (isPPF) {
-              upsellDesc = `\n\nКстати, к оклейке зон риска рекомендуем добавить нанокерамику 9H на остальной кузов (+${est.upsellPrice.toLocaleString("ru-RU")} ₽) — это защитит лак от реагентов и выровняет зеркальный глянец по всей машине.`;
+              upsellDesc = `\nНа открытые детали рекомендуем нанокерамику 9H (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — она защитит лак от реагентов и выровняет глянец по всему кузову.`;
             } else {
-              upsellDesc = `\n\nКстати, к полировке рекомендую добавить нанокерамику 9H в 2 слоя (+${est.upsellPrice.toLocaleString("ru-RU")} ₽) — она создаст мощный гидрофобный щит от реагентов, солнца и агрессивных моек на 18 месяцев, закрепив зеркальный блеск.`;
+              upsellDesc = `\nДля закрепления глянца рекомендуем нанокерамику 9H в 2 слоя (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — защищает от реагентов и моек до 18 месяцев.`;
             }
           } else {
-            upsellDesc = `\n\nДелаем базовый комплекс без дополнительных опций 👍`;
+            upsellDesc = '\nРасчёт подготовлен по базовому комплексу без допуслуг.';
           }
 
-          const giftDesc = `\n\nАнтидождь на переднюю полусферу по акции обязательно сделаем вам в подарок (0 ₽) 🎁`;
-
+          const giftDesc = '\nАнтидождь на переднюю полусферу включён в подарок.';
           const timingQ = getFollowUpTimingQuestion(activeOrderState, entities);
 
-          // Если клиент сразу написал день/время визита (например, «можно завтра будет заехать на прадик 200 химчистку сделать»)
-          if (entities.dateIntent.hasDate) {
-            const dateGreeting = `Отлично! На ${entities.dateIntent.display} у нас как раз есть свободные окна в боксе 👍\n\n`;
-            return {
-              text: `${dateGreeting}Для вашего ${est.carModel} (${est.carClass}): ${serviceDesc}.${upsellDesc}${giftDesc}\n\n${timingQ}`,
-              estimate: est,
-              rawText: JSON.stringify(est)
-            };
-          }
-
-          // Если клиент сменил авто в процессе диалога
-          const isSwitchWithActiveService = hasServiceActive && !hasServiceInMsg && isCarMentioned;
-          let switchComment = "";
-          if (isSwitchWithActiveService) {
-            switchComment = `Принято, пересчитал смету на ${est.carModel} (${est.carClass})! 👍 ${expertNote ? expertNote + ' ' : ''}\n\n`;
-          } else {
-            switchComment = expertNote
-              ? `Для вашего ${est.carModel} (${est.carClass}): ${expertNote}\n\n`
-              : `Для вашего ${est.carModel} (${est.carClass}):\n\n`;
-          }
+          const prefix = entities.dateIntent.hasDate
+            ? `На ${entities.dateIntent.display} свободные слоты есть.\n\nДля ${est.carModel} (${est.carClass}): ${serviceDesc}.`
+            : `${expertNote ? `${est.carModel} (${est.carClass}): ${expertNote}\n\n` : `Расчёт для ${est.carModel} (${est.carClass}):\n\n`}${serviceDesc}.`;
 
           return {
-            text: `${switchComment}${serviceDesc}.${upsellDesc}${giftDesc}\n\n${timingQ}`,
+            text: `${prefix}${upsellDesc}${giftDesc}\n\n${timingQ}`,
             estimate: est,
             rawText: JSON.stringify(est)
           };
         }
       }
 
-      // Б. Пользователь назвал ТОЛЬКО автомобиль, услуга еще не была выбрана
       if (isCarMentioned) {
-        const cModel = currentCarModel || "ваш автомобиль";
-        const cClass = currentCarClass || "Внедорожник";
-
-        const ppfPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? "65 000 ₽" : "75 000 ₽";
-        const polPrice = (cClass === "Внедорожник") ? "26 000 ₽" : ((cClass === "Кроссовер") ? "22 000 ₽" : "18 000 ₽");
-        const cleanPrice = (cClass === "Седан" || cClass === "Бизнес-седан" || cClass === "Бизнес-седан / Лифтбек") ? "15 000 ₽" : "18 000 ₽";
-
-        const dateIntro = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} свободные боксы как раз есть!\n\n` : "";
+        const cModel = currentCarModel || 'ваш автомобиль';
+        const cClass = currentCarClass || 'Внедорожник';
+        const ppfPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? '65 000 ₽' : '75 000 ₽';
+        const polPrice = (cClass === 'Внедорожник') ? '26 000 ₽' : ((cClass === 'Кроссовер') ? '22 000 ₽' : '18 000 ₽');
+        const cleanPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? '15 000 ₽' : '18 000 ₽';
+        const dateIntro = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} боксы свободны.\n` : '';
 
         return {
-          text: `Отличный автомобиль — ${cModel} (${cClass})! 👍 ${expertNote}\n\n${dateIntro}Сориентирую по стоимости основных комплексов для вашего кузова:\n1. 🛡 Бронирование зон риска пленкой PPF (200 мкм) — ${ppfPrice}\n2. ✨ Восстановительная полировка кузова — ${polPrice}\n3. 🧼 Комплексная химчистка салона — ${cleanPrice}\n\nПодарочный антидождь на переднюю полусферу по акции обязательно нанесем бонусом (0 ₽) 🎁\n\nКакая задача сейчас в приоритете: защитить кузов от сколов (PPF), вернуть зеркальный блеск (полировка) или обновить салон (химчистка)?`
+          text: `${cModel} (${cClass}). ${expertNote}\n\n${dateIntro}Стоимость основных услуг под ваш кузов:\n• Оклейка зон риска PPF — ${ppfPrice}\n• Восстановительная полировка — ${polPrice}\n• Полная химчистка салона — ${cleanPrice}\n\nАнтидождь передней полусферы идёт в подарок к комплексу. Что для вас сейчас актуальнее?`
         };
       }
     }
 
-    // 6. ОБЩИЙ ВОПРОС ПО УСЛУГАМ («какие у вас услуги», «что делаете», «список услуг», «какой прайс»)
-    const isServiceInquiry = (norm.includes("какие") && (norm.includes("услуг") || norm.includes("работ") || norm.includes("делает") || norm.includes("предлагает"))) ||
-      norm.includes("список услуг") || norm.includes("весь прайс") || norm.includes("что вы делаете") || norm.includes("чем занимаетесь");
+    const isServiceInquiry = (norm.includes('какие') && (norm.includes('услуг') || norm.includes('работ') || norm.includes('делает') || norm.includes('предлагает'))) ||
+      norm.includes('список услуг') || norm.includes('весь прайс') || norm.includes('что вы делаете') || norm.includes('чем занимаетесь');
 
     if (isServiceInquiry) {
       return {
-        text: `В нашем детейлинг-центре «${STUDIO_CONFIG.company_name}» выполняем полный цикл профессионального ухода:\n\n` +
-          `1. 🛡 Бронирование зон риска пленкой PPF (200 мкм) — защита от гравия и сколов (от 65 000 ₽);\n` +
-          `2. ✨ Восстановительная детейлинг-полировка — удаление паутинки и возврат заводского глянца (от 18 000 ₽);\n` +
-          `3. 💎 Нанокерамика 9H (в 2–3 слоя) — мощный гидрофоб и зеркальный блеск на 18 месяцев;\n` +
-          `4. 🧼 Комплексная химчистка салона — очистка кожи и текстиля с озонированием и защитной пропиткой (от 15 000 ₽);\n` +
-          `5. 🌧 Антидождь на переднюю полусферу — 0 ₽ в подарок по акции 🎁\n\n` +
-          `Подскажите, какая у вас машина? Сразу назову точную смету под ваш кузов и сориентирую по свободным боксам!`
+        text: `Основные направления «${STUDIO_CONFIG.company_name}»:\n• Оклейка зон риска PPF (200 мкм) — от 65 000 ₽\n• Восстановительная полировка кузова — от 18 000 ₽\n• Нанокерамика 9H в 2–3 слоя — от 25 000 ₽\n• Комплексная химчистка салона — от 15 000 ₽\n• Антидождь на лобовое и передние стёкла — в подарок к комплексу\n\nНапишите модель авто — сразу подготовлю точную смету.`
       };
     }
 
-    // 6.1. УТОЧНЯЮЩИЕ ВОПРОСЫ («только эти?», «а еще что?», «это все?»)
-    if (norm.includes("только эти") || norm.includes("это все") || norm.includes("что еще") || norm.includes("а еще") || norm.includes("другие услуги")) {
+    if (norm.includes('только эти') || norm.includes('это все') || norm.includes('что еще') || norm.includes('а еще') || norm.includes('другие услуги')) {
       return {
-        text: `Также мы выполняем шумоизоляцию премиум-материалами (Comfort Mat), полировку и бронирование оптики, локальную полировку царапин, удаление вмятин без покраски (PDR) и реставрацию кожи салона.\n\nКакая задача для вашего авто сейчас в приоритете? Напишите модель автомобиля — подберем лучшее решение!`
+        text: 'Также выполняем шумоизоляцию (Comfort Mat), полировку и бронирование оптики, локальное удаление вмятин без покраски (PDR) и реставрацию кожи.\nКакая модель автомобиля у вас?'
       };
     }
 
-    // 6.2. КОРОТКИЕ ПОДТВЕРЖДЕНИЯ («ак», «ок», «хорошо», «понял», «ладно», «ясно», «договорились»)
-    if (norm === "ак" || norm === "ок" || norm === "хорошо" || norm === "понял" || norm === "ясно" || norm === "ладно" || norm === "договорились" || norm === "угу") {
+    if (['ак', 'ок', 'хорошо', 'понял', 'ясно', 'ладно', 'договорились', 'угу'].includes(norm)) {
       if (activeOrderState.carModel) {
         return {
-          text: `Договорились! По вашему ${activeOrderState.carModel} смету зафиксировал 👍 В какой день вам удобнее приехать в студию?`
+          text: `Хорошо, расчёт по ${activeOrderState.carModel} держим. В какой день удобнее заехать в студию?`
         };
       }
       return {
-        text: `Отлично! Напишите марку и модель вашего автомобиля — сразу рассчитаю точную смету под ваш кузов и подскажу свободное время для визита.`
+        text: 'Укажите марку и модель автомобиля — подготовлю смету и подскажу ближайшие свободные окна.'
       };
     }
 
-    // 7. ХИМЧИСТКА САЛОНА (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes("химчист") || norm.includes("химчиск") || norm.includes("салон") || norm.includes("почистит") || norm.includes("сиден")) {
+    if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('сиден')) {
       return {
-        text: "По стоимости комплексной химчистки салона:\n• Седаны и купе — 15 000 ₽\n• Кроссоверы и внедорожники — 18 000 ₽\n• Минивэны и микроавтобусы — 22 000 ₽\n\nВ работу входит всё под ключ: полная очистка сидений, ковролина, потолка, багажника, антибактериальное озонирование и деликатная сушка. Антидождь на переднюю полусферу — в подарок (0 ₽) 🎁\n\nПодскажите модель вашего авто — сразу рассчитаю точную смету!"
+        text: 'Стоимость полной химчистки салона:\n• Седаны и купе — 15 000 ₽\n• Кроссоверы и внедорожники — 18 000 ₽\n• Минивэны и микроавтобусы — 22 000 ₽\n\nВключает глубокую чистку кожи и текстиля, озонирование и деликатную сушку. Назовите модель авто для точного расчёта.'
       };
     }
 
-    // 8. ПОЛИРОВКА КУЗОВА (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes("полировк") || norm.includes("палировк") || norm.includes("царапин") || norm.includes("глянец")) {
+    if (norm.includes('полировк') || norm.includes('палировк') || norm.includes('царапин') || norm.includes('глянец')) {
       return {
-        text: "По восстановительной детейлинг-полировке кузова:\n• Седаны и купе — 18 000 ₽ (+ керамика 9H 25 000 ₽)\n• Кроссоверы — 22 000 ₽ (+ керамика 9H 30 000 ₽)\n• Внедорожники — 26 000 ₽ (+ керамика 9H 30 000 ₽)\n\nУбираем до 95% мелких царапин и паутинки, возвращаем зеркальный заводской глянец. По акции антидождь на переднюю полусферу — в подарок (0 ₽) 🎁\n\nПодскажите модель авто — сориентирую точнее и подберу удобное время!"
+        text: 'Восстановительная полировка кузова:\n• Седаны и купе — 18 000 ₽ (керамика 9H — +25 000 ₽)\n• Кроссоверы — 22 000 ₽ (керамика 9H — +30 000 ₽)\n• Внедорожники — 26 000 ₽ (керамика 9H — +30 000 ₽)\n\nУбираем до 95% мелкой сетки царапин. Какой у вас автомобиль?'
       };
     }
 
-    // 9. ОКЛЕЙКА ПЛЕНКОЙ PPF (БЕЗ НАЗВАННОГО АВТО)
-    if (norm.includes("ppf") || norm.includes("ппф") || norm.includes("пленк") || norm.includes("плёнк") || norm.includes("оклейк") || norm.includes("оклеить") || norm.includes("заклеит") || norm.includes("затянут") || norm.includes("закатат") || norm.includes("брон")) {
+    if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон')) {
       return {
-        text: "По оклейке зон риска полиуретановой пленкой PPF (капот, бампер, передние крылья, фары, зеркала, стойки):\n• Седаны — 65 000 ₽\n• Кроссоверы и внедорожники — 75 000 ₽\n\nРаботаем только с премиальным американским полиуретаном 200 мкм (Stek, Llumar) с самозатягивающимся слоем Top Coat (гарантия 5–10 лет).\n\nКакая у вас модель автомобиля? Автомобиль новый из салона или с пробегом?"
+        text: 'Оклейка зон риска полиуретаном PPF (капот, бампер, крылья, фары, зеркала, стойки):\n• Седаны — 65 000 ₽\n• Кроссоверы и внедорожники — 75 000 ₽\n\nИспользуем оптический полиуретан 200 мкм (Stek, Llumar, SunTek) с самозатягивающимся слоем. Какая у вас модель авто?'
       };
     }
 
-    // 10. ВОПРОС О СРОКАХ И ВРЕМЕНИ ВЫПОЛНЕНИЯ
-    if ((norm.includes("скольк") && norm.includes("времен")) || norm.includes("по времени") || norm.includes("сколько дней") || norm.includes("сколько часов") || norm.includes("когда готов") || norm.includes("когда забрать") || norm.includes("когда отдадите") || norm.includes("длится")) {
-      const car = activeOrderState.carModel || "автомобиля";
-      const isPPF = (activeOrderState.serviceName || "").includes("PPF") || (activeOrderState.serviceName || "").includes("пленк");
+    if ((norm.includes('скольк') && norm.includes('времен')) || norm.includes('по времени') || norm.includes('сколько дней') || norm.includes('сколько часов') || norm.includes('когда готов') || norm.includes('когда забрать') || norm.includes('когда отдадите') || norm.includes('длится')) {
+      const car = activeOrderState.carModel || 'автомобиля';
+      const isPPF = (activeOrderState.serviceName || '').includes('PPF') || (activeOrderState.serviceName || '').includes('пленк');
       const timing = isPPF
-        ? `Оклейка зон риска для ${car} занимает 1–2 рабочих дня. Пленке требуется технологическая сушка в теплом боксе и фиксация подворотов.`
-        : `Комплексная полировка и химчистка для ${car} занимает 1 рабочий день: утром привозите, на следующий день забираете в идеальном состоянии.`;
+        ? `Оклейка зон риска для ${car} занимает 1–2 рабочих дня с обязательной сушкой в боксе и контролем подворотов.`
+        : `Комплексная полировка или химчистка для ${car} занимает 1 рабочий день: утром заезжаете, на следующий день забираете готовый автомобиль.`;
+      return { text: `${timing}\nКакой день недели вам удобен для визита?` };
+    }
 
+    if (norm.includes('гарант') || norm.includes('сертифик') || norm.includes('надежн')) {
+      const car = activeOrderState.carModel || 'автомобиль';
       return {
-        text: `${timing}\n\nВ какой день вам было бы удобнее приехать: в будни или на выходных? Забронирую бокс под ваш график! 👍`
+        text: `На работы по ${car} действует официальная гарантия студии:\n• Полиуретановая плёнка — от 5 до 10 лет от производителя, 1 год на монтаж;\n• Керамика 9H — до 18 месяцев гидрофобного эффекта.\n\nЧерез 14 дней после оклейки приглашаем на бесплатный контрольный осмотр.`
       };
     }
 
-    // 11. ВОПРОС О ГАРАНТИИ
-    if (norm.includes("гарант") || norm.includes("сертифик") || norm.includes("надежн")) {
-      const car = activeOrderState.carModel || "автомобиль";
+    if (norm.includes('материал') || (norm.includes('пленк') && (norm.includes('как') || norm.includes('бренд') || norm.includes('фирм') || norm.includes('производ'))) || norm.includes('какой состав')) {
       return {
-        text: `На все работы по ${car} предоставляется официальная гарантия:\n• На полиуретановую пленку — гарантия от производителя от 5 до 10 лет (не желтеет, не мутнеет, не трескается от мороза).\n• На монтаж и прилегание краев — гарантия студии 1 год.\n• На керамику 9H — гарантия гидрофобного эффекта до 18 месяцев.\n\nЧерез 10–14 дней после оклейки мы приглашаем вас на бесплатный контрольный осмотр мастера.`
+        text: 'Работаем с оптическим полиуретаном 195–215 мкм (Stek, Llumar, SunTek) с верхним самозатягивающимся слоем Top Coat. Дешёвый винил и гибридные плёнки не используем.'
       };
     }
 
-    // 12. ВОПРОС О МАТЕРИАЛАХ И БРЕНДАХ ПЛЕНОК
-    if (norm.includes("материал") || (norm.includes("пленк") && (norm.includes("как") || norm.includes("бренд") || norm.includes("фирм") || norm.includes("производ"))) || norm.includes("какой состав")) {
+    if ((norm.includes('зон') && norm.includes('риск')) || norm.includes('что входит') || norm.includes('какие детали')) {
+      const car = activeOrderState.carModel || 'автомобиля';
       return {
-        text: "Мы работаем исключительно со 100% оптическим полиуретаном премиум-класса толщиной 195–215 микрон (бренды Stek, Llumar, SunTek).\n\nПленка имеет прочный верхний лаковый слой Top Coat — царапины от веток и песка самозатягиваются от тепла на солнце или горячей воды. Никакого дешевого винила или гибрида."
+        text: `В комплекс «Зоны риска» для ${car} входят: капот и передний бампер полностью, передние крылья, оптика, корпуса зеркал, стойки лобового, полоса на крышу и зоны под ручками.`
       };
     }
 
-    // 13. ВОПРОС О ЗОНАХ РИСКА (ЧТО ВХОДИТ)
-    if ((norm.includes("зон") && norm.includes("риск")) || norm.includes("что входит") || norm.includes("какие детали")) {
-      const car = activeOrderState.carModel || "автомобиля";
+    if (norm.includes('скидк') || norm.includes('подешевл') || norm.includes('дорог') || norm.includes('торг') || norm.includes('уступ')) {
       return {
-        text: `В комплекс «Зоны риска» для ${car} входит оклейка самых уязвимых от гравия и сколов элементов:\n• Капот полностью;\n• Передний бампер целиком со всеми вставками;\n• Передние крылья полностью;\n• Корпуса боковых зеркал;\n• Оптика (фары и ПТФ);\n• Зоны под ручками дверей (от ногтей);\n• Полоса на крышу над лобовым стеклом;\n• Стойки лобового стекла.`
+        text: 'В смету уже заложены фиксированные цены без скрытых наценок, бесплатный замер ЛКП, детейлинг-мойка перед работами и антидождь передней полусферы в подарок.'
       };
     }
 
-    // 14. ВОПРОС О СКИДКАХ И ЦЕНЕ
-    if (norm.includes("скидк") || norm.includes("подешевл") || norm.includes("дорог") || norm.includes("торг") || norm.includes("уступ")) {
-      const car = activeOrderState.carModel || "автомобиля";
+    if (norm.includes('оплат') || norm.includes('предоплат') || norm.includes('карт') || norm.includes('наличн') || norm.includes('сбп') || norm.includes('безнал')) {
       return {
-        text: `В расчет для вашего ${car} уже включены максимальные бонусы по нашей акции:\n1. Антидождь передней полусферы в подарок — 0 ₽ (экономия 4 000 ₽);\n2. Бесплатный замер толщины ЛКП всего кузова высокоточным толщиномером;\n3. Детейлинг-мойка кузова перед началом работ.\n\nМы держим фиксированные честные цены с гарантией качества без скрытых наценок.`
+        text: 'Предоплата при бронировании не нужна. Оплата по факту выдачи автомобиля после осмотра результата: наличные, карта, СБП или расчётный счёт для юрлиц.'
       };
     }
 
-    // 15. ВОПРОС ОБ ОПЛАТЕ И ПРЕДОПЛАТЕ
-    if (norm.includes("оплат") || norm.includes("предоплат") || norm.includes("карт") || norm.includes("наличн") || norm.includes("сбп") || norm.includes("безнал")) {
-      return {
-        text: "Предоплата для бронирования не требуется! Оплата производится строго по факту завершения работ после вашего личного осмотра автомобиля.\n\nПринимаем любые удобные способы: наличные, банковская карта, СБП, а также безналичный расчет для юридических лиц."
-      };
-    }
-
-    // 16. ПЕРЕНОС ДНЯ / ВРЕМЕНИ
-    if (norm.includes("воскресень") || norm.includes("понедельник") || norm.includes("вторник") || norm.includes("сред") || norm.includes("четверг") || norm.includes("пятниц") || norm.includes("будн") || norm.includes("другой день") || norm.includes("другое время") || norm.includes("утром") || norm.includes("вечером")) {
+    if (norm.includes('воскресень') || norm.includes('понедельник') || norm.includes('вторник') || norm.includes('сред') || norm.includes('четверг') || norm.includes('пятниц') || norm.includes('будн') || norm.includes('другой день') || norm.includes('другое время') || norm.includes('утром') || norm.includes('вечером')) {
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: `Без проблем, договорились! С удовольствием примем вас${timePref ? (" в " + timePref) : " в удобное время"} 👍\n\nПодскажите ваше имя и контакт (телефон или ник в Telegram), и мастер закрепит за вами бокс!`
+        text: `Принято, примем вас ${timePref || 'в удобное время'}. Подскажите имя и контакт (телефон или Telegram), чтобы закрепить слот в расписании.`
       };
     }
 
-    // 17. Запрос записи / свободные окна (БЕЗ авто и услуги)
-    if (isBookingRequest(text) || norm.includes("записат") || norm.includes("заехать") || norm.includes("приехать") || norm.includes("окна") || norm.includes("свободно")) {
+    if (isBookingRequest(text) || norm.includes('записат') || norm.includes('заехать') || norm.includes('приехать') || norm.includes('окна') || norm.includes('свободно')) {
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: "С удовольствием подберем для вас удобное окно в студии! 👍\n\nПодскажите, какая у вас машина и какая услуга интересует (химчистка, полировка, оклейка пленкой PPF), чтобы я сразу рассчитал точную смету и забронировал бокс."
+        text: 'Подскажите, какой у вас автомобиль и какая услуга интересует (полировка, плёнка PPF или химчистка) — проверю расписание и рассчитаю точную стоимость.'
       };
     }
 
-    // 18. Живая консультация мастера (БЕЗ роботизированных анкет)
-    if (norm.includes("выбор") || norm.includes("помог") || norm.includes("посовету") || norm.includes("подскаж") || norm.includes("что лучше")) {
+    if (norm.includes('выбор') || norm.includes('помог') || norm.includes('посовету') || norm.includes('подскаж') || norm.includes('что лучше')) {
       if (activeOrderState.carModel) {
         const car = activeOrderState.carModel;
         const expertNote = getCarExpertDetail(car, activeOrderState.carClass, activeOrderState.brand);
         return {
-          text: `С удовольствием помогу определиться с комплексом для вашего ${car}! 👍 ${expertNote}\n\nПодскажите, какая первоочередная задача: защитить кузов от сколов по трассе (пленка PPF), вернуть зеркальный блеск (полировка + керамика) или обновить салон?`
+          text: `Подберём оптимальный комплекс для ${car}. ${expertNote}\nКакая задача важнее сейчас: защита кузова от сколов (PPF), глубокий глянец (полировка + керамика) или обновление салона?`
         };
       }
       return {
-        text: "С удовольствием помогу подобрать оптимальный комплекс услуг! 👍\n\nПодскажите, какой у вас автомобиль и какую задачу в первую очередь хотелось бы решить: защитить кузов от гравия (пленка PPF), вернуть зеркальный блеск (полировка + керамика) или обновить салон?"
+        text: 'Помогу выбрать подходящий комплекс. Напишите модель автомобиля и главную задачу: защита от сколов по трассе (PPF), восстановление блеска (полировка + керамика) или химчистка салона.'
       };
     }
 
-    // 19. Адрес и локация
-    if (norm.includes("где") || norm.includes("адрес") || norm.includes("находит") || norm.includes("город") || norm.includes("как доехать")) {
+    if (norm.includes('где') || norm.includes('адрес') || norm.includes('находит') || norm.includes('город') || norm.includes('как доехать')) {
       return {
-        text: `Наш детейлинг-центр находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно по предварительной записи. Подсказать стоимость услуг или подобрать удобное время?`
+        text: `Студия находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно 10:00–21:00 по предварительной записи.`
       };
     }
 
-    // 20. Короткие приветствия
-    if (norm === "привет" || norm === "здравствуйте" || norm === "добрый день" || norm === "добрый вечер" || norm === "ку" || norm === "салют") {
+    if (['привет', 'здравствуйте', 'добрый день', 'добрый вечер', 'ку', 'салют'].includes(norm)) {
       if (activeOrderState.carModel) {
         return {
-          text: `Здравствуйте! Рад снова слышать 👋 По вашему ${activeOrderState.carModel} предварительную смету держим. В какой день вам удобнее приехать к нам в студию?`
+          text: `Здравствуйте. Расчёт для ${activeOrderState.carModel} актуален. В какой день удобнее запланировать визит?`
         };
       }
       return {
-        text: "Здравствуйте! 👋 Я на связи. Подскажите марку и модель авто — быстро сориентирую по стоимости, подберу лучший комплекс и забронирую бокс с подарком по акции!"
+        text: 'Здравствуйте. Укажите марку и модель автомобиля — рассчитаю стоимость по прайсу и подберу свободное окно.'
       };
     }
 
-    // 21. ФОЛЛБЭК: Если автомобиль уже обсуждается в диалоге
     if (activeOrderState.carModel) {
-      const car = activeOrderState.carModel;
-      const cClass = activeOrderState.carClass || "Внедорожник";
       return {
-        text: `По вашему ${car} (${cClass}) смету держим в памяти 👍\n\nПодскажите, на какой день вам удобнее спланировать заезд или хотите уточнить что-то по материалам и срокам?`
+        text: `По ${activeOrderState.carModel} (${activeOrderState.carClass || 'Внедорожник'}) смету держим в работе. Подскажите удобный день для визита или уточните детали по материалам.`
       };
     }
 
-    // 22. ФОЛЛБЭК: Если диалог уже идет, но авто еще не названо
     return {
-      text: "С удовольствием помогу с выбором и подробно проконсультирую! 👍\n\nНапишите, какая у вас марка и модель машины — сразу сориентирую по точной стоимости и свободным окнам для записи."
+      text: 'Напишите марку и модель автомобиля и какая услуга интересует — рассчитаю смету по кузову и подскажу ближайшие свободные окна.'
     };
   }
 
+  // ─── 11. ПОТОКОВЫЙ ВЫВОД (STREAMING / TYPEWRITER) И СИНХРОНИЗАЦИЯ ─
   let isSending = false;
-  let isGeminiReachable = true;
+  let streamRunId = 0;
+  let totalCountRaf = null;
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function cancelActiveAnimations() {
+    streamRunId += 1;
+    if (totalCountRaf) {
+      cancelAnimationFrame(totalCountRaf);
+      totalCountRaf = null;
+    }
+    hideTyping();
+  }
 
   function setControlsState(disabled) {
-    const inputs = [inlineInput, floatingInput];
-    const sends = [inlineSend, floatingSend];
-
-    inputs.forEach(inp => {
-      if (inp) {
-        if (disabled) inp.setAttribute('disabled', 'true');
-        else inp.removeAttribute('disabled');
-      }
+    [inlineInput, floatingInput].forEach(inp => {
+      if (!inp) return;
+      if (disabled) inp.setAttribute('disabled', 'true');
+      else inp.removeAttribute('disabled');
     });
 
-    sends.forEach(btn => {
-      if (btn) {
-        btn.disabled = disabled;
-        btn.style.opacity = disabled ? '0.4' : '1';
-        btn.style.pointerEvents = disabled ? 'none' : 'auto';
-      }
+    [inlineSend, floatingSend].forEach(btn => {
+      if (!btn) return;
+      btn.disabled = disabled;
+      btn.style.opacity = disabled ? '0.4' : '1';
+      btn.style.pointerEvents = disabled ? 'none' : 'auto';
     });
 
     const toggleChips = (root) => {
@@ -2691,37 +2612,138 @@
         chip.style.opacity = disabled ? '0.5' : '1';
       });
     };
-
     toggleChips(shadow);
     const inlineHost = document.getElementById('ecm-inline-shadow-host');
-    if (inlineHost && inlineHost.shadowRoot) {
-      toggleChips(inlineHost.shadowRoot);
-    }
+    if (inlineHost && inlineHost.shadowRoot) toggleChips(inlineHost.shadowRoot);
   }
 
   function stripCodePieces(text) {
     if (!text) return '';
-    let clean = String(text).replace(/```[a-z]*[\s\S]*?```/gi, '');
-    clean = clean.replace(/```[a-z]*/gi, '');
-
-    // Удаляем любые остатки JSON со сметой из видимого сообщения (включая многострочные)
+    let clean = String(text).replace(/```[a-z]*[\s\S]*?```/gi, '').replace(/```[a-z]*/gi, '');
     const jsonStartMatch = clean.match(/\{[\s\r\n]*"(?:isEstimate|carModel|serviceName|basePrice|totalPrice|carClass|slot)"/i);
     if (jsonStartMatch && typeof jsonStartMatch.index === 'number') {
       clean = clean.substring(0, jsonStartMatch.index);
     }
-
-    // Удаляем [CONFIRM_LEAD:...] и другие системные теги
     clean = clean.replace(/\[(?:PENDING_BOOKING|CONFIRM_LEAD|CANCEL_LEAD|RESCHEDULE_LEAD):[^\]]*\]/gi, '');
     return clean.trim();
   }
 
+  function showTyping() {
+    hideTyping();
+    const html = `
+      <div class="ecm-msg bot typing-msg">
+        <div class="ecm-typing" aria-label="печатает...">
+          <span class="ecm-typing-dots">
+            <span class="ecm-typing-dot"></span>
+            <span class="ecm-typing-dot"></span>
+            <span class="ecm-typing-dot"></span>
+          </span>
+          <span>печатает</span>
+        </div>
+      </div>
+    `;
+    [inlineStream, isFloatingOpen ? floatingStream : null].forEach(stream => {
+      if (!stream) return;
+      stream.insertAdjacentHTML('beforeend', html);
+      requestAnimationFrame(() => {
+        stream.scrollTop = stream.scrollHeight;
+      });
+    });
+  }
+
+  function hideTyping() {
+    [inlineStream, floatingStream].forEach(stream => {
+      if (!stream) return;
+      stream.querySelectorAll('.typing-msg').forEach(el => el.remove());
+    });
+  }
+
+  function scrollStreamSoftly(stream, forceBottom = true) {
+    if (!stream || !forceBottom) return;
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function streamTextToTargets(fullText, targets, options = {}) {
+    const myRunId = options.runId || streamRunId;
+    const autoScroll = options.autoScroll !== false;
+
+    if (prefersReduced || !fullText) {
+      targets.forEach(({ container, textEl }) => {
+        if (textEl) textEl.textContent = fullText;
+        scrollStreamSoftly(container, autoScroll);
+      });
+      return Promise.resolve(myRunId === streamRunId);
+    }
+
+    return new Promise((resolve) => {
+      let idx = 0;
+      const len = fullText.length;
+      const stepChars = len > 300 ? 4 : len > 150 ? 3 : 2;
+      const intervalMs = 18;
+
+      const carets = targets.map(({ bubble }) => {
+        const c = document.createElement('span');
+        c.className = 'ecm-stream-caret';
+        if (bubble) bubble.appendChild(c);
+        return c;
+      });
+
+      function tick() {
+        if (myRunId !== streamRunId) {
+          carets.forEach(c => c.remove());
+          resolve(false);
+          return;
+        }
+
+        idx = Math.min(len, idx + stepChars);
+        const slice = fullText.slice(0, idx);
+
+        targets.forEach(({ container, textEl }) => {
+          if (textEl) textEl.textContent = slice;
+          if (autoScroll && container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        });
+
+        if (idx < len) {
+          setTimeout(tick, intervalMs);
+        } else {
+          carets.forEach(c => c.remove());
+          resolve(true);
+        }
+      }
+
+      tick();
+    });
+  }
+
+  function animateTotalCounter(cardEl, fromVal, toVal, durationMs = 460) {
+    if (!cardEl || prefersReduced || fromVal === toVal) return;
+    const numEl = cardEl.querySelector('.ecm-total-num');
+    if (!numEl) return;
+
+    const startTime = performance.now();
+    function step(now) {
+      const p = Math.min(1, (now - startTime) / durationMs);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = Math.round(fromVal + (toVal - fromVal) * eased);
+      numEl.textContent = val.toLocaleString('ru-RU');
+      if (p < 1) {
+        totalCountRaf = requestAnimationFrame(step);
+      } else {
+        numEl.textContent = toVal.toLocaleString('ru-RU');
+        totalCountRaf = null;
+      }
+    }
+    totalCountRaf = requestAnimationFrame(step);
+  }
+
   async function queryAi(promptText, chatHistory, contactInfo) {
-    // 1. Попытка запроса через бэкенд FastAPI (/api/chat), если запущен локально
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (isLocal) {
       try {
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 1200);
+        const tid = setTimeout(() => ctrl.abort(), 1400);
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2745,8 +2767,7 @@
       } catch (e) {}
     }
 
-    // 2. Интеллектуальный моментальный отклик (320 мс живого набора)
-    await new Promise(r => setTimeout(r, 320));
+    await new Promise(r => setTimeout(r, prefersReduced ? 40 : 420));
     return getSmartFallback(promptText, contactInfo);
   }
 
@@ -2757,9 +2778,7 @@
     if (!leadData) return;
     const contactKey = `${leadData.phone || leadData.tg_username || leadData.contactDisplay}_${leadData.car}_${leadData.service}`;
     const now = Date.now();
-    if (lastSyncedContactKey === contactKey && (now - lastSyncedTime) < 15000) {
-      return;
-    }
+    if (lastSyncedContactKey === contactKey && (now - lastSyncedTime) < 15000) return;
     lastSyncedContactKey = contactKey;
     lastSyncedTime = now;
 
@@ -2767,7 +2786,6 @@
     const TG_BOT_TOKEN = "9042228037:AAEy1Sij6yYSSqdl1OW6S8e253auvBywajg";
     const TG_ADMIN_ID = 5031947136;
 
-    // 1. Отправка в Google Таблицу через Apps Script Webhook
     try {
       const sheetPayload = {
         action: "create",
@@ -2781,7 +2799,7 @@
         time_slot: leadData.slot || "По согласованию",
         phone: leadData.phone || "",
         tg_username: leadData.tg_username || "",
-        status: "⏳ Ожидает подтверждения"
+        status: "Ожидает подтверждения"
       };
 
       fetch(GOOGLE_SHEETS_URL, {
@@ -2789,14 +2807,11 @@
         mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(sheetPayload)
-      }).catch(function(err) {
-        console.warn("[ECM Widget] Google Sheets sync notice:", err);
-      });
+      }).catch(err => console.warn("[ECM Widget] Google Sheets sync notice:", err));
     } catch (e) {
       console.warn("[ECM Widget] Google Sheets sync error:", e);
     }
 
-    // 2. Мгновенное уведомление в Telegram бот владельца (@ecm_owner_demo_bot)
     try {
       const cardText = `🔔 <b>НОВАЯ ЗАЯВКА ИЗ ВЕБ-ВИДЖЕТА (САЙТ)</b>\n` +
         `━━━━━━━━━━━━━━━\n` +
@@ -2819,12 +2834,23 @@
           text: cardText,
           parse_mode: "HTML"
         })
-      }).catch(function(err) {
-        console.warn("[ECM Widget] Telegram notify notice:", err);
-      });
+      }).catch(err => console.warn("[ECM Widget] Telegram notify notice:", err));
     } catch (e) {
       console.warn("[ECM Widget] Telegram notify error:", e);
     }
+  }
+
+  function appendStreamBotShell(streamEl) {
+    if (!streamEl) return null;
+    const msgRow = document.createElement('div');
+    msgRow.className = 'ecm-msg bot';
+    const bubble = document.createElement('div');
+    bubble.className = 'ecm-bot-bubble';
+    const textSpan = document.createElement('span');
+    bubble.appendChild(textSpan);
+    msgRow.appendChild(bubble);
+    streamEl.appendChild(msgRow);
+    return { container: streamEl, bubble: bubble, textEl: textSpan };
   }
 
   async function handleUserSend(text) {
@@ -2832,27 +2858,41 @@
     const trimmed = text.trim();
     if (!trimmed) return;
 
+    // Если пользователь пишет во время стартового автовоспроизведения — завершаем автоплей чисто
+    if (messages.length < 2) {
+      cancelActiveAnimations();
+      messages = getInitialMessages();
+      renderAllStreams('top');
+    } else {
+      cancelActiveAnimations();
+    }
+
+    const myRunId = ++streamRunId;
     isSending = true;
     setControlsState(true);
 
     try {
-      // Лимит сообщений в демо
       const count = incrementMessageCount();
       if (count > MAX_DEMO_MESSAGES) {
-        messages.push({ role: 'user', text: trimmed });
-        messages.push({
+        const userMsg = { role: 'user', text: trimmed };
+        const limitMsg = {
           role: 'bot',
           isEstimate: false,
-          text: 'В демо доступно 500 сообщений. Для сброса нажмите кнопку «Обновить диалог» в шапке.'
-        });
-        renderAllStreams();
+          text: 'Достигнут лимит демонстрационной сессии. Нажмите кнопку обновления в шапке чата для сброса.'
+        };
+        messages.push(userMsg, limitMsg);
+        renderAllStreams('bottom');
         return;
       }
 
-      messages.push({ role: 'user', text: trimmed });
-      renderAllStreams();
+      const userMsg = { role: 'user', text: trimmed };
+      messages.push(userMsg);
+      [inlineStream, isFloatingOpen ? floatingStream : null].forEach(s => {
+        if (!s) return;
+        s.appendChild(createMessageElement(userMsg));
+        scrollStreamSoftly(s, true);
+      });
 
-      // Сохраняем пожелание по времени, если пользователь его указал
       const timePref = extractTimePreference(trimmed);
       if (timePref) {
         if (!timePref.includes('завтра') && !timePref.includes('сегодня') && !timePref.includes('суббот') && !timePref.includes('воскресень') && !timePref.includes('понедельник') && !timePref.includes('вторник') && !timePref.includes('сред') && !timePref.includes('четверг') && !timePref.includes('пятниц') && activeOrderState.slot) {
@@ -2869,77 +2909,64 @@
           else if (lowSlot.includes('четверг')) dayPrefix = 'на четверг';
           else if (lowSlot.includes('пятниц')) dayPrefix = 'на пятницу';
           else if (lowSlot.includes('выходн')) dayPrefix = 'на выходные';
-
-          if (dayPrefix) {
-            activeOrderState.slot = `${dayPrefix} ${timePref}`;
-          } else {
-            activeOrderState.slot = timePref;
-          }
+          activeOrderState.slot = dayPrefix ? `${dayPrefix} ${timePref}` : timePref;
         } else {
           activeOrderState.slot = timePref;
         }
       }
 
-      // Анализ контакта и намерения
       const contactInfo = extractContactInfo(trimmed);
       const refusalMode = isRefusal(trimmed, '');
       const b2bMode = isLeadershipOrB2bQuery(trimmed);
-      const bookingMode = (isBookingRequest(trimmed) || !!contactInfo) && !b2bMode;
 
-      // Показываем индикатор набора
       showTyping();
-
-      // Запрос к AI (быстрый ответ)
       const rawResult = await queryAi(trimmed, messages, contactInfo);
+      if (myRunId !== streamRunId) return;
       hideTyping();
 
       const cleanText = stripCodePieces(rawResult.text);
 
-      // Извлекаем смету: ТОЛЬКО при запросе цены или при подтверждении брони с контактом
       let estimate = null;
       if (!refusalMode && !b2bMode) {
         estimate = rawResult.estimate || extractEstimate(rawResult.rawText || rawResult.text, trimmed, contactInfo);
       }
-
-      // Если клиент предоставил контакт (финальное подтверждение записи), гарантируем наличие сметы (только если авто определено)
       if (contactInfo && !estimate && !refusalMode && !b2bMode && activeOrderState.carModel && activeOrderState.carClass) {
         estimate = Object.assign({}, activeOrderState, {
           isEstimate: true,
-          slot: activeOrderState.slot || 'по согласованию (на ваш выбор)'
+          slot: activeOrderState.slot || 'по согласованию'
         });
       }
 
       if (cleanText) {
-        messages.push({
-          role: 'bot',
-          isEstimate: false,
-          text: cleanText
-        });
+        messages.push({ role: 'bot', isEstimate: false, text: cleanText });
+        const targets = [];
+        const inlineTarget = appendStreamBotShell(inlineStream);
+        if (inlineTarget) targets.push(inlineTarget);
+        if (isFloatingOpen && floatingStream) {
+          const floatTarget = appendStreamBotShell(floatingStream);
+          if (floatTarget) targets.push(floatTarget);
+        }
+        const ok = await streamTextToTargets(cleanText, targets, { runId: myRunId, autoScroll: true });
+        if (!ok) return;
       }
 
-      // Карточка заказ-наряда формируется ТОЛЬКО в самом начале как образец и в конце при фактической записи (оставлен контакт)
       const isFinalBooking = !!contactInfo && !refusalMode && !b2bMode;
 
       if (isFinalBooking) {
         const estClass = (estimate && estimate.carClass) || activeOrderState.carClass || 'Внедорожник';
         const estModel = (estimate && estimate.carModel) || activeOrderState.carModel || 'Автомобиль клиента';
-        const estService = (estimate && estimate.serviceName) || activeOrderState.serviceName || 'Комплексная восстановительная полировка кузова';
+        const estService = (estimate && estimate.serviceName) || activeOrderState.serviceName || 'Восстановительная полировка кузова';
         const estBasePrice = (estimate && estimate.basePrice !== undefined && estimate.basePrice !== null && !isNaN(estimate.basePrice))
-          ? Number(estimate.basePrice)
-          : (activeOrderState.basePrice || 18000);
+          ? Number(estimate.basePrice) : (activeOrderState.basePrice || 18000);
         const isExcl = (estimate && estimate.upsellExcluded) || !!activeOrderState.upsellExcluded;
-        const estUpsellPrice = isExcl
-          ? 0
+        const estUpsellPrice = isExcl ? 0
           : ((estimate && estimate.upsellPrice !== undefined && estimate.upsellPrice !== null && !isNaN(estimate.upsellPrice))
-              ? Number(estimate.upsellPrice)
-              : (activeOrderState.upsellPrice !== undefined ? activeOrderState.upsellPrice : 0));
-        const estUpsellName = isExcl
-          ? 'Без дополнительных опций'
+              ? Number(estimate.upsellPrice) : (activeOrderState.upsellPrice !== undefined ? activeOrderState.upsellPrice : 0));
+        const estUpsellName = isExcl ? 'Без дополнительных опций'
           : ((estimate && estimate.upsellName) || activeOrderState.upsellName || (estUpsellPrice > 0 ? 'Нанокерамика 9H (2 слоя)' : 'Без дополнительных опций'));
         const estTotalPrice = (estimate && estimate.totalPrice !== undefined && estimate.totalPrice !== null && !isNaN(estimate.totalPrice))
-          ? Number(estimate.totalPrice)
-          : (estBasePrice + estUpsellPrice);
-        const estSlot = (estimate && estimate.slot) || activeOrderState.slot || 'по согласованию (на ваш выбор)';
+          ? Number(estimate.totalPrice) : (estBasePrice + estUpsellPrice);
+        const estSlot = (estimate && estimate.slot) || activeOrderState.slot || 'по согласованию';
 
         const finalOrderCard = {
           role: 'bot',
@@ -2955,18 +2982,21 @@
           slot: estSlot
         };
 
-        // Заменяем предыдущую подтвержденную карточку (если клиент скорректировал контакт или время), не трогая стартовый образец в шапке
         const prevConfirmedIdx = messages.findIndex(m => m.isEstimate && !m.isInitialSample);
-        if (prevConfirmedIdx !== -1) {
-          messages.splice(prevConfirmedIdx, 1);
-        }
+        if (prevConfirmedIdx !== -1) messages.splice(prevConfirmedIdx, 1);
         messages.push(finalOrderCard);
+
+        [inlineStream, isFloatingOpen ? floatingStream : null].forEach(s => {
+          if (!s) return;
+          const cardWrap = createMessageElement(finalOrderCard, { stagger: true });
+          s.appendChild(cardWrap);
+          scrollStreamSoftly(s, true);
+        });
 
         const clientDisplayName = contactInfo.name
           ? `${contactInfo.name} / ${estModel} (${estClass})`
           : `${estModel} (${estClass})`;
 
-        // Отправка в реальные сервисы (Google Sheets и Telegram)
         syncLeadToExternalServices({
           client: clientDisplayName,
           car: `${estModel} (${estClass})`,
@@ -2984,7 +3014,7 @@
               client: contactInfo.name || 'Посетитель сайта',
               contact: contactInfo.display,
               car: `${estModel} (${estClass})`,
-              service: `${estService} + ${estUpsellName}`,
+              service: `${estService}${estUpsellPrice > 0 ? ' + ' + estUpsellName : ''}`,
               cost: `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
               source: 'Виджет на сайте',
               status: 'Бронь подтверждена'
@@ -2992,7 +3022,6 @@
           }));
         } catch (e) {}
       } else if (activeOrderState.carModel || (estimate && estimate.carModel)) {
-        // Моментальная передача расчета в CRM-таблицу на странице
         try {
           const curCar = (estimate && estimate.carModel) || activeOrderState.carModel;
           const curClass = (estimate && estimate.carClass) || activeOrderState.carClass || '';
@@ -3014,55 +3043,82 @@
           }));
         } catch (e) {}
       }
-
-      renderAllStreams();
     } finally {
-      isSending = false;
-      setControlsState(false);
+      if (myRunId === streamRunId) {
+        isSending = false;
+        setControlsState(false);
+      }
     }
   }
 
-  function showTyping() {
-    hideTyping();
-    const dotsHtml = `
-      <div class="ecm-msg bot typing-msg">
-        <div class="ecm-typing">
-          <span class="ecm-typing-dot"></span>
-          <span class="ecm-typing-dot"></span>
-          <span class="ecm-typing-dot"></span>
-        </div>
-      </div>
-    `;
-    if (inlineStream) {
-      inlineStream.insertAdjacentHTML('beforeend', dotsHtml);
-      requestAnimationFrame(() => {
-        inlineStream.scrollTop = inlineStream.scrollHeight;
-      });
-    }
-    if (floatingStream) {
-      floatingStream.insertAdjacentHTML('beforeend', dotsHtml);
-      requestAnimationFrame(() => {
-        floatingStream.scrollTop = floatingStream.scrollHeight;
-      });
-    }
-  }
-
-  function hideTyping() {
-    if (inlineStream) {
-      inlineStream.querySelectorAll('.typing-msg').forEach(el => el.remove());
-    }
-    if (floatingStream) {
-      floatingStream.querySelectorAll('.typing-msg').forEach(el => el.remove());
-    }
-  }
-
-  // ─── 12. АВТОПЛЕЙ ПРИ СТАРТЕ (C УВАЖЕНИЕМ К REDUCED MOTION) ────────
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function runAutoplay() {
+  // ─── 12. ПЕРВИЧНОЕ ЖИВОЕ АВТОПРОИГРЫВАНИЕ НА ПЕРВОМ ЭКРАНЕ ────────
+  async function runAutoplay() {
+    cancelActiveAnimations();
+    const myRunId = ++streamRunId;
     resetActiveOrderState();
-    messages = getInitialMessages();
-    renderAllStreams();
+
+    const initialList = getInitialMessages();
+    const greetingMsg = initialList[0];
+    const sampleEstimate = initialList[1];
+
+    if (prefersReduced || !inlineStream) {
+      messages = initialList;
+      renderAllStreams('top');
+      return;
+    }
+
+    const activeStreams = [inlineStream, isFloatingOpen ? floatingStream : null].filter(Boolean);
+    messages = [greetingMsg, sampleEstimate];
+    activeStreams.forEach(s => {
+      s.innerHTML = '';
+      s.scrollTop = 0;
+    });
+
+    await new Promise(r => setTimeout(r, 240));
+    if (myRunId !== streamRunId) return;
+
+    showTyping();
+    await new Promise(r => setTimeout(r, 420));
+    if (myRunId !== streamRunId) return;
+    hideTyping();
+
+    const greetingTargets = activeStreams.map(s => appendStreamBotShell(s)).filter(Boolean);
+    if (!greetingTargets.length) return;
+
+    const ok = await streamTextToTargets(greetingMsg.text, greetingTargets, { runId: myRunId, autoScroll: false });
+    if (!ok || myRunId !== streamRunId) return;
+
+    await new Promise(r => setTimeout(r, 160));
+    if (myRunId !== streamRunId) return;
+
+    const spawnedCards = [];
+    activeStreams.forEach(s => {
+      const cardNode = createMessageElement(sampleEstimate, {
+        stagger: true,
+        initialTotalStart: sampleEstimate.basePrice
+      });
+      s.appendChild(cardNode);
+      s.scrollTop = 0;
+      spawnedCards.push(cardNode);
+    });
+
+    // Плавно обновляем «Итого» при появлении второй позиции
+    setTimeout(() => {
+      if (myRunId !== streamRunId) return;
+      spawnedCards.forEach(cardNode => {
+        animateTotalCounter(cardNode, sampleEstimate.basePrice, sampleEstimate.totalPrice, 460);
+      });
+    }, 220);
+  }
+
+  function resetConversation() {
+    try {
+      localStorage.removeItem(USAGE_KEY);
+      localStorage.removeItem(MSGS_KEY);
+    } catch (e) {}
+    isSending = false;
+    setControlsState(false);
+    runAutoplay();
   }
 
   // ─── 13. ПУБЛИЧНЫЙ API WINDOW.ECMWIDGET ────────────────────────────
@@ -3082,21 +3138,16 @@
 
     setTheme: function (themeNameOrTokens) {
       if (typeof themeNameOrTokens === 'string') {
-        if (THEMES[themeNameOrTokens]) {
-          activeTheme = THEMES[themeNameOrTokens];
-        }
+        const key = themeNameOrTokens === 'light' ? 'epoxy' : themeNameOrTokens;
+        if (THEMES[key]) activeTheme = THEMES[key];
       } else if (typeof themeNameOrTokens === 'object' && themeNameOrTokens !== null) {
         activeTheme = Object.assign({}, activeTheme, themeNameOrTokens);
       }
 
-      const newCss = generateStyles(activeTheme);
-      styleEl.textContent = newCss;
-
-      // Обновляем инлайн стили
-      const inlineHost = document.getElementById('ecm-inline-shadow-host');
-      if (inlineHost && inlineHost.shadowRoot) {
-        const s = inlineHost.shadowRoot.querySelector('style');
-        if (s) s.textContent = newCss;
+      const varsCss = generateThemeVarsCss(activeTheme);
+      floatingVarsStyleEl.textContent = varsCss;
+      if (inlineVarsStyleEl) {
+        inlineVarsStyleEl.textContent = varsCss;
       }
 
       host.setAttribute('data-theme', activeTheme.name || 'custom');
@@ -3104,6 +3155,14 @@
 
     sendMessage: function (text) {
       return handleUserSend(text);
+    },
+
+    focus: function () {
+      if (isFloatingOpen && floatingInput) {
+        floatingInput.focus();
+      } else if (inlineInput) {
+        inlineInput.focus();
+      }
     },
 
     open: function () {
@@ -3116,29 +3175,21 @@
   };
 
   window.ECMWidget = window.EcmWidget;
+  window.openEcmWidget = function () { window.EcmWidget.open(); };
+  window.closeEcmWidget = function () { window.EcmWidget.close(); };
 
-  window.openEcmWidget = function () {
-    window.EcmWidget.open();
-  };
-  window.closeEcmWidget = function () {
-    window.EcmWidget.close();
-  };
-
-
-  // ─── ТАЙМЕР ОКНА БРОНИ (15:00 ОБРАТНЫЙ ОТСЧЕТ) ───────────────────
+  // ─── 14. ТАЙМЕР ОКНА БРОНИ (15:00) ────────────────────────────────
   let holdCountdownSec = 15 * 60;
   let holdTimerInterval = null;
 
   function initHoldTimer() {
     if (holdTimerInterval) clearInterval(holdTimerInterval);
     holdTimerInterval = setInterval(() => {
-      if (holdCountdownSec > 0) {
-        holdCountdownSec -= 1;
-      }
+      if (holdCountdownSec > 0) holdCountdownSec -= 1;
       const m = Math.floor(holdCountdownSec / 60);
       const s = holdCountdownSec % 60;
       const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      
+
       const updateElements = (root) => {
         if (!root) return;
         root.querySelectorAll('.ecm-timer-val').forEach(el => {
@@ -3148,27 +3199,13 @@
 
       updateElements(shadow);
       const inlineHost = document.getElementById('ecm-inline-shadow-host');
-      if (inlineHost && inlineHost.shadowRoot) {
-        updateElements(inlineHost.shadowRoot);
-      }
+      if (inlineHost && inlineHost.shadowRoot) updateElements(inlineHost.shadowRoot);
 
       if (holdCountdownSec <= 0 && holdTimerInterval) {
         clearInterval(holdTimerInterval);
       }
     }, 1000);
   }
-
-    // Наблюдатель за сменой темы сайта (Светлая / Тёмная)
-  try {
-    const siteThemeObserver = new MutationObserver(() => {
-      const isDark = document.documentElement.getAttribute('data-site-theme') === 'dark';
-      window.EcmWidget.setTheme(isDark ? 'dark' : 'epoxy');
-    });
-    siteThemeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-site-theme']
-    });
-  } catch(e) {}
 
   async function loadStudioPersonalization() {
     if (!STUDIO_CONFIG.studio_id || STUDIO_CONFIG.studio_id === 'default') return;
@@ -3178,8 +3215,11 @@
         const data = await resp.json();
         if (data.company_name) {
           STUDIO_CONFIG.company_name = data.company_name;
-          const titleEl = host && host.shadowRoot ? host.shadowRoot.querySelector('.ecm-title') : null;
-          if (titleEl) titleEl.textContent = data.company_name;
+          shadow.querySelectorAll('.ecm-title').forEach(el => { el.textContent = data.company_name; });
+          const inlineHost = document.getElementById('ecm-inline-shadow-host');
+          if (inlineHost && inlineHost.shadowRoot) {
+            inlineHost.shadowRoot.querySelectorAll('.ecm-title').forEach(el => { el.textContent = data.company_name; });
+          }
           const pageTitle = document.getElementById('widgetStudioName');
           if (pageTitle) pageTitle.textContent = data.company_name;
         }
@@ -3193,10 +3233,7 @@
     } catch (e) {}
   }
 
-  // Старт
   loadStudioPersonalization();
   initHoldTimer();
   runAutoplay();
-
-  console.info('[ECM Widget] Workshop Order Edition initialized.');
 })();
