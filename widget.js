@@ -23,10 +23,9 @@
     ),
     promo: 'Бесплатный замер толщины ЛКП и гидрофобный антидождь передней полусферы в подарок при заказе комплекса.',
     quick_prompts: [
-      'Хочу PPF на Mercedes GLE',
-      'Сколько стоит полировка кузова?',
-      'Помогите с выбором',
-      'Записаться на удобное время'
+      'Полировка кузова',
+      'Оклейка PPF',
+      'Керамика 9H'
     ]
   };
 
@@ -83,9 +82,9 @@
       chip_bg: '#151519',
       chip_hover: '#1F1F25',
       input_bg: '#121215',
-      radius_win: '16px',
-      radius_card: '10px',
-      radius_btn: '8px',
+      radius_win: '10px',
+      radius_card: '8px',
+      radius_btn: '6px',
       font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     },
@@ -114,9 +113,9 @@
       chip_bg: '#1C1C20',
       chip_hover: '#26262C',
       input_bg: '#111114',
-      radius_win: '16px',
-      radius_card: '10px',
-      radius_btn: '8px',
+      radius_win: '10px',
+      radius_card: '8px',
+      radius_btn: '6px',
       font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     },
@@ -145,9 +144,9 @@
       chip_bg: '#FFFFFF',
       chip_hover: '#EFEFF3',
       input_bg: '#F4F4F7',
-      radius_win: '16px',
-      radius_card: '10px',
-      radius_btn: '8px',
+      radius_win: '10px',
+      radius_card: '8px',
+      radius_btn: '6px',
       font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
     }
@@ -180,9 +179,9 @@
   `;
 
   const SVG_STUDIO_MARK = `
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 17l6-10h4l6 10"/>
-      <path d="M7.5 14h9"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3.5 6H8C10.5 6 11.8 7.6 11.8 10.1V13.9C11.8 16.4 10.5 18 8 18H3.5Z" stroke="var(--w-ink, #F4F4F5)" stroke-width="2" stroke-linejoin="miter"/>
+      <path d="M15.2 6V18H20.8" stroke="var(--w-champagne, #D6B37C)" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
     </svg>
   `;
 
@@ -259,7 +258,7 @@
       right: 24px;
       width: 52px;
       height: 52px;
-      border-radius: 14px;
+      border-radius: 10px;
       background: rgba(18, 18, 22, 0.88);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
@@ -411,17 +410,8 @@
       color: var(--w-muted);
       display: flex;
       align-items: center;
-      gap: 6px;
       margin-top: 2px;
       transition: color 0.28s ease;
-    }
-
-    .ecm-online-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--w-champagne);
-      flex-shrink: 0;
     }
 
     .ecm-actions {
@@ -498,7 +488,7 @@
     .ecm-user-text {
       background: var(--w-elevated);
       border: 1px solid var(--w-rule);
-      border-radius: 12px 12px 4px 12px;
+      border-radius: 8px 8px 4px 8px;
       padding: 10px 14px;
       font-size: 13.5px;
       color: var(--w-ink);
@@ -511,14 +501,48 @@
     .ecm-bot-bubble {
       background: var(--w-card);
       border: 1px solid var(--w-rule);
-      border-radius: 12px 12px 12px 4px;
+      border-radius: 8px 8px 8px 4px;
       padding: 11px 14px;
       font-size: 13.5px;
       color: var(--w-ink);
       white-space: pre-wrap;
       line-height: 1.52;
       word-break: break-word;
-      max-width: 94%;
+      max-width: 96%;
+      transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
+    }
+
+    /* Компактная таблица сметы / тарифов в ответе бота */
+    .ecm-breakdown-card {
+      background: var(--w-card);
+      border: 1px solid var(--w-rule);
+      border-radius: var(--w-r-card);
+      overflow: hidden;
+      margin-top: 4px;
+      max-width: 96%;
+      transition: background-color 0.28s ease, border-color 0.28s ease;
+    }
+    .ecm-breakdown-card.is-staggered {
+      animation: ecmFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ecm-breakdown-card.is-staggered tr.stagger-row {
+      opacity: 0;
+      transform: translateY(5px);
+      animation: ecmRowReveal 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .ecm-breakdown-card.is-staggered tr.stagger-1 { animation-delay: 40ms; }
+    .ecm-breakdown-card.is-staggered tr.stagger-2 { animation-delay: 100ms; }
+    .ecm-breakdown-card.is-staggered tr.stagger-3 { animation-delay: 160ms; }
+    .ecm-breakdown-card.is-staggered tr.stagger-4 { animation-delay: 220ms; }
+    .ecm-breakdown-card.is-staggered tr.stagger-5 { animation-delay: 280ms; }
+    .ecm-breakdown-card.is-staggered tr.stagger-6 { animation-delay: 340ms; }
+    .ecm-breakdown-foot {
+      padding: 9px 13px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--w-muted);
+      background: var(--w-hold-bg);
+      border-top: 1px solid var(--w-rule);
       transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease;
     }
 
@@ -698,7 +722,7 @@
       gap: 8px;
       background: var(--w-card);
       border: 1px solid var(--w-rule);
-      border-radius: 12px 12px 12px 4px;
+      border-radius: 8px 8px 8px 4px;
       padding: 8px 12px;
       font-size: 12px;
       color: var(--w-muted);
@@ -723,36 +747,18 @@
       40% { transform: scale(1.1); opacity: 1; background: var(--w-champagne); }
     }
 
-    /* Горизонтальный скролл чипсов с мягкой маской затухания по краям */
+    /* Компактная панель быстрых запросов без горизонтальной обрезки */
     .ecm-chips-wrap {
       flex-shrink: 0;
-      padding: 2px 0 8px 0;
+      padding: 4px 14px 8px 14px;
       background: var(--w-panel);
       transition: background-color 0.28s ease;
     }
     .ecm-chips-strip {
-      padding: 0 16px;
-      scroll-padding-inline: 16px;
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%);
-      mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 28px), transparent 100%);
     }
-    .ecm-chips-strip.mask-both {
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 calc(100% - 28px), transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 calc(100% - 28px), transparent 100%);
-    }
-    .ecm-chips-strip.mask-left {
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 100%);
-      mask-image: linear-gradient(to right, transparent 0%, #000 22px, #000 100%);
-    }
-    .ecm-chips-strip.mask-none {
-      -webkit-mask-image: none;
-      mask-image: none;
-    }
-    .ecm-chips-strip::-webkit-scrollbar { display: none; }
 
     .ecm-chip-btn {
       background: var(--w-chip-bg);
@@ -764,7 +770,6 @@
       color: var(--w-muted);
       cursor: pointer;
       white-space: nowrap;
-      flex-shrink: 0;
       transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
     .ecm-chip-btn:hover {
@@ -1028,33 +1033,88 @@
   let floatingInput = null;
   let floatingSend = null;
 
-  function updateChipStripMask(strip) {
-    if (!strip) return;
-    const maxScroll = strip.scrollWidth - strip.clientWidth;
-    if (maxScroll <= 2) {
-      strip.classList.remove('mask-both', 'mask-left');
-      strip.classList.add('mask-none');
-      return;
-    }
-    strip.classList.remove('mask-none');
-    const atStart = strip.scrollLeft <= 2;
-    const atEnd = strip.scrollLeft >= maxScroll - 2;
-    strip.classList.toggle('mask-both', !atStart && !atEnd);
-    strip.classList.toggle('mask-left', !atStart && atEnd);
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  function bindChipStrip(winEl) {
-    const strip = winEl.querySelector('.ecm-chips-strip');
-    if (!strip) return;
-    requestAnimationFrame(() => updateChipStripMask(strip));
-    strip.addEventListener('scroll', () => updateChipStripMask(strip), { passive: true });
-    strip.addEventListener('wheel', (e) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) {
-        e.preventDefault();
-        strip.scrollLeft += e.deltaY;
+  function buildBreakdownCardHtml(breakdown, options = {}) {
+    if (!breakdown || !Array.isArray(breakdown.rows) || !breakdown.rows.length) return '';
+    const isStaggered = !!options.stagger;
+    const rowsHtml = breakdown.rows.map((row, idx) => `
+      <tr class="${row.isHighlight ? 'ecm-row-upsell ' : ''}${isStaggered ? `stagger-row stagger-${Math.min(idx + 1, 6)}` : ''}">
+        <td>
+          <span>${escapeHtml(row.label)}</span>
+          ${row.tag ? `<span class="ecm-rec-tag">${escapeHtml(row.tag)}</span>` : ''}
+        </td>
+        <td class="col-price${row.isGift ? ' ecm-gift-val' : ''}">${escapeHtml(row.price)}</td>
+      </tr>
+    `).join('');
+
+    const totalRowHtml = breakdown.totalPrice ? `
+      <tr class="ecm-row-total${isStaggered ? ` stagger-row stagger-${Math.min(breakdown.rows.length + 1, 6)}` : ''}">
+        <td>${escapeHtml(breakdown.totalLabel || 'Итого за комплекс')}</td>
+        <td class="col-price">${escapeHtml(breakdown.totalPrice)}</td>
+      </tr>
+    ` : '';
+
+    return `
+      <div class="ecm-breakdown-card${isStaggered ? ' is-staggered' : ''}">
+        <div class="ecm-order-meta">
+          <span class="ecm-order-title">${escapeHtml(breakdown.headerLabel || 'Расчёт по прайсу')}</span>
+          ${breakdown.metaLabel ? `<span class="ecm-order-car">${escapeHtml(breakdown.metaLabel)}</span>` : ''}
+        </div>
+        <table class="ecm-order-table">
+          <tbody>
+            ${rowsHtml}
+            ${totalRowHtml}
+          </tbody>
+        </table>
+        ${breakdown.footerNote ? `<div class="ecm-breakdown-foot">${escapeHtml(breakdown.footerNote)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function extractBreakdownFromText(rawText) {
+    if (!rawText) return { leadText: '', breakdown: null };
+    const lines = rawText.split('\n');
+    const bulletRows = [];
+    const leadLines = [];
+    const footerLines = [];
+    let seenRows = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      const bulletMatch = trimmed.match(/^(?:[•\-\*]|\d+[.)])\s+(.+?)\s+[—–-]\s+(.+)$/);
+      if (bulletMatch && /(?:₽|руб|подарок|бесплат)/i.test(bulletMatch[2])) {
+        seenRows = true;
+        bulletRows.push({
+          label: bulletMatch[1].trim(),
+          price: bulletMatch[2].trim(),
+          isGift: /подарок|бесплат/i.test(bulletMatch[2])
+        });
+      } else if (!seenRows) {
+        leadLines.push(lines[i]);
+      } else if (trimmed) {
+        footerLines.push(trimmed);
       }
-    }, { passive: false });
-    window.addEventListener('resize', () => updateChipStripMask(strip), { passive: true });
+    }
+
+    if (bulletRows.length < 2) {
+      return { leadText: rawText, breakdown: null };
+    }
+
+    return {
+      leadText: leadLines.join('\n').trim() || 'Подобрали позиции по вашему запросу:',
+      breakdown: {
+        headerLabel: 'Расчёт по прайсу',
+        rows: bulletRows,
+        footerNote: footerLines.join(' ').trim()
+      }
+    };
   }
 
   function createMessageElement(m, options = {}) {
@@ -1079,10 +1139,17 @@
         options
       );
     } else {
-      const bubble = document.createElement('div');
-      bubble.className = 'ecm-bot-bubble';
-      bubble.textContent = m.text;
-      msgRow.appendChild(bubble);
+      if (m.text) {
+        const bubble = document.createElement('div');
+        bubble.className = 'ecm-bot-bubble';
+        bubble.textContent = m.text;
+        msgRow.appendChild(bubble);
+      }
+      if (m.breakdown) {
+        const temp = document.createElement('div');
+        temp.innerHTML = buildBreakdownCardHtml(m.breakdown, options).trim();
+        if (temp.firstElementChild) msgRow.appendChild(temp.firstElementChild);
+      }
     }
     return msgRow;
   }
@@ -1118,7 +1185,7 @@
           <div class="ecm-avatar">${SVG_STUDIO_MARK}</div>
           <div style="min-width:0;">
             <div class="ecm-title">${STUDIO_CONFIG.company_name}</div>
-            <div class="ecm-sub"><span class="ecm-online-dot"></span><span>Онлайн-расчёт</span></div>
+            <div class="ecm-sub"><span>Расчёт сметы · Онлайн</span></div>
           </div>
         </div>
         <div class="ecm-actions">
@@ -1148,7 +1215,6 @@
   floatingSend = floatingChatWindow.querySelector('.ecm-send');
   const floatingClose = floatingChatWindow.querySelector('.close-btn');
   const floatingReset = floatingChatWindow.querySelector('.reset-btn');
-  bindChipStrip(floatingChatWindow);
 
   let inlineVarsStyleEl = null;
 
@@ -1179,7 +1245,6 @@
     inlineInput = inlineWin.querySelector('.ecm-input');
     inlineSend = inlineWin.querySelector('.ecm-send');
     const inlineReset = inlineWin.querySelector('.reset-btn');
-    bindChipStrip(inlineWin);
 
     inlineWin.querySelectorAll('.ecm-chip-btn').forEach(btn => {
       btn.addEventListener('click', () => handleUserSend(btn.textContent.trim()));
@@ -2023,15 +2088,22 @@
     const hasPPFInText = svcIntent.category === 'ppf' || /ppf|ппф|пленк|плёнк|оклейк|оклеить|заклеит|затянут|закатат|брон/i.test(norm);
     const hasCleanInText = svcIntent.category === 'clean' || /хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|кожа|пропитк|озонир|химк/i.test(norm);
     const hasPolishingInText = svcIntent.category === 'polishing' || /полиров|палиров|глянец|блеск|паутинк|царапин/i.test(norm);
+    const hasCeramicInText = svcIntent.category === 'ceramic' || /керамик|9h|жидк[а-я]*\s*стекл/i.test(norm);
 
     let isPPF = false;
     let isClean = false;
+    let isCeramic = false;
 
     if (hasCleanInText) isClean = true;
     else if (hasPPFInText) isPPF = true;
-    else if (!hasPolishingInText && baseState && (baseState.serviceCategory || baseState.serviceName)) {
+    else if (hasPolishingInText) {
+      isPPF = false;
+    } else if (hasCeramicInText) {
+      isCeramic = true;
+    } else if (baseState && (baseState.serviceCategory || baseState.serviceName)) {
       if (baseState.serviceCategory === 'clean' || (baseState.serviceName && baseState.serviceName.includes('химчист'))) isClean = true;
       else if (baseState.serviceCategory === 'ppf' || (baseState.serviceName && (baseState.serviceName.includes('PPF') || baseState.serviceName.includes('пленк')))) isPPF = true;
+      else if (baseState.serviceCategory === 'ceramic' || (baseState.serviceName && (baseState.serviceName.includes('Нанокерамик') || baseState.serviceName.includes('9H')))) isCeramic = true;
     }
 
     const dateIntent = parseDateIntent(userText);
@@ -2075,6 +2147,33 @@
         carClass: carClass,
         serviceCategory: 'clean',
         serviceName: 'Полная химчистка салона',
+        basePrice: bp,
+        upsellName: uName,
+        upsellPrice: up,
+        totalPrice: bp + up,
+        slot: curSlot,
+        upsellExcluded: isExcl
+      };
+    }
+
+    if (isCeramic) {
+      let bp = 25000;
+      if (carClass === 'Кроссовер' || carClass === 'Внедорожник') bp = 30000;
+      else if (carClass === 'Микроавтобус') bp = 35000;
+
+      let polUp = 18000;
+      if (carClass === 'Кроссовер') polUp = 22000;
+      else if (carClass === 'Внедорожник') polUp = 26000;
+      else if (carClass === 'Микроавтобус') polUp = 28000;
+
+      const up = isExcl ? 0 : polUp;
+      const uName = isExcl ? 'Без дополнительных опций' : 'Подготовительная полировка кузова';
+      return {
+        isEstimate: true,
+        carModel: carModel || 'Автомобиль',
+        carClass: carClass,
+        serviceCategory: 'ceramic',
+        serviceName: 'Нанокерамика 9H (2 слоя)',
         basePrice: bp,
         upsellName: uName,
         upsellPrice: up,
@@ -2266,26 +2365,32 @@
 
       const isClean = (entities.service && entities.service.category === 'clean') || /хим\s*чист|чистк|салон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('химчист'));
       const isPPF = (entities.service && entities.service.category === 'ppf') || /ppf|пленк|оклейк|брон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('PPF'));
+      const isPol = (entities.service && entities.service.category === 'polishing') || /полиров/i.test(norm);
+      const isCer = !isPol && ((entities.service && entities.service.category === 'ceramic') || /керамик|9h/i.test(norm) || (activeOrderState.serviceName && (activeOrderState.serviceName.includes('Нанокерамик') || activeOrderState.serviceName.includes('9H'))));
 
       if (isClean) {
         sName = 'Полная химчистка салона';
         bPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? 15000 : 18000;
-        replyServiceWord = 'полную химчистку салона';
+        replyServiceWord = 'Полная химчистка салона';
       } else if (isPPF) {
         sName = 'Оклейка зон риска пленкой PPF';
         bPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? 65000 : 75000;
-        replyServiceWord = 'оклейку зон риска пленкой PPF';
+        replyServiceWord = 'Оклейка зон риска PPF';
+      } else if (isCer) {
+        sName = 'Нанокерамика 9H (2 слоя)';
+        bPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? 25000 : 30000;
+        replyServiceWord = 'Нанокерамика 9H (2 слоя)';
       } else {
         sName = 'Восстановительная полировка кузова';
         bPrice = (cClass === 'Внедорожник') ? 26000 : ((cClass === 'Кроссовер') ? 22000 : 18000);
-        replyServiceWord = 'восстановительную полировку кузова';
+        replyServiceWord = 'Восстановительная полировка';
       }
 
       const est = {
         isEstimate: true,
         carModel: car,
         carClass: cClass,
-        serviceCategory: isClean ? 'clean' : (isPPF ? 'ppf' : 'polishing'),
+        serviceCategory: isClean ? 'clean' : (isPPF ? 'ppf' : (isCer ? 'ceramic' : 'polishing')),
         serviceName: sName,
         basePrice: bPrice,
         upsellName: uName,
@@ -2298,10 +2403,20 @@
 
       const hasKnownCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
       if (!hasKnownCar) {
-        const sedPrice = isClean ? '15 000 ₽' : (isPPF ? '65 000 ₽' : '18 000 ₽');
-        const suvPrice = isClean ? '18 000 ₽' : (isPPF ? '75 000 ₽' : '22 000 ₽');
+        const sedPrice = isClean ? '15 000 ₽' : (isPPF ? '65 000 ₽' : (isCer ? '25 000 ₽' : '18 000 ₽'));
+        const suvPrice = isClean ? '18 000 ₽' : (isPPF ? '75 000 ₽' : (isCer ? '30 000 ₽' : '22 000 ₽'));
         return {
-          text: `Хорошо, посчитаем только ${replyServiceWord} без допуслуг.\n• Седан / купе — ${sedPrice}\n• Кроссовер / внедорожник — ${suvPrice}\n\nАнтидождь передней полусферы остаётся в подарок. Подскажите модель вашего авто для точного расчёта.`,
+          text: 'Понял, считаем только базовую услугу без дополнительных опций.',
+          breakdown: {
+            headerLabel: replyServiceWord,
+            metaLabel: 'Без допуслуг',
+            rows: [
+              { label: 'Седан / купе', price: sedPrice },
+              { label: 'Кроссовер / внедорожник', price: suvPrice },
+              { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
+            ],
+            footerNote: 'Подскажите модель авто для точной сметы.'
+          },
           estimate: est,
           rawText: JSON.stringify(est)
         };
@@ -2309,7 +2424,18 @@
 
       const timingQ = getFollowUpTimingQuestion(activeOrderState, entities);
       return {
-        text: `Принято, оставляем только ${replyServiceWord} для ${car} — ${bPrice.toLocaleString('ru-RU')} ₽. Антидождь передней полусферы включён в подарок.\n\n${timingQ}`,
+        text: `Принято, для ${car} оставляем только базовый комплекс без допуслуг.`,
+        breakdown: {
+          headerLabel: 'Смета по запросу',
+          metaLabel: `${car} · ${cClass}`,
+          rows: [
+            { label: sName, price: `${bPrice.toLocaleString('ru-RU')} ₽` },
+            { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
+          ],
+          totalLabel: 'Итого по базе',
+          totalPrice: `${bPrice.toLocaleString('ru-RU')} ₽`,
+          footerNote: timingQ
+        },
         estimate: est,
         rawText: JSON.stringify(est)
       };
@@ -2349,6 +2475,7 @@
       let sName = 'детейлинг-комплекс';
       if (entities.service.category === 'clean' || norm.includes('химчист')) sName = 'полную химчистку салона';
       else if (entities.service.category === 'ppf' || norm.includes('пленк') || norm.includes('ppf')) sName = 'оклейку зон риска пленкой PPF';
+      else if (entities.service.category === 'ceramic' || norm.includes('керамик') || norm.includes('9h')) sName = 'покрытие нанокерамикой 9H';
       else if (entities.service.category === 'polishing' || norm.includes('полиров')) sName = 'восстановительную полировку кузова';
 
       const datePart = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} в графике есть свободные окна.` : 'Свободные окна на неделе открыты.';
@@ -2384,36 +2511,52 @@
 
           const isClean = est.serviceCategory === 'clean' || (est.serviceName || '').includes('химчист');
           const isPPF = est.serviceCategory === 'ppf' || (est.serviceName || '').includes('PPF') || (est.serviceName || '').includes('пленк');
+          const isCeramic = est.serviceCategory === 'ceramic' || (est.serviceName || '').includes('Нанокерамик') || (est.serviceName || '').includes('9H');
 
-          let serviceDesc = `Оклейка зон риска полиуретаном PPF (200 мкм) — ${est.basePrice.toLocaleString('ru-RU')} ₽. Включает капот, бампер, крылья, фары, зеркала и стойки (Stek / Llumar)`;
-          if (isClean) {
-            serviceDesc = `Полная химчистка салона — ${est.basePrice.toLocaleString('ru-RU')} ₽. Глубокая очистка кожи и текстиля, пола, потолка, багажника и антибактериальное озонирование`;
-          } else if (!isPPF) {
-            serviceDesc = `Восстановительная полировка кузова — ${est.basePrice.toLocaleString('ru-RU')} ₽. Удаляем до 95% мелкой сетки царапин и возвращаем глубину глянца`;
+          let leadSummary = expertNote
+            ? `${est.carModel} (${est.carClass}): ${expertNote}`
+            : `Рассчитали стоимость и оптимальный состав работ для ${est.carModel} (${est.carClass}).`;
+          if (isPPF) {
+            leadSummary = `${leadSummary} В зоны риска входят капот, бампер, крылья, фары, зеркала и стойки (200 мкм Stek/Llumar).`;
+          } else if (isCeramic) {
+            leadSummary = `${leadSummary} Двухслойная керамика 9H формирует прочный гидрофобный слой до 18 месяцев.`;
+          }
+          if (entities.dateIntent.hasDate) {
+            leadSummary = `На ${entities.dateIntent.display} свободные окна открыты. ${leadSummary}`;
           }
 
-          let upsellDesc = '';
-          if (est.upsellPrice > 0) {
-            if (isClean) {
-              upsellDesc = `\nДополнительно рекомендуем защитную пропитку сидений (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — состав создаёт гидрофобный барьер против влаги и окрашивания кожей одежды.`;
-            } else if (isPPF) {
-              upsellDesc = `\nНа открытые детали рекомендуем нанокерамику 9H (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — она защитит лак от реагентов и выровняет глянец по всему кузову.`;
-            } else {
-              upsellDesc = `\nДля закрепления глянца рекомендуем нанокерамику 9H в 2 слоя (+${est.upsellPrice.toLocaleString('ru-RU')} ₽) — защищает от реагентов и моек до 18 месяцев.`;
+          const rows = [
+            {
+              label: isPPF ? 'Оклейка зон риска PPF (200 мкм)' : est.serviceName,
+              price: `${est.basePrice.toLocaleString('ru-RU')} ₽`
             }
-          } else {
-            upsellDesc = '\nРасчёт подготовлен по базовому комплексу без допуслуг.';
+          ];
+          if (est.upsellPrice > 0) {
+            rows.push({
+              label: est.upsellName,
+              price: `+${est.upsellPrice.toLocaleString('ru-RU')} ₽`,
+              tag: 'Рекомендуем',
+              isHighlight: true
+            });
           }
+          rows.push({
+            label: 'Антидождь передней полусферы',
+            price: 'В подарок',
+            isGift: true
+          });
 
-          const giftDesc = '\nАнтидождь на переднюю полусферу включён в подарок.';
           const timingQ = getFollowUpTimingQuestion(activeOrderState, entities);
 
-          const prefix = entities.dateIntent.hasDate
-            ? `На ${entities.dateIntent.display} свободные слоты есть.\n\nДля ${est.carModel} (${est.carClass}): ${serviceDesc}.`
-            : `${expertNote ? `${est.carModel} (${est.carClass}): ${expertNote}\n\n` : `Расчёт для ${est.carModel} (${est.carClass}):\n\n`}${serviceDesc}.`;
-
           return {
-            text: `${prefix}${upsellDesc}${giftDesc}\n\n${timingQ}`,
+            text: leadSummary,
+            breakdown: {
+              headerLabel: 'Расчёт сметы',
+              metaLabel: `${est.carModel} · ${est.carClass}`,
+              rows: rows,
+              totalLabel: est.upsellPrice > 0 ? 'Итого за комплекс' : 'Итого',
+              totalPrice: `${est.totalPrice.toLocaleString('ru-RU')} ₽`,
+              footerNote: timingQ
+            },
             estimate: est,
             rawText: JSON.stringify(est)
           };
@@ -2423,13 +2566,27 @@
       if (isCarMentioned) {
         const cModel = currentCarModel || 'ваш автомобиль';
         const cClass = currentCarClass || 'Внедорожник';
-        const ppfPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? '65 000 ₽' : '75 000 ₽';
-        const polPrice = (cClass === 'Внедорожник') ? '26 000 ₽' : ((cClass === 'Кроссовер') ? '22 000 ₽' : '18 000 ₽');
-        const cleanPrice = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек') ? '15 000 ₽' : '18 000 ₽';
-        const dateIntro = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} боксы свободны.\n` : '';
+        const isSed = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек');
+        const ppfPrice = isSed ? '65 000 ₽' : (cClass === 'Микроавтобус' ? '85 000 ₽' : '75 000 ₽');
+        const cerPrice = isSed ? '25 000 ₽' : (cClass === 'Микроавтобус' ? '35 000 ₽' : '30 000 ₽');
+        const polPrice = (cClass === 'Внедорожник') ? '26 000 ₽' : ((cClass === 'Кроссовер') ? '22 000 ₽' : (cClass === 'Микроавтобус' ? '28 000 ₽' : '18 000 ₽'));
+        const cleanPrice = isSed ? '15 000 ₽' : (cClass === 'Микроавтобус' ? '22 000 ₽' : '18 000 ₽');
+        const dateIntro = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} боксы свободны. ` : '';
 
         return {
-          text: `${cModel} (${cClass}). ${expertNote}\n\n${dateIntro}Стоимость основных услуг под ваш кузов:\n• Оклейка зон риска PPF — ${ppfPrice}\n• Восстановительная полировка — ${polPrice}\n• Полная химчистка салона — ${cleanPrice}\n\nАнтидождь передней полусферы идёт в подарок к комплексу. Что для вас сейчас актуальнее?`
+          text: `${dateIntro}${cModel} (${cClass}). ${expertNote || 'Подготовили актуальный прайс под класс вашего кузова.'}`,
+          breakdown: {
+            headerLabel: 'Прайс по кузову',
+            metaLabel: `${cModel} · ${cClass}`,
+            rows: [
+              { label: 'Оклейка зон риска PPF (200 мкм)', price: ppfPrice },
+              { label: 'Нанокерамика 9H (2 слоя)', price: cerPrice },
+              { label: 'Восстановительная полировка', price: polPrice },
+              { label: 'Полная химчистка салона', price: cleanPrice },
+              { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
+            ],
+            footerNote: 'Что для вас сейчас актуальнее?'
+          }
         };
       }
     }
@@ -2439,7 +2596,19 @@
 
     if (isServiceInquiry) {
       return {
-        text: `Основные направления «${STUDIO_CONFIG.company_name}»:\n• Оклейка зон риска PPF (200 мкм) — от 65 000 ₽\n• Восстановительная полировка кузова — от 18 000 ₽\n• Нанокерамика 9H в 2–3 слоя — от 25 000 ₽\n• Комплексная химчистка салона — от 15 000 ₽\n• Антидождь на лобовое и передние стёкла — в подарок к комплексу\n\nНапишите модель авто — сразу подготовлю точную смету.`
+        text: `Выполняем защитную оклейку, полировку, нанесение керамики и химчистку в стерильных боксах «${STUDIO_CONFIG.company_name}».`,
+        breakdown: {
+          headerLabel: 'Основные услуги',
+          metaLabel: 'Прайс от',
+          rows: [
+            { label: 'Оклейка зон риска PPF (200 мкм)', price: 'от 65 000 ₽' },
+            { label: 'Нанокерамика 9H (2–3 слоя)', price: 'от 25 000 ₽' },
+            { label: 'Восстановительная полировка кузова', price: 'от 18 000 ₽' },
+            { label: 'Комплексная химчистка салона', price: 'от 15 000 ₽' },
+            { label: 'Антидождь на переднюю полусферу', price: 'В подарок', isGift: true }
+          ],
+          footerNote: 'Напишите модель авто — сразу подготовлю точную смету.'
+        }
       };
     }
 
@@ -2461,20 +2630,81 @@
     }
 
     if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('сиден')) {
+      activeOrderState.serviceCategory = 'clean';
+      activeOrderState.serviceName = 'Полная химчистка салона';
       return {
-        text: 'Стоимость полной химчистки салона:\n• Седаны и купе — 15 000 ₽\n• Кроссоверы и внедорожники — 18 000 ₽\n• Минивэны и микроавтобусы — 22 000 ₽\n\nВключает глубокую чистку кожи и текстиля, озонирование и деликатную сушку. Назовите модель авто для точного расчёта.'
+        text: 'Выполняем глубокую деликатную очистку кожи и текстиля, пола, потолка и багажника с антибактериальным озонированием за 1 рабочий день.',
+        breakdown: {
+          headerLabel: 'Полная химчистка салона',
+          metaLabel: 'По классу кузова',
+          rows: [
+            { label: 'Седан и купе', price: '15 000 ₽' },
+            { label: 'Кроссовер и внедорожник', price: '18 000 ₽' },
+            { label: 'Минивэн и микроавтобус', price: '22 000 ₽' },
+            { label: 'Озонирование и защитная пропитка', price: '+8 000 ₽', tag: 'Рекомендуем', isHighlight: true }
+          ],
+          footerNote: 'Назовите модель авто для точного расчёта.'
+        }
       };
     }
 
     if (norm.includes('полировк') || norm.includes('палировк') || norm.includes('царапин') || norm.includes('глянец')) {
+      activeOrderState.serviceCategory = 'polishing';
+      activeOrderState.serviceName = 'Восстановительная полировка кузова';
       return {
-        text: 'Восстановительная полировка кузова:\n• Седаны и купе — 18 000 ₽ (керамика 9H — +25 000 ₽)\n• Кроссоверы — 22 000 ₽ (керамика 9H — +30 000 ₽)\n• Внедорожники — 26 000 ₽ (керамика 9H — +30 000 ₽)\n\nУбираем до 95% мелкой сетки царапин. Какой у вас автомобиль?'
+        text: 'Убираем до 95% мелкой сетки царапин без истончения лака и возвращаем заводскую глубину глянца за 1 рабочий день.',
+        breakdown: {
+          headerLabel: 'Восстановительная полировка',
+          metaLabel: 'По классу кузова',
+          rows: [
+            { label: 'Седан и купе', price: '18 000 ₽' },
+            { label: 'Кроссовер', price: '22 000 ₽' },
+            { label: 'Внедорожник', price: '26 000 ₽' },
+            { label: 'Нанокерамика 9H (2 слоя)', price: 'от +25 000 ₽', tag: 'Рекомендуем', isHighlight: true },
+            { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
+          ],
+          footerNote: 'Какая у вас модель автомобиля?'
+        }
       };
     }
 
     if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон')) {
+      activeOrderState.serviceCategory = 'ppf';
+      activeOrderState.serviceName = 'Оклейка зон риска пленкой PPF';
       return {
-        text: 'Оклейка зон риска полиуретаном PPF (капот, бампер, крылья, фары, зеркала, стойки):\n• Седаны — 65 000 ₽\n• Кроссоверы и внедорожники — 75 000 ₽\n\nИспользуем оптический полиуретан 200 мкм (Stek, Llumar, SunTek) с самозатягивающимся слоем. Какая у вас модель авто?'
+        text: 'Защищаем капот, бампер, крылья, фары, зеркала и стойки оптическим полиуретаном 200 мкм (Stek / Llumar) с самозатягивающимся слоем.',
+        breakdown: {
+          headerLabel: 'Оклейка зон риска PPF',
+          metaLabel: '200 мкм · Top Coat',
+          rows: [
+            { label: 'Седан и купе', price: '65 000 ₽' },
+            { label: 'Кроссовер и внедорожник', price: '75 000 ₽' },
+            { label: 'Минивэн и микроавтобус', price: '85 000 ₽' },
+            { label: 'Керамика 9H на остальной кузов', price: 'от +25 000 ₽', tag: 'Рекомендуем', isHighlight: true },
+            { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
+          ],
+          footerNote: 'Назовите модель авто — уточню смету и свободные окна.'
+        }
+      };
+    }
+
+    if (norm.includes('керамик') || norm.includes('9h') || norm.includes('жидкое стекло')) {
+      activeOrderState.serviceCategory = 'ceramic';
+      activeOrderState.serviceName = 'Нанокерамика 9H (2 слоя)';
+      return {
+        text: 'Двухслойный состав 9H усиливает глубину цвета, упрощает мойку и защищает лак от реагентов и ультрафиолета до 18 месяцев.',
+        breakdown: {
+          headerLabel: 'Нанокерамика 9H (2 слоя)',
+          metaLabel: 'По классу кузова',
+          rows: [
+            { label: 'Седан и купе', price: '25 000 ₽' },
+            { label: 'Кроссовер и внедорожник', price: '30 000 ₽' },
+            { label: 'Минивэн и микроавтобус', price: '35 000 ₽' },
+            { label: 'Подготовительная полировка', price: 'от +18 000 ₽', tag: 'Рекомендуем', isHighlight: true },
+            { label: 'Замер толщины ЛКП', price: 'В подарок', isGift: true }
+          ],
+          footerNote: 'Какая у вас модель автомобиля?'
+        }
       };
     }
 
@@ -2850,7 +3080,7 @@
     bubble.appendChild(textSpan);
     msgRow.appendChild(bubble);
     streamEl.appendChild(msgRow);
-    return { container: streamEl, bubble: bubble, textEl: textSpan };
+    return { container: streamEl, msgRow: msgRow, bubble: bubble, textEl: textSpan };
   }
 
   async function handleUserSend(text) {
@@ -2924,7 +3154,16 @@
       if (myRunId !== streamRunId) return;
       hideTyping();
 
-      const cleanText = stripCodePieces(rawResult.text);
+      const rawCleanText = stripCodePieces(rawResult.text);
+      const isFinalBooking = !!contactInfo && !refusalMode && !b2bMode;
+
+      let finalLeadText = rawCleanText;
+      let finalBreakdown = (!isFinalBooking && rawResult.breakdown) ? rawResult.breakdown : null;
+      if (!isFinalBooking && !finalBreakdown && rawCleanText) {
+        const parsed = extractBreakdownFromText(rawCleanText);
+        finalLeadText = parsed.leadText;
+        finalBreakdown = parsed.breakdown;
+      }
 
       let estimate = null;
       if (!refusalMode && !b2bMode) {
@@ -2937,20 +3176,38 @@
         });
       }
 
-      if (cleanText) {
-        messages.push({ role: 'bot', isEstimate: false, text: cleanText });
+      if (finalLeadText || finalBreakdown) {
+        messages.push({ role: 'bot', isEstimate: false, text: finalLeadText, breakdown: finalBreakdown });
         const targets = [];
-        const inlineTarget = appendStreamBotShell(inlineStream);
-        if (inlineTarget) targets.push(inlineTarget);
-        if (isFloatingOpen && floatingStream) {
-          const floatTarget = appendStreamBotShell(floatingStream);
-          if (floatTarget) targets.push(floatTarget);
+        if (finalLeadText) {
+          const inlineTarget = appendStreamBotShell(inlineStream);
+          if (inlineTarget) targets.push(inlineTarget);
+          if (isFloatingOpen && floatingStream) {
+            const floatTarget = appendStreamBotShell(floatingStream);
+            if (floatTarget) targets.push(floatTarget);
+          }
+          const ok = await streamTextToTargets(finalLeadText, targets, { runId: myRunId, autoScroll: true });
+          if (!ok) return;
         }
-        const ok = await streamTextToTargets(cleanText, targets, { runId: myRunId, autoScroll: true });
-        if (!ok) return;
+        if (finalBreakdown && myRunId === streamRunId) {
+          if (targets.length) {
+            targets.forEach(t => {
+              const temp = document.createElement('div');
+              temp.innerHTML = buildBreakdownCardHtml(finalBreakdown, { stagger: !prefersReduced }).trim();
+              if (temp.firstElementChild && t.msgRow) {
+                t.msgRow.appendChild(temp.firstElementChild);
+                scrollStreamSoftly(t.container, true);
+              }
+            });
+          } else {
+            [inlineStream, isFloatingOpen ? floatingStream : null].forEach(s => {
+              if (!s) return;
+              s.appendChild(createMessageElement({ role: 'bot', isEstimate: false, text: '', breakdown: finalBreakdown }, { stagger: !prefersReduced }));
+              scrollStreamSoftly(s, true);
+            });
+          }
+        }
       }
-
-      const isFinalBooking = !!contactInfo && !refusalMode && !b2bMode;
 
       if (isFinalBooking) {
         const estClass = (estimate && estimate.carClass) || activeOrderState.carClass || 'Внедорожник';
