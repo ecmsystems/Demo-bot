@@ -59,7 +59,7 @@
   const THEMES = {
     dark: {
       name: 'dark',
-      bg: '#09090B',
+      bg: '#0B0B0D',
       panel: '#0E0E11',
       card_bg: '#151519',
       elevated_bg: '#1B1B20',
@@ -69,7 +69,7 @@
       rule: 'rgba(255, 255, 255, 0.08)',
       rule_strong: 'rgba(255, 255, 255, 0.14)',
       accent: '#F4F4F5',
-      accent_ink: '#09090B',
+      accent_ink: '#0B0B0D',
       champagne: '#D6B37C',
       upsell_bg: 'rgba(214, 179, 124, 0.07)',
       tag_bg: 'rgba(214, 179, 124, 0.14)',
@@ -85,8 +85,7 @@
       radius_win: '10px',
       radius_card: '8px',
       radius_btn: '6px',
-      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     },
     copper: {
       name: 'copper',
@@ -100,7 +99,7 @@
       rule: 'rgba(214, 179, 124, 0.14)',
       rule_strong: 'rgba(214, 179, 124, 0.28)',
       accent: '#D6B37C',
-      accent_ink: '#09090B',
+      accent_ink: '#0B0B0D',
       champagne: '#E3C38E',
       upsell_bg: 'rgba(214, 179, 124, 0.1)',
       tag_bg: 'rgba(214, 179, 124, 0.18)',
@@ -116,8 +115,7 @@
       radius_win: '10px',
       radius_card: '8px',
       radius_btn: '6px',
-      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     },
     epoxy: {
       name: 'epoxy',
@@ -147,8 +145,7 @@
       radius_win: '10px',
       radius_card: '8px',
       radius_btn: '6px',
-      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      font_mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace"
+      font: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     }
   };
 
@@ -222,7 +219,6 @@
         --w-r-card: ${theme.radius_card};
         --w-r-btn: ${theme.radius_btn};
         --w-font: ${theme.font};
-        --w-font-mono: ${theme.font_mono};
       }
     `;
   }
@@ -248,7 +244,7 @@
 
     .tabular {
       font-variant-numeric: tabular-nums;
-      font-family: var(--w-font-mono);
+      letter-spacing: -0.01em;
     }
 
     /* Плавающий лаунчер: скрыт по умолчанию, появляется при скролле ниже Hero */
@@ -591,8 +587,9 @@
     }
 
     .ecm-order-car {
-      font-family: var(--w-font-mono);
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
       color: var(--w-muted);
       white-space: nowrap;
       overflow: hidden;
@@ -615,10 +612,10 @@
 
     .ecm-order-table td.col-price {
       text-align: right;
-      font-family: var(--w-font-mono);
       font-variant-numeric: tabular-nums;
-      font-size: 13px;
-      font-weight: 500;
+      letter-spacing: -0.01em;
+      font-size: 13.5px;
+      font-weight: 600;
       white-space: nowrap;
       color: var(--w-ink);
     }
@@ -1577,6 +1574,15 @@
       .trim();
   }
 
+  function stripNegatedServicePhrases(norm) {
+    return (norm || '')
+      .replace(/(?:^|\s)без\s+(?:[а-яa-z0-9]+\s+){0,2}?(?:нано\s*керамик[а-я]*|керамик[а-я]*|9h|жидк[а-я]*\s+стекл[а-я]*|полиров[а-я]*|озонир[а-я]*|пропитк[а-я]*|защитн[а-я]*|покрыт[а-я]*|доп[а-я]*|опци[а-я]*)/gi, ' ')
+      .replace(/(?:^|\s)(?:нано\s*керамик[а-я]*|керамик[а-я]*|озонир[а-я]*|пропитк[а-я]*|полиров[а-я]*)\s+(?:не\s+(?:нужн|надо|хочу|будем)|убер[а-я]*|убрат[а-я]*|исключ[а-я]*|отмен[а-я]*)/gi, ' ')
+      .replace(/(?:^|\s)(?:убер[а-я]*|убрат[а-я]*|исключ[а-я]*|отмен[а-я]*|не\s+(?:надо|нужн[аоы]?))\s+(?:[а-я]+\s+)?(?:нано\s*керамик[а-я]*|керамик[а-я]*|озонир[а-я]*|пропитк[а-я]*|полиров[а-я]*)/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function isUpsellExclusionQuery(text) {
     if (!text) return false;
     const norm = normalizeCarText(text || '').toLowerCase();
@@ -1594,7 +1600,7 @@
       return true;
     }
     if (norm.includes('без ')) {
-      if (/без\s+(?:защитн[а-я]*\s+)?(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек)/i.test(norm)) {
+      if (/без\s+(?:[а-я]+\s+)?(?:этого|нее|него|них|доп|пропит|припит|припт|керам|нано|озон|лишн|навяз|второг|покрыт|опци|услуг|плюшек|подготов)/i.test(norm)) {
         return true;
       }
       if (/(?:давайте|давате|давай|можно|хочу|лучше|только|будем|мне|нам)\s+без(?:\s|$)/i.test(norm) || norm.startsWith('без ')) {
@@ -1607,7 +1613,10 @@
     if (/дополнительн[а-я]*\s+(?:не\s+(?:нужн|надо)|ничего)/i.test(norm)) {
       return true;
     }
-    if (/не\s+надо\s+(?:никак[а-я]*\s+)?(?:керамик|нано|пропит|припит|доп|лишн|этого|ее|его)/i.test(norm)) {
+    if (/не\s+(?:надо|нужн[аоы]?)\s+(?:никак[а-я]*\s+)?(?:керамик|нано|пропит|припит|доп|лишн|этого|ее|его)/i.test(norm)) {
+      return true;
+    }
+    if (/(?:керамик[а-я]*|нано\s*керамик[а-я]*|пропитк[а-я]*|озонир[а-я]*)\s+не\s+(?:нужн[аоы]?|надо)/i.test(norm)) {
       return true;
     }
     if (/уберите\s+(?:керамик|нано|пропит|припит|доп|лишн|это|ее|его)/i.test(norm)) {
@@ -1744,7 +1753,7 @@
   }
 
   function parseServiceIntent(text) {
-    const norm = normalizeCarText(text || '');
+    const norm = stripNegatedServicePhrases(normalizeCarText(text || ''));
     if (/хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|озонир|химк[аеуоы]/i.test(norm)) {
       return { category: 'clean', name: 'Полная химчистка салона' };
     }
@@ -2084,11 +2093,12 @@
     if (!carClass) return null;
 
     const isExcl = isUpsellExclusionQuery(norm) || !!(baseState && baseState.upsellExcluded);
+    const positiveNorm = stripNegatedServicePhrases(norm);
     const svcIntent = parseServiceIntent(userText);
-    const hasPPFInText = svcIntent.category === 'ppf' || /ppf|ппф|пленк|плёнк|оклейк|оклеить|заклеит|затянут|закатат|брон/i.test(norm);
-    const hasCleanInText = svcIntent.category === 'clean' || /хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|кожа|пропитк|озонир|химк/i.test(norm);
-    const hasPolishingInText = svcIntent.category === 'polishing' || /полиров|палиров|глянец|блеск|паутинк|царапин/i.test(norm);
-    const hasCeramicInText = svcIntent.category === 'ceramic' || /керамик|9h|жидк[а-я]*\s*стекл/i.test(norm);
+    const hasPPFInText = svcIntent.category === 'ppf' || /ppf|ппф|пленк|плёнк|оклейк|оклеить|заклеит|затянут|закатат|брон/i.test(positiveNorm);
+    const hasCleanInText = svcIntent.category === 'clean' || /хим\s*чист|химчист|химчиск|чистк|почист|салон|сиден|кожа|пропитк|озонир|химк/i.test(positiveNorm);
+    const hasPolishingInText = svcIntent.category === 'polishing' || /полиров|палиров|глянец|блеск|паутинк|царапин/i.test(positiveNorm);
+    const hasCeramicInText = svcIntent.category === 'ceramic' || /керамик|9h|жидк[а-я]*\s*стекл/i.test(positiveNorm);
 
     let isPPF = false;
     let isClean = false;
@@ -2228,7 +2238,9 @@
             if (!chosenClass) return null;
 
             const isExcl = isUpsellExclusionQuery(userText) || !!activeOrderState.upsellExcluded;
-            const bp = (parsed.basePrice !== undefined && parsed.basePrice !== null) ? Number(parsed.basePrice) : (autoCalc ? autoCalc.basePrice : 18000);
+            const declinedCeramic = /(?:без|убер[а-я]*|убрат[а-я]*|исключ[а-я]*|не\s+(?:надо|нужн[аоы]?))\s+(?:[а-я]+\s+){0,2}?(?:нано\s*)?керамик|(?:нано\s*)?керамик[а-я]*\s+не\s+(?:нужн|надо)/i.test(normalizeCarText(userText || ''));
+            const keepAutoCalcOverCeramic = isExcl && declinedCeramic && autoCalc && /керамик|9h/i.test(parsed.serviceName || '') && autoCalc.serviceCategory !== 'ceramic';
+            const bp = keepAutoCalcOverCeramic ? Number(autoCalc.basePrice) : ((parsed.basePrice !== undefined && parsed.basePrice !== null) ? Number(parsed.basePrice) : (autoCalc ? autoCalc.basePrice : 18000));
             const up = isExcl ? 0 : ((parsed.upsellPrice !== undefined && parsed.upsellPrice !== null) ? Number(parsed.upsellPrice) : (autoCalc ? autoCalc.upsellPrice : 25000));
 
             const res = {
@@ -2236,7 +2248,7 @@
               carModel: chosenModel || 'Автомобиль',
               carClass: chosenClass,
               serviceCategory: autoCalc ? autoCalc.serviceCategory : 'polishing',
-              serviceName: parsed.serviceName || (autoCalc ? autoCalc.serviceName : 'Восстановительная полировка кузова'),
+              serviceName: keepAutoCalcOverCeramic ? autoCalc.serviceName : (parsed.serviceName || (autoCalc ? autoCalc.serviceName : 'Восстановительная полировка кузова')),
               basePrice: bp,
               upsellName: isExcl ? 'Без дополнительных опций' : (parsed.upsellName || (autoCalc ? autoCalc.upsellName : 'Нанокерамика 9H (2 слоя)')),
               upsellPrice: up,
@@ -2356,17 +2368,21 @@
     }
 
     if (isUpsellExclusionQuery(norm)) {
+      const hasRealCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
       const car = (entities.car && entities.car.carModel) || activeOrderState.carModel || 'автомобиля';
       const cClass = (entities.car && entities.car.carClass) || activeOrderState.carClass || 'Внедорожник';
+      const positiveNorm = stripNegatedServicePhrases(norm);
+      const declinedCeramic = /(?:без|убер[а-я]*|убрат[а-я]*|исключ[а-я]*|не\s+(?:надо|нужн[аоы]?))\s+(?:[а-я]+\s+){0,2}?(?:нано\s*)?керамик|(?:нано\s*)?керамик[а-я]*\s+не\s+(?:нужн|надо)/i.test(norm);
+
       let sName = activeOrderState.serviceName || 'Восстановительная полировка кузова';
       let bPrice = 18000;
       let uName = 'Без дополнительных опций';
       let replyServiceWord = 'базовый комплекс';
 
-      const isClean = (entities.service && entities.service.category === 'clean') || /хим\s*чист|чистк|салон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('химчист'));
-      const isPPF = (entities.service && entities.service.category === 'ppf') || /ppf|пленк|оклейк|брон/i.test(norm) || (activeOrderState.serviceName && activeOrderState.serviceName.includes('PPF'));
-      const isPol = (entities.service && entities.service.category === 'polishing') || /полиров/i.test(norm);
-      const isCer = !isPol && ((entities.service && entities.service.category === 'ceramic') || /керамик|9h/i.test(norm) || (activeOrderState.serviceName && (activeOrderState.serviceName.includes('Нанокерамик') || activeOrderState.serviceName.includes('9H'))));
+      const isClean = (entities.service && entities.service.category === 'clean') || /хим\s*чист|чистк|салон/i.test(positiveNorm) || (activeOrderState.serviceCategory === 'clean') || (activeOrderState.serviceName && activeOrderState.serviceName.includes('химчист'));
+      const isPPF = !isClean && ((entities.service && entities.service.category === 'ppf') || /ppf|пленк|оклейк|брон/i.test(positiveNorm) || (activeOrderState.serviceCategory === 'ppf') || (activeOrderState.serviceName && activeOrderState.serviceName.includes('PPF')));
+      const isPol = !isClean && !isPPF && ((entities.service && entities.service.category === 'polishing') || /полиров/i.test(positiveNorm) || (activeOrderState.serviceCategory === 'polishing') || (activeOrderState.serviceName && activeOrderState.serviceName.includes('полиров')));
+      const isCer = !isClean && !isPPF && !isPol && !declinedCeramic && ((entities.service && entities.service.category === 'ceramic') || /керамик|9h/i.test(positiveNorm) || (activeOrderState.serviceCategory === 'ceramic') || (activeOrderState.serviceName && (activeOrderState.serviceName.includes('Нанокерамик') || activeOrderState.serviceName.includes('9H'))));
 
       if (isClean) {
         sName = 'Полная химчистка салона';
@@ -2388,8 +2404,8 @@
 
       const est = {
         isEstimate: true,
-        carModel: car,
-        carClass: cClass,
+        carModel: hasRealCar ? car : null,
+        carClass: hasRealCar ? cClass : null,
         serviceCategory: isClean ? 'clean' : (isPPF ? 'ppf' : (isCer ? 'ceramic' : 'polishing')),
         serviceName: sName,
         basePrice: bPrice,
@@ -2401,8 +2417,7 @@
       };
       activeOrderState = Object.assign({}, activeOrderState, est);
 
-      const hasKnownCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
-      if (!hasKnownCar) {
+      if (!hasRealCar) {
         const sedPrice = isClean ? '15 000 ₽' : (isPPF ? '65 000 ₽' : (isCer ? '25 000 ₽' : '18 000 ₽'));
         const suvPrice = isClean ? '18 000 ₽' : (isPPF ? '75 000 ₽' : (isCer ? '30 000 ₽' : '22 000 ₽'));
         return {
@@ -2417,8 +2432,8 @@
             ],
             footerNote: 'Подскажите модель авто для точной сметы.'
           },
-          estimate: est,
-          rawText: JSON.stringify(est)
+          estimate: hasRealCar ? est : null,
+          rawText: hasRealCar ? JSON.stringify(est) : ''
         };
       }
 
