@@ -1,0 +1,19 @@
+# Python & virtual environments
+venv/
+.venv/
+__pycache__/
+*.py
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+
+# Node & build artifacts
+node_modules/
+_site/
+
+# OS & temporary files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
