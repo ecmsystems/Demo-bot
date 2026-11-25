@@ -809,6 +809,13 @@
       border-color: var(--w-rule-strong);
       color: var(--w-ink);
     }
+    .ecm-chip-btn.is-highlighted {
+      border-color: var(--w-champagne);
+      background-color: var(--w-upsell-bg);
+      color: var(--w-ink);
+      box-shadow: 0 0 0 1px var(--w-champagne);
+      transition: all 0.22s ease;
+    }
 
     /* Поле ввода */
     .ecm-footer {
@@ -1642,7 +1649,7 @@
       for (const w of item.words) {
         const rx = new RegExp('(?:^|\\s)(?:(?:в|к|около|примерно|часа? в)\\s+)?' + w + '(?:\\s+час[а-я]*)?(?:\\s+(?:дня|вечера|утра|ночи))?(?:\\s|$|[.,!?;:])', 'i');
         if (rx.test(raw)) {
-          const hasTimeMarker = /(?:^|\s)(?:в|к|около|примерно|часа? в|приеду|буду|заеду|записат|свободно)/i.test(raw) ||
+          const hasTimeMarker = /(?:^|\s)(?:(?:в|к|около|примерно|часа?\s+в)\s+|приеду|буду|заеду|записат|свободно)/i.test(raw) ||
             raw.includes('час') || raw.includes('дня') || raw.includes('утра') || raw.includes('вечера');
           if (hasTimeMarker) {
             let h = item.h;
@@ -2110,7 +2117,10 @@
         'завтра', 'сегодня', 'днях', 'выходных', 'этой', 'следующей', 'неделе',
         'время', 'час', 'утро', 'вечер', 'день', 'мойку', 'полировку', 'химчистку',
         'чего', 'кого', 'что', 'это', 'этого', 'вас', 'нас', 'скольк', 'сколько',
-        'какой', 'какую', 'какие', 'кем', 'чем'
+        'какой', 'какую', 'какие', 'кем', 'чем',
+        'лкп', 'лпк', 'кузов', 'кузова', 'салон', 'салона', 'осмотр', 'осмотра',
+        'сколов', 'защиты', 'блеска', 'капот', 'бампер', 'фар', 'фары',
+        'ppf', 'ппф', 'керамики', 'полиуретана'
       ];
       const firstWord = candidate.split(/\s+/)[0] || '';
       if (!skipWords.includes(candidate) && !skipWords.includes(firstWord) && candidate.length > 1) {
@@ -2503,16 +2513,29 @@
     return /(?:^|\s)(?:ау+|ауу+|тут|вы\s+тут|кто\s+тут|есть\s+кто|алло+|але+|алё+|эй|прием|приём|живой|жив|на\s+связи|ответь)(?=\s|$)/i.test(norm);
   }
 
+  function highlightQuickButtons() {
+    const pulseRoot = (root) => {
+      if (!root) return;
+      root.querySelectorAll('.ecm-chip-btn').forEach(btn => {
+        btn.classList.add('is-highlighted');
+        setTimeout(() => btn.classList.remove('is-highlighted'), 2600);
+      });
+    };
+    pulseRoot(shadow);
+    const inlineHost = document.getElementById('ecm-inline-shadow-host');
+    if (inlineHost && inlineHost.shadowRoot) pulseRoot(inlineHost.shadowRoot);
+  }
+
   function getContextReturnPrompt(state, isConsultant) {
     if (state && state.carModel && state.serviceName) {
       return isConsultant
-        ? `По вашему ${state.carModel} (${state.serviceName.toLowerCase()}) ориентир актуален — подсказать время на бесплатный осмотр ЛКП или обсудим детали?`
+        ? `По вашему ${state.carModel} (${state.serviceName.toLowerCase()}) ориентир актуален — подсказать детали или время на бесплатный осмотр ЛКП?`
         : `По вашему ${state.carModel} (${state.serviceName.toLowerCase()}) расчёт держим — подсказать свободное окно для записи?`;
     }
     if (state && state.carModel) {
       return isConsultant
-        ? `Для вашего ${state.carModel} это как раз актуально. Что ближе по задаче — защита от сколов, глянец или осмотр ЛКП?`
-        : `Для вашего ${state.carModel} сразу могу посчитать стоимость. Какая услуга интересует?`;
+        ? `Для вашего ${state.carModel} это как раз актуально — что ближе по задаче: защита плёнкой PPF, полировка, керамика или осмотр ЛКП?`
+        : `Для вашего ${state.carModel} сразу могу посчитать точную смету — какая услуга интересует?`;
     }
     if (state && state.serviceName) {
       return `У вас уже выбрана услуга «${state.serviceName}» — напишите модель авто, чтобы подготовить ${isConsultant ? 'ориентир по бюджету' : 'точную смету'}.`;
@@ -2525,34 +2548,58 @@
   function detectKnowledgeIntent(norm, state, isConsultant) {
     if (!norm) return null;
     const followUp = getContextReturnPrompt(state, isConsultant);
+    const carLabel = state && state.carModel ? ` ${state.carModel}` : '';
 
-    // 1. Вопрос про ЛКП (лакокрасочное покрытие), включая опечатку «лпк»
+    // 1. Термин ЛКП («лкп», «лпк», «лакокрасочное покрытие» — по корню и опечатке)
     if (/(?:^|\s)(?:лкп|лпк|лакокрас[а-я]*)(?=\s|$)/i.test(norm) || fuzzyHasToken(norm, ['лкп', 'лпк'], 1)) {
+      const carBridge = state && state.carModel
+        ? `Для вашего ${state.carModel} мы на бесплатном 10-минутном осмотре проверим толщину заводского лака и покажем, нужна ли полировка или сразу защита.`
+        : followUp;
       return {
         intent: 'knowledge_lkp',
-        text: `ЛКП — это лакокрасочное покрытие кузова: слой базовой краски и верхний прозрачный лак, который даёт цвету глубину и защищает металл.\n\nПеред полировкой мы обязательно осматриваем ЛКП под профессиональным светом в боксе (чтобы точно увидеть глубину царапин, риску и голограммы) и бесплатно замеряем толщину лака толщиномером.\n\n${followUp}`
+        text: `ЛКП — это лакокрасочное покрытие кузова: слой базовой краски и защитный прозрачный заводской лак, который даёт цвету глубину и бережёт металл.\n\nПеред полировкой или оклейкой мы всегда проверяем толщину ЛКП толщиномером и осматриваем кузов под профессиональным светом в боксе, чтобы не снять лишний микрон лака и точно оценить риску.\n\n${carBridge}`,
+        altText: `Если кратко про ЛКП: это базовая краска + верхний прозрачный лак на кузове${carLabel}. Толщиномером и под светом лампы мы измеряем запас лака перед работами, чтобы подобрать безопасную полировку или защиту. Что подсказать дальше${carLabel ? ` по${carLabel}` : ''}: полировку, керамику 9H или оклейку плёнкой PPF?`
       };
     }
 
-    const isExplainQuestion = /(?:что\s+такое|что\s+значит|что\s+дает|зачем|для\s+чего|в\s+чем\s+смысл|чем\s+отлич|разниц|поясн|расскаж|объясн|спасает|защищает|помогает|от\s+камн|от\s+скол|винил|плюс|минус|стоит\s+ли|как\s+работает|это\s+что|что\s+лучше)/i.test(norm);
+    const isExplainQuestion = /(?:что\s+такое|что\s+значит|что\s+дает|что\s+входит|зачем|для\s+чего|в\s+чем\s+смысл|чем\s+отлич|разниц|поясн|расскаж|объясн|спасает|защищает|помогает|безопасн[ао]|не\s+испортит|как\s+дела|от\s+камн|от\s+скол|или\s+винил|винил|плюс|минус|стоит\s+ли|как\s+работает|это\s+что|что\s+за|что\s+лучше)/i.test(norm);
 
     // 2. Вопрос про PPF / бронеплёнку / полиуретан vs винил
     if (isExplainQuestion && /(?:ppf|ппф|бронепл[её]н|брон[яие]|полиуретан|винил|пленк)/i.test(norm)) {
       return {
         intent: 'knowledge_ppf',
-        text: `PPF (бронеплёнка) — это прозрачный оптический полиуретан толщиной ~200 мкм, который клеится на зоны риска и гасит удары камней, сколы и пескоструй, самозатягиваясь от тепла.\n\nВ отличие от тонкого винила (~80–100 мкм), который служит в основном для стайлинга, желтеет и легко пробивается гравием, полиуретан сохраняет прозрачность и служит 5–10 лет.\n\n${followUp}`
+        text: `PPF (бронеплёнка) — это прозрачный оптический полиуретан толщиной ~200 мкм, который клеится на зоны риска и гасит удары камней, сколы и пескоструй, самозатягиваясь от тепла.\n\nВ отличие от тонкого декоративного винила (~80–100 мкм), который со временем желтеет и легко пробивается гравием, полиуретан сохраняет глянец и служит 5–10 лет.\n\n${followUp}`,
+        altText: `Кратко о PPF: полиуретан 200 мкм реально принимает удары гравия и пескоструя на себя, в отличие от винила${carLabel ? ` (актуально для${carLabel})` : ''}. Подобрать зоны риска для расчёта или сравнить с керамикой?`
       };
     }
 
-    // 3. Вопрос про керамику / 9H и отличие от плёнки (без прямого запроса сметы с авто)
+    // 3. Вопрос про керамику / 9H и отличие от плёнки
     if (isExplainQuestion && /(?:керамик|керам|9h|жидк[а-я]*\s*стекл)/i.test(norm)) {
       return {
         intent: 'knowledge_ceramic',
-        text: `Нанокерамика 9H — это жидкий защитный состав, который кристаллизуется в верхнем слое лака: даёт глубокий зеркальный блеск и сильный гидрофобный эффект (вода, грязь и реагенты скатываются легче).\n\nВажно: от сколов камней и пескоструя на трассе керамика не защищает — для физической защиты от гравия нужна полиуретановая плёнка PPF.\n\n${followUp}`
+        text: `Нанокерамика 9H — это жидкий защитный состав, который кристаллизуется в верхнем слое лака: даёт глубокий зеркальный блеск и сильный гидрофоб (вода, грязь и реагенты скатываются легче).\n\nВажно учитывать: от сколов камней на трассе керамика не защищает — от физического удара гравия спасает только полиуретановая плёнка PPF.\n\n${followUp}`,
+        altText: `По керамике 9H кратко: это гидрофобный состав для глянца и защиты лака от химии, но не броня от камней. Для${carLabel || ' вашего авто'} показать расчёт керамики, PPF или нажать на быструю кнопку ниже?`
       };
     }
 
-    // 4. Сроки / сколько по времени
+    // 4. Информационные вопросы о полировке / химчистке (именно вопросы, а не прямой запрос услуги)
+    if (isExplainQuestion && /(?:полировк|палировк)/i.test(norm)) {
+      return {
+        intent: 'knowledge_polishing',
+        text: `Восстановительная полировка убирает до 95% «паутинки», мелких царапин и голограмм с верхнего слоя лака и возвращает заводскую глубину цвета. Перед работой мы обязательно замеряем ЛКП толщиномером и осматриваем кузов под лампой.\n\n${followUp}`,
+        altText: `Если коротко про полировку: работаем щадящими пастами по верхним микронам лака после замера ЛКП${carLabel ? ` на${carLabel}` : ''}. Уточнить бюджет или сравнить с керамикой?`
+      };
+    }
+
+    if (isExplainQuestion && /(?:химчист|химчиск|озон)/i.test(norm)) {
+      return {
+        intent: 'knowledge_clean',
+        text: `Полная химчистка — это бережная очистка кожи, алькантары, текстиля, потолка, пола и багажника составами с нейтральным pH, плюс при необходимости антибактериальное озонирование салона и пропитка кожи.\n\n${followUp}`,
+        altText: `Кратко о химчистке: деликатно чистим кожу, ткань и пластик без пересушивания за 1 день${carLabel ? ` для${carLabel}` : ''}. Подсказать стоимость или удобный день?`
+      };
+    }
+
+    // 5. Сроки / сколько по времени
     if (/(?:скольк[а-я]*\s*(?:по\s+)?времен|срок[иао]?|как\s+долго|скольк[а-я]*\s+(?:дней|дня|часов|часа)|когда\s+(?:готов|забрать|отдадите)|длится)/i.test(norm)) {
       const car = (state && state.carModel) || 'автомобиля';
       const isPPF = ((state && state.serviceName) || '').includes('PPF') || ((state && state.serviceName) || '').includes('пленк');
@@ -2561,59 +2608,87 @@
         : `Полировка, керамика 9H или химчистка для ${car} обычно занимают 1 рабочий день: утром заезжаете, вечером или на следующее утро забираете готовый автомобиль.`;
       return {
         intent: 'faq_timing',
-        text: `${timing}\n\n${followUp}`
+        text: `${timing}\n\n${followUp}`,
+        altText: `По срокам ещё раз коротко: полировка/керамика/химчистка — 1 рабочий день, оклейка PPF — 1–2 дня для ${car}. Подобрать удобный день или рассчитать услугу?`
       };
     }
 
-    // 5. Гарантия
+    // 6. Гарантия
     if (/(?:гарант|сертифик|надежн|сколько\s+держит)/i.test(norm)) {
       const car = (state && state.carModel) || 'автомобиль';
       return {
         intent: 'faq_warranty',
-        text: `На все работы по ${car} даём гарантию студии: на полиуретан PPF — 5–10 лет на материал от производителя и 1 год на монтаж, на керамику 9H — до 18 месяцев гидрофобного эффекта. Через 14 дней приглашаем на бесплатный контрольный осмотр.\n\n${followUp}`
+        text: `На все работы по ${car} даём гарантию студии: на полиуретан PPF — 5–10 лет на материал от производителя и 1 год на монтаж, на керамику 9H — до 18 месяцев гидрофобного эффекта. Через 14 дней приглашаем на бесплатный контрольный осмотр.\n\n${followUp}`,
+        altText: `По гарантии фиксируем документально: 1 год на работу студии и до 5–10 лет на оригинальный полиуретан. Оставить заявку на осмотр или уточнить детали по материалам?`
       };
     }
 
-    // 6. Материалы и зоны риска
+    // 7. Материалы и зоны риска
     if (/(?:материал|какой\s+бренд|какой\s+состав|какая\s+пленк)/i.test(norm)) {
       return {
         intent: 'faq_materials',
-        text: `Работаем с оптическим полиуретаном 195–215 мкм (Stek, Llumar, SunTek) с верхним самозатягивающимся слоем Top Coat и пастами/составами Koch Chemie. Винил и дешёвые гибриды не используем.\n\n${followUp}`
+        text: `Работаем с оптическим полиуретаном 195–215 мкм (Stek, Llumar, SunTek) с верхним самозатягивающимся слоем Top Coat и пастами/составами Koch Chemie. Винил и дешёвые гибриды не используем.\n\n${followUp}`,
+        altText: `Используем оригинальные Stek / Llumar / SunTek (200 мкм) и составы Koch Chemie. Какую зону кузова или услугу оценить?`
       };
     }
 
     if (/(?:зон[а-я]*\s+риск|что\s+входит|какие\s+детали)/i.test(norm)) {
       return {
         intent: 'faq_risk_zones',
-        text: `В комплекс «Зоны риска» входят капот и передний бампер полностью, передние крылья, оптика, корпуса зеркал, стойки лобового, полоса на крышу и зоны под ручками.\n\n${followUp}`
+        text: `В комплекс «Зоны риска» входят капот и передний бампер полностью, передние крылья, оптика, корпуса зеркал, стойки лобового, полоса на крышу и зоны под ручками.\n\n${followUp}`,
+        altText: `В базовые «Зоны риска» входит вся ударная передняя часть авто (капот, бампер, крылья, фары, зеркала, стойки). Рассчитать стоимость?`
       };
     }
 
-    // 7. Почему так дорого / цена
+    // 8. Почему так дорого / цена
     if (/(?:почему\s+(?:так\s+)?дорог|дорог[оа]|подешевл|скидк|торг|откуда\s+цена)/i.test(norm)) {
       return {
         intent: 'faq_price_reason',
-        text: `Основную часть стоимости составляют оригинальный полиуретан 200 мкм Stek/Llumar (или двухслойная керамика 9H) и 6–12 часов ручной подготовки в чистом боксе без риска прожечь лак. Замер ЛКП, детейлинг-мойка перед работой и антидождь уже включены.\n\n${followUp}`
+        text: `Основную часть стоимости составляют оригинальный полиуретан 200 мкм Stek/Llumar (или двухслойная керамика 9H) и 6–12 часов ручной подготовки в чистом боксе без риска прожечь лак. Замер ЛКП, детейлинг-мойка перед работой и антидождь уже включены.\n\n${followUp}`,
+        altText: `Цена складывается из оригинальной плёнки 200 мкм / составов и полного цикла подготовки с гарантией на боксовый монтаж. Можем разбить комплекс под ваш бюджет — подсказать варианты?`
       };
     }
 
-    // 8. Оплата
+    // 9. Оплата
     if (/(?:оплат|предоплат|карт[ой]|наличн|сбп|безнал)/i.test(norm)) {
       return {
         intent: 'faq_payment',
-        text: `Предоплата не нужна — оплачиваете по факту приёмки готового авто (карта, СБП, наличные или счёт для юрлиц).\n\n${followUp}`
+        text: `Предоплата не нужна — оплачиваете по факту приёмки готового авто (карта, СБП, наличные или счёт для юрлиц).\n\n${followUp}`,
+        altText: `Оплата строго при выдаче готового автомобиля: картой, по СБП, наличными или по счёту. Выбрать услугу?`
       };
     }
 
-    // 9. Как записаться / где находитесь / адрес
-    if (/(?:где\s+(?:вы\s+)?находит|адрес|куда\s+ехать|как\s+доехать|как\s+к\s+вам\s+попасть)/i.test(norm)) {
+    // 10. Адрес / где находитесь
+    if (/(?:^|\s)где(?:\s|$)|где\s+(?:вы|находит|бокс|студи|располож)|адрес|куда\s+ехать|как\s+доехать|как\s+к\s+вам\s+попасть/i.test(norm)) {
       return {
         intent: 'faq_location',
-        text: `Студия находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно с 10:00 до 21:00 по предварительной записи.\n\n${followUp}`
+        text: `Студия находится по адресу: ${STUDIO_CONFIG.city}. Работаем ежедневно с 10:00 до 21:00 по предварительной записи.\n\n${followUp}`,
+        altText: `Ждём вас по адресу ${STUDIO_CONFIG.city}, ежедневно с 10:00 до 21:00. Подсказать свободное время на осмотр или рассчитать стоимость?`
       };
     }
 
     return null;
+  }
+
+  function applyFinalAntiLoop(txt, intent, altText) {
+    const cleanTxt = (txt || '').trim();
+    const prevReply = (activeOrderState.lastBotReply || activeOrderState.lastBotMessage || '').trim();
+    if (!cleanTxt || !prevReply || cleanTxt !== prevReply) {
+      return { text: cleanTxt, looped: false };
+    }
+
+    // Приоритет 4: ЗАПРЕЩЕНО отправлять одинаковый текст повторно — перефразируем или уточняем + подсвечиваем кнопки
+    let nextTxt = (altText || '').trim();
+    if (!nextTxt || nextTxt === prevReply) {
+      if (intent === 'fallback') {
+        nextTxt = 'Не удалось разобрать этот запрос с первой попытки — выберите готовую тему кнопкой ниже (Полировка кузова, Оклейка PPF, Керамика 9H) или напишите модель авто и вопрос.';
+      } else if (activeOrderState.carModel || activeOrderState.serviceName) {
+        nextTxt = `Чтобы не повторяться: по ${activeOrderState.carModel || 'вашему авто'}${activeOrderState.serviceName ? ' (' + activeOrderState.serviceName.toLowerCase() + ')' : ''} можем перейти к выбору услуги кнопкой ниже или подобрать удобное время на осмотр — что подсказать дальше?`;
+      } else {
+        nextTxt = 'Чтобы не повторять тот же ответ: уточните, пожалуйста, какой именно момент разобрать подробнее, или нажмите на одну из быстрых кнопок ниже.';
+      }
+    }
+    return { text: nextTxt, looped: true };
   }
 
   function finalizeBotResult(result, intent) {
@@ -2632,23 +2707,17 @@
 
     if (isFallback) {
       if (activeOrderState.fallbackCount >= 2) {
-        txt = 'В этой демонстрации работают базовые сценарии, а на боевом сайте к виджету подключён живой ИИ с полным прайсом студии. Выберите одну из быстрых кнопок ниже или оставьте телефон / Telegram для мастера.';
+        txt = 'Не совсем понял ваш вопрос: в этой демо-версии активны базовые сценарии, а на боевом сайте отвечает живой ИИ с полным прайсом студии. Выберите быструю кнопку ниже или оставьте контакт для мастера.';
       } else {
-        txt = 'Не совсем понял ваш вопрос — уточните, пожалуйста, модель автомобиля или задачу, либо нажмите на одну из быстрых кнопок ниже.';
+        txt = 'Не совсем понял этот запрос — напишите коротко, что именно вас интересует (например: ЛКП, PPF, керамика, полировка или модель авто), либо нажмите на быструю кнопку ниже.';
       }
     }
 
-    // Жёсткий Anti-Loop: бот НИКОГДА не отправляет два одинаковых сообщения подряд
-    const prevReply = activeOrderState.lastBotReply || activeOrderState.lastBotMessage;
-    if (txt && prevReply && txt === prevReply) {
-      if (activeOrderState.carModel || activeOrderState.serviceName) {
-        txt = `Могу продолжить по ${activeOrderState.carModel || 'вашему авто'}${activeOrderState.serviceName ? ' (' + activeOrderState.serviceName.toLowerCase() + ')' : ''} или подсказать удобное время для связи с мастером — выберите кнопку ниже или оставьте контакт.`;
-      } else {
-        txt = 'Чтобы не угадывать наугад: в демо активны основные сценарии — выберите услугу кнопкой ниже или оставьте телефон / Telegram, и мастер сориентирует лично.';
-      }
-    }
+    const antiLoopRes = applyFinalAntiLoop(txt, intent, out.altText);
+    txt = antiLoopRes.text;
 
     out.text = txt;
+    out.highlightChips = !!(isFallback || antiLoopRes.looped || out.highlightChips);
     activeOrderState.lastBotMessage = txt;
     activeOrderState.lastBotReply = txt;
     return out;
@@ -2716,6 +2785,41 @@
       }, 'contact_booking');
     }
 
+    const detectedCar = entities.car;
+    const isCarMentioned = !!(detectedCar.carModel || detectedCar.carClass);
+    const hasServiceInMsg = !!entities.service.category;
+    const isPriceQuery = isEstimateRequest(text);
+
+    // ═══ ПРИОРИТЕТ 1: Вопросы по базе знаний, терминам, FAQ и приветствия/пинги ═══
+    // ВСЕГДА проверяются ДО любых веток if (carModel) / услуг / смет / заглушек
+    const kbHit = detectKnowledgeIntent(norm, activeOrderState, isConsultant);
+    if (kbHit && !(isPriceQuery && (isCarMentioned || hasServiceInMsg))) {
+      return finalizeBotResult({ text: kbHit.text, altText: kbHit.altText }, kbHit.intent);
+    }
+
+    const isPing = isPingIntent(norm);
+    const isGreeting = isGreetingIntent(norm);
+    if ((isGreeting || isPing) && !isCarMentioned && !hasServiceInMsg && !isPriceQuery) {
+      const followUp = getContextReturnPrompt(activeOrderState, isConsultant);
+      let head;
+      let altHead;
+      if (isPing && !isGreeting) {
+        head = 'Да, я на связи 24/7 и готов ответить сразу.';
+        altHead = 'Я здесь и на связи круглосуточно — можем сразу разобрать ваш вопрос или выбрать услугу кнопкой ниже.';
+      } else if (isConsultant) {
+        head = 'Здравствуйте! Я на связи 24/7 — помогу разобраться с уходом, защитой кузова или записаться на бесплатный осмотр.';
+        altHead = 'Приветствую! Подскажу по материалам, уходу за кузовом или приглашу на бесплатный осмотр ЛКП.';
+      } else {
+        head = 'Здравствуйте! Я на связи 24/7 — помогу сразу рассчитать стоимость работ и подобрать удобное окно.';
+        altHead = 'Приветствую! Назовите модель авто и услугу — сразу подготовлю точную смету.';
+      }
+      return finalizeBotResult({
+        text: `${head} ${followUp}`,
+        altText: `${altHead} ${followUp}`
+      }, isPing && !isGreeting ? 'ping' : 'greeting');
+    }
+
+    // ═══ ПРИОРИТЕТ 2: Отказ от допов, новые данные (авто, услуга, время) и расчёт сметы ═══
     if (isUpsellExclusionQuery(norm)) {
       const hasRealCar = !!((entities.car && entities.car.carModel) || activeOrderState.carModel);
       const car = (entities.car && entities.car.carModel) || activeOrderState.carModel || 'автомобиля';
@@ -2844,35 +2948,7 @@
       }, 'upsell_exclusion');
     }
 
-    const detectedCar = entities.car;
-    const isCarMentioned = !!(detectedCar.carModel || detectedCar.carClass);
-    const hasServiceInMsg = !!entities.service.category;
-    const isPriceQuery = isEstimateRequest(text);
-
-    // База знаний и термины детейлинга проверяются ДО перехода к расчёту/заглушке
-    const kbHit = detectKnowledgeIntent(norm, activeOrderState, isConsultant);
-    if (kbHit && !(isPriceQuery && (isCarMentioned || hasServiceInMsg))) {
-      return finalizeBotResult({ text: kbHit.text }, kbHit.intent);
-    }
-
-    // Приветствия и пинги с поддержкой опечаток («првиет», «прив», «добрый день», «ау», «тут?», «алло»)
-    const isPing = isPingIntent(norm);
-    const isGreeting = isGreetingIntent(norm);
-    if ((isGreeting || isPing) && !isCarMentioned && !hasServiceInMsg && !isPriceQuery) {
-      const followUp = getContextReturnPrompt(activeOrderState, isConsultant);
-      let head;
-      if (isPing && !isGreeting) {
-        head = 'Да, я на связи 24/7 и готов ответить сразу.';
-      } else if (isConsultant) {
-        head = 'Здравствуйте! Я на связи 24/7 — помогу разобраться с уходом, защитой кузова или записаться на бесплатный осмотр.';
-      } else {
-        head = 'Здравствуйте! Я на связи 24/7 — помогу сразу рассчитать стоимость работ и подобрать удобное окно.';
-      }
-      return finalizeBotResult({
-        text: `${head} ${followUp}`
-      }, isPing && !isGreeting ? 'ping' : 'greeting');
-    }
-
+    // Ветка parsedTime / unknown_car_class / car+service estimate продолжается в Приоритете 2
     const parsedTime = parseTimeEntity(text);
     if (parsedTime && !isPriceQuery && !entities.car.carModel && !hasServiceInMsg) {
       let dayPrefix = (entities.dateIntent.hasDate && entities.dateIntent.display !== 'это время') ? entities.dateIntent.display : null;
@@ -3504,10 +3580,10 @@
         if (res.ok) {
           const data = await res.json();
           if (data && data.reply) {
-            return {
+            return finalizeBotResult({
               text: stripCodePieces(data.reply),
               rawText: data.reply
-            };
+            }, 'remote_ai');
           }
         }
       } catch (e) {}
@@ -3723,6 +3799,9 @@
             });
           }
         }
+        if (rawResult && rawResult.highlightChips && myRunId === streamRunId) {
+          highlightQuickButtons();
+        }
       }
 
       if (isFinalBooking) {
@@ -3901,6 +3980,7 @@
     host.setAttribute('data-mode', targetMode);
 
     cancelActiveAnimations();
+    const switchRunId = streamRunId;
     isSending = false;
     setControlsState(false);
 
@@ -3909,6 +3989,7 @@
       activeStreams.forEach(s => s.classList.add('is-fading'));
       await new Promise(r => setTimeout(r, 150));
       activeStreams.forEach(s => s.classList.remove('is-fading'));
+      if (switchRunId !== streamRunId) return;
     }
 
     return runAutoplay();
