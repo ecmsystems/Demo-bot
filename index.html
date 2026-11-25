@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detailing Lab — Онлайн-расчёт и запись для детейлинг-студии</title>
-  <meta name="description" content="Интерактивное демо онлайн-консультанта для детейлинг-студии: расчёт стоимости по классу кузова, подбор опций и фиксация записи в таблице.">
+  <title>Демо-виджет для детейлинг-студии — консультация и запись 24/7</title>
+  <meta name="description" content="Интерактивный пример виджета для сайта: отвечает на вопросы по авто, подбирает услугу и переводит клиента на осмотр или запись.">
 
-  <meta property="og:title" content="Detailing Lab — Онлайн-расчёт и запись для детейлинг-студии">
-  <meta property="og:description" content="Интерактивное демо онлайн-консультанта: расчёт стоимости по прайсу 24/7 и передача заявки в CRM студии.">
-  <meta property="og:image" content="./og-image.png">
+  <meta property="og:title" content="Демо-виджет для детейлинг-студии — консультация и запись 24/7">
+  <meta property="og:description" content="Интерактивный пример виджета для сайта: отвечает на вопросы по авто, подбирает услугу и переводит клиента на осмотр или запись.">
+  <meta property="og:image" content="https://ecmsystems.github.io/Demo-bot/og-preview.png?v=1">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Демо-виджет для детейлинг-студии — консультация и запись 24/7">
+  <meta name="twitter:description" content="Интерактивный пример виджета для сайта: отвечает на вопросы по авто, подбирает услугу и переводит клиента на осмотр или запись.">
+  <meta name="twitter:image" content="https://ecmsystems.github.io/Demo-bot/og-preview.png?v=1">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none'%3E%3Crect x='1' y='1' width='30' height='30' rx='6' fill='%23111113' stroke='%2327272A' stroke-width='1.5'/%3E%3Cpath d='M7 9.5H11.5C14 9.5 15.2 11.1 15.2 13.6V18.4C15.2 20.9 14 22.5 11.5 22.5H7Z' stroke='%23F4F4F5' stroke-width='2.2' stroke-linejoin='miter'/%3E%3Cpath d='M19 9.5V22.5H25' stroke='%23D6B37C' stroke-width='2.2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E">
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon.png?v=3">
@@ -436,18 +441,30 @@
       color: var(--ink-secondary);
     }
 
-    /* Переключатель стилей виджета */
-    .theme-switcher-bar {
+    /* Панель управления режимом и стилем виджета */
+    .widget-controls-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+
+    .control-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
       padding: 8px 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
       font-size: 12.5px;
       color: var(--ink-secondary);
+    }
+
+    .control-divider {
+      height: 1px;
+      background: var(--border);
+      width: 100%;
     }
 
     .theme-btns-group {
@@ -1213,7 +1230,7 @@
         height: 540px;
         max-height: 540px;
       }
-      .theme-switcher-bar {
+      .control-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
@@ -1319,18 +1336,28 @@
             <div class="widget-skeleton-bar">
               <div>
                 <div class="widget-skeleton-title" id="widgetStudioName">Detailing Lab</div>
-                <div class="widget-skeleton-sub">Расчёт сметы · Онлайн</div>
+                <div class="widget-skeleton-sub">Подбор и запись на осмотр · Онлайн</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="theme-switcher-bar">
-          <span>Стиль виджета</span>
-          <div class="theme-btns-group" role="group" aria-label="Выбор стиля виджета">
-            <button type="button" class="theme-btn active" id="themeBtnDark" onclick="switchDemoTheme('dark')">Тёмный карбон</button>
-            <button type="button" class="theme-btn" id="themeBtnCopper" onclick="switchDemoTheme('copper')">Графит и медь</button>
-            <button type="button" class="theme-btn" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Светлый</button>
+        <div class="widget-controls-panel">
+          <div class="control-row">
+            <span>Роль бота</span>
+            <div class="theme-btns-group" role="group" aria-label="Выбор роли виджета">
+              <button type="button" class="theme-btn active" id="modeBtnConsultant" onclick="switchDemoMode('consultant')">Консультант (на осмотр)</button>
+              <button type="button" class="theme-btn" id="modeBtnCalculator" onclick="switchDemoMode('calculator')">Калькулятор сметы</button>
+            </div>
+          </div>
+          <div class="control-divider" aria-hidden="true"></div>
+          <div class="control-row">
+            <span>Стиль виджета</span>
+            <div class="theme-btns-group" role="group" aria-label="Выбор стиля виджета">
+              <button type="button" class="theme-btn active" id="themeBtnDark" onclick="switchDemoTheme('dark')">Тёмный карбон</button>
+              <button type="button" class="theme-btn" id="themeBtnCopper" onclick="switchDemoTheme('copper')">Графит и медь</button>
+              <button type="button" class="theme-btn" id="themeBtnEpoxy" onclick="switchDemoTheme('epoxy')">Светлый</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1724,6 +1751,18 @@
 
       if (window.EcmWidget && typeof window.EcmWidget.setTheme === 'function') {
         window.EcmWidget.setTheme(theme);
+      }
+    }
+
+    function switchDemoMode(mode) {
+      const btnConsultant = document.getElementById('modeBtnConsultant');
+      const btnCalculator = document.getElementById('modeBtnCalculator');
+
+      if (btnConsultant) btnConsultant.classList.toggle('active', mode === 'consultant');
+      if (btnCalculator) btnCalculator.classList.toggle('active', mode === 'calculator');
+
+      if (window.EcmWidget && typeof window.EcmWidget.setMode === 'function') {
+        window.EcmWidget.setMode(mode);
       }
     }
 

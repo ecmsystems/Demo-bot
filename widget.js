@@ -150,6 +150,36 @@
   };
 
   let activeTheme = THEMES.dark;
+  let activeMode = 'consultant';
+
+  function getModeSubtitle(mode) {
+    return mode === 'calculator'
+      ? 'Расчёт сметы · Онлайн'
+      : 'Подбор и запись на осмотр · Онлайн';
+  }
+
+  const BUDGET_FORKS = {
+    15000: '14–17 тыс. ₽',
+    18000: '16–20 тыс. ₽',
+    22000: '20–25 тыс. ₽',
+    25000: '23–28 тыс. ₽',
+    26000: '23–28 тыс. ₽',
+    28000: '26–32 тыс. ₽',
+    30000: '28–34 тыс. ₽',
+    35000: '32–38 тыс. ₽',
+    65000: '60–70 тыс. ₽',
+    75000: '70–82 тыс. ₽',
+    85000: '80–92 тыс. ₽'
+  };
+
+  function formatBudgetFork(amount) {
+    const n = Number(amount);
+    if (!n || isNaN(n)) return 'по осмотру';
+    if (BUDGET_FORKS[n]) return BUDGET_FORKS[n];
+    const low = Math.max(1, Math.round((n * 0.9) / 1000));
+    const high = Math.max(low + 2, Math.round((n * 1.1) / 1000));
+    return `${low}–${high} тыс. ₽`;
+  }
 
   // ─── 4. SVG ИКОНКИ (СТРОГИЙ ТЕХНИЧЕСКИЙ МИНИМАЛИЗМ) ──────────────
   const SVG_CLOSE = `
@@ -449,6 +479,11 @@
       gap: 12px;
       scrollbar-width: thin;
       scrollbar-color: var(--w-rule-strong) transparent;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .ecm-stream.is-fading {
+      opacity: 0;
+      transform: translateY(4px);
     }
     .ecm-stream::-webkit-scrollbar {
       width: 5px;
@@ -908,7 +943,7 @@
     }
   `;
 
-  // ─── 6. ГЕНЕРАЦИЯ КАРТОЧКИ «ПРЕДВАРИТЕЛЬНЫЙ РАСЧЁТ» ───────────────
+  // ─── 6. ГЕНЕРАЦИЯ КАРТОЧКИ («ПРЕДВАРИТЕЛЬНАЯ РЕКОМЕНДАЦИЯ» / СМЕТА) ─
   function buildOrderCardHtml(carModel, carClass, basePrice, upsellPrice, totalPrice, slot, serviceName, upsellName, options = {}) {
     const sName = serviceName || 'Восстановительная полировка кузова';
     const bPrice = (basePrice !== undefined && basePrice !== null) ? Number(basePrice) : 18000;
@@ -919,6 +954,57 @@
     const displaySlot = (slot && slot !== 'суббота 14:00' && !slot.includes('суббота 14:00')) ? slot : 'по согласованию';
     const isStaggered = !!options.stagger;
     const initialDisplayedTotal = (typeof options.initialTotalStart === 'number') ? options.initialTotalStart : tPrice;
+    const isConsultantCard = (options.isRecommendation !== undefined) ? !!options.isRecommendation : (activeMode === 'consultant');
+    const isFinalConfirmed = !!options.isFinalConfirmed;
+
+    if (isConsultantCard) {
+      const upsellConsultRow = hasUpsell ? `
+        <tr class="ecm-row-upsell ${isStaggered ? 'stagger-row stagger-2' : ''}">
+          <td>
+            <span>${escapeHtml(uName)}</span>
+            <span class="ecm-rec-tag">По желанию</span>
+          </td>
+          <td class="col-price">от ${Math.round(uPrice / 1000)} тыс.&nbsp;₽</td>
+        </tr>
+      ` : '';
+
+      const bannerLeft = isFinalConfirmed
+        ? `Осмотр / визит: ${escapeHtml(displaySlot)}`
+        : 'Бесплатный осмотр ЛКП в боксе · 15 мин';
+      const bannerRight = isFinalConfirmed
+        ? 'Мастер уточнит детали'
+        : 'Без обязательств';
+
+      return `
+        <div class="ecm-order-card ${isStaggered ? 'is-staggered' : ''}">
+          <div class="ecm-order-meta">
+            <span class="ecm-order-title">${isFinalConfirmed ? 'Запись на осмотр и подбор' : 'Предварительная рекомендация'}</span>
+            <span class="ecm-order-car tabular">${escapeHtml(carModel)} · ${escapeHtml(carClass)}</span>
+          </div>
+          <table class="ecm-order-table">
+            <tbody>
+              <tr class="${isStaggered ? 'stagger-row stagger-1' : ''}">
+                <td>${escapeHtml(sName)}</td>
+                <td class="col-price">${escapeHtml(formatBudgetFork(bPrice))}</td>
+              </tr>
+              ${upsellConsultRow}
+              <tr class="${isStaggered ? 'stagger-row stagger-3' : ''}">
+                <td>Замер толщины ЛКП и осмотр при свете</td>
+                <td class="col-price"><span class="ecm-gift-val">Бесплатно</span></td>
+              </tr>
+              <tr class="ecm-row-total ${isStaggered ? 'stagger-row stagger-4' : ''}">
+                <td>Ориентир бюджета</td>
+                <td class="col-price">от ${bPrice.toLocaleString('ru-RU')}&nbsp;₽</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="ecm-hold-banner">
+            <span class="ecm-slot-status"><span class="ecm-slot-dot"></span>${bannerLeft}</span>
+            <span>${bannerRight}</span>
+          </div>
+        </div>
+      `;
+    }
 
     const upsellRowHtml = hasUpsell ? `
       <tr class="ecm-row-upsell ${isStaggered ? 'stagger-row stagger-2' : ''}">
@@ -999,6 +1085,31 @@
 
   // ─── 8. ЛОГИКА НАЧАЛЬНОГО ДИАЛОГА И ПРОКРУТКИ ЧИПСОВ ──────────────
   function getInitialMessages() {
+    if (activeMode === 'consultant') {
+      return [
+        {
+          role: 'bot',
+          isEstimate: false,
+          isInitialSample: true,
+          text: 'Здравствуйте. Помогу спокойно разобраться в материалах и уходе без навязывания лишнего.\nНазовите модель авто или выберите тему ниже — дам ориентир по бюджету вилкой и предложу удобное окно на бесплатный осмотр ЛКП.'
+        },
+        {
+          role: 'bot',
+          isEstimate: true,
+          isInitialSample: true,
+          isRecommendation: true,
+          carModel: 'BMW 5',
+          carClass: 'Седан',
+          serviceName: 'Восстановительная полировка кузова',
+          basePrice: 18000,
+          upsellName: 'Защита керамикой 9H (по состоянию лака)',
+          upsellPrice: 25000,
+          totalPrice: 43000,
+          slot: 'по записи'
+        }
+      ];
+    }
+
     return [
       {
         role: 'bot',
@@ -1010,6 +1121,7 @@
         role: 'bot',
         isEstimate: true,
         isInitialSample: true,
+        isRecommendation: false,
         carModel: 'BMW 5',
         carClass: 'Седан',
         serviceName: 'Восстановительная полировка кузова',
@@ -1124,6 +1236,10 @@
       bubble.textContent = m.text;
       msgRow.appendChild(bubble);
     } else if (m.isEstimate) {
+      const mergedOpts = Object.assign({}, options, {
+        isRecommendation: m.isRecommendation,
+        isFinalConfirmed: m.isFinalConfirmed
+      });
       msgRow.innerHTML = buildOrderCardHtml(
         m.carModel,
         m.carClass,
@@ -1133,7 +1249,7 @@
         m.slot,
         m.serviceName,
         m.upsellName,
-        options
+        mergedOpts
       );
     } else {
       if (m.text) {
@@ -1182,7 +1298,7 @@
           <div class="ecm-avatar">${SVG_STUDIO_MARK}</div>
           <div style="min-width:0;">
             <div class="ecm-title">${STUDIO_CONFIG.company_name}</div>
-            <div class="ecm-sub"><span>Расчёт сметы · Онлайн</span></div>
+            <div class="ecm-sub"><span>${getModeSubtitle(activeMode)}</span></div>
           </div>
         </div>
         <div class="ecm-actions">
@@ -2342,6 +2458,7 @@
       };
     }
 
+    const isConsultant = activeMode === 'consultant';
     const effContact = contactInfo || entities.contactInfo;
     if (effContact) {
       const timePref = extractTimePreference(text) || (entities.dateIntent.hasDate ? (entities.dateIntent.display + (entities.dateIntent.time ? (' в ' + entities.dateIntent.time) : '')) : null);
@@ -2349,13 +2466,21 @@
 
       if (!activeOrderState.carModel) {
         return {
-          text: `Контакт записал. Передал заявку управляющему студии — он свяжется с вами (${effContact.display}) в ближайшее время.`
+          text: isConsultant
+            ? `Контакт записал. Мастер получил заявку и свяжется с вами (${effContact.display}), чтобы подсказать по материалам или выбрать время для бесплатного осмотра ЛКП.`
+            : `Контакт записал. Передал заявку управляющему студии — он свяжется с вами (${effContact.display}) в ближайшее время.`
         };
       }
 
       const car = activeOrderState.carModel || 'ваш автомобиль';
       const slot = activeOrderState.slot || 'по согласованию';
       const slotPrep = (slot.startsWith('на ') || slot.startsWith('в ') || slot.startsWith('к ')) ? slot : `на ${slot}`;
+
+      if (isConsultant) {
+        return {
+          text: `Записал ваш контакт. Закрепили ориентир для ${car} ${slotPrep}.\n\nСтарший мастер свяжется с вами (${effContact.display}), чтобы сориентировать по состоянию ЛКП или пригласить на 10-минутный бесплатный осмотр в боксе.`
+        };
+      }
 
       let receiptSummary = '';
       if (activeOrderState.carModel && activeOrderState.serviceName && activeOrderState.basePrice) {
@@ -2418,8 +2543,28 @@
       activeOrderState = Object.assign({}, activeOrderState, est);
 
       if (!hasRealCar) {
-        const sedPrice = isClean ? '15 000 ₽' : (isPPF ? '65 000 ₽' : (isCer ? '25 000 ₽' : '18 000 ₽'));
-        const suvPrice = isClean ? '18 000 ₽' : (isPPF ? '75 000 ₽' : (isCer ? '30 000 ₽' : '22 000 ₽'));
+        const sedRaw = isClean ? 15000 : (isPPF ? 65000 : (isCer ? 25000 : 18000));
+        const suvRaw = isClean ? 18000 : (isPPF ? 75000 : (isCer ? 30000 : 22000));
+        if (isConsultant) {
+          return {
+            text: 'Конечно, делаем только то, что действительно нужно — без навязывания дополнительных опций.',
+            breakdown: {
+              headerLabel: 'Предварительная рекомендация',
+              metaLabel: `${replyServiceWord} · без допов`,
+              rows: [
+                { label: 'Седан / купе (ориентир бюджета)', price: formatBudgetFork(sedRaw) },
+                { label: 'Кроссовер / внедорожник', price: formatBudgetFork(suvRaw) },
+                { label: 'Осмотр ЛКП и консультация мастера', price: 'Бесплатно', isGift: true }
+              ],
+              footerNote: 'Назовите модель авто — уточню ориентир или подберу 15 минут для бесплатного осмотра в боксе.'
+            },
+            estimate: null,
+            rawText: ''
+          };
+        }
+
+        const sedPrice = `${sedRaw.toLocaleString('ru-RU')} ₽`;
+        const suvPrice = `${suvRaw.toLocaleString('ru-RU')} ₽`;
         return {
           text: 'Понял, считаем только базовую услугу без дополнительных опций.',
           breakdown: {
@@ -2432,8 +2577,27 @@
             ],
             footerNote: 'Подскажите модель авто для точной сметы.'
           },
-          estimate: hasRealCar ? est : null,
-          rawText: hasRealCar ? JSON.stringify(est) : ''
+          estimate: null,
+          rawText: ''
+        };
+      }
+
+      if (isConsultant) {
+        return {
+          text: `Конечно, для ${car} ориентируемся только на ${sName.toLowerCase()} без лишних допов.`,
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: `${car} · ${cClass}`,
+            rows: [
+              { label: sName, price: formatBudgetFork(bPrice) },
+              { label: 'Замер толщины ЛКП при свете в боксе', price: 'Бесплатно', isGift: true }
+            ],
+            totalLabel: 'Ориентир бюджета',
+            totalPrice: `от ${bPrice.toLocaleString('ru-RU')} ₽`,
+            footerNote: 'Окончательно фиксируем объём работ за 10 минут на бесплатном осмотре ЛКП или по звонку с мастером.'
+          },
+          estimate: est,
+          rawText: JSON.stringify(est)
         };
       }
 
@@ -2540,6 +2704,42 @@
             leadSummary = `На ${entities.dateIntent.display} свободные окна открыты. ${leadSummary}`;
           }
 
+          if (isConsultant) {
+            const consultRows = [
+              {
+                label: isPPF ? 'Оклейка зон риска PPF (Stek / Llumar 200 мкм)' : est.serviceName,
+                price: formatBudgetFork(est.basePrice)
+              }
+            ];
+            if (est.upsellPrice > 0) {
+              consultRows.push({
+                label: est.upsellName,
+                price: `от ${Math.round(est.upsellPrice / 1000)} тыс. ₽`,
+                tag: 'По желанию',
+                isHighlight: true
+              });
+            }
+            consultRows.push({
+              label: 'Замер ЛКП и осмотр при свете в боксе',
+              price: 'Бесплатно',
+              isGift: true
+            });
+
+            return {
+              text: leadSummary,
+              breakdown: {
+                headerLabel: 'Предварительная рекомендация',
+                metaLabel: `${est.carModel} · ${est.carClass}`,
+                rows: consultRows,
+                totalLabel: 'Ориентир бюджета',
+                totalPrice: `от ${est.basePrice.toLocaleString('ru-RU')} ₽`,
+                footerNote: 'Точный объём работ мастер определяет за 10 минут на бесплатном осмотре ЛКП или коротком созвоне. Подобрать окно?'
+              },
+              estimate: est,
+              rawText: JSON.stringify(est)
+            };
+          }
+
           const rows = [
             {
               label: isPPF ? 'Оклейка зон риска PPF (200 мкм)' : est.serviceName,
@@ -2582,11 +2782,29 @@
         const cModel = currentCarModel || 'ваш автомобиль';
         const cClass = currentCarClass || 'Внедорожник';
         const isSed = (cClass === 'Седан' || cClass === 'Бизнес-седан' || cClass === 'Бизнес-седан / Лифтбек');
-        const ppfPrice = isSed ? '65 000 ₽' : (cClass === 'Микроавтобус' ? '85 000 ₽' : '75 000 ₽');
-        const cerPrice = isSed ? '25 000 ₽' : (cClass === 'Микроавтобус' ? '35 000 ₽' : '30 000 ₽');
-        const polPrice = (cClass === 'Внедорожник') ? '26 000 ₽' : ((cClass === 'Кроссовер') ? '22 000 ₽' : (cClass === 'Микроавтобус' ? '28 000 ₽' : '18 000 ₽'));
-        const cleanPrice = isSed ? '15 000 ₽' : (cClass === 'Микроавтобус' ? '22 000 ₽' : '18 000 ₽');
+        const ppfNum = isSed ? 65000 : (cClass === 'Микроавтобус' ? 85000 : 75000);
+        const cerNum = isSed ? 25000 : (cClass === 'Микроавтобус' ? 35000 : 30000);
+        const polNum = (cClass === 'Внедорожник') ? 26000 : ((cClass === 'Кроссовер') ? 22000 : (cClass === 'Микроавтобус' ? 28000 : 18000));
+        const cleanNum = isSed ? 15000 : (cClass === 'Микроавтобус' ? 22000 : 18000);
         const dateIntro = entities.dateIntent.hasDate ? `На ${entities.dateIntent.display} боксы свободны. ` : '';
+
+        if (isConsultant) {
+          return {
+            text: `${dateIntro}${cModel} (${cClass}). ${expertNote || 'Учитываем особенности лакокрасочного покрытия и геометрии этой модели.'}`,
+            breakdown: {
+              headerLabel: 'Предварительная рекомендация',
+              metaLabel: `${cModel} · ${cClass}`,
+              rows: [
+                { label: 'Оклейка зон риска PPF (Stek / Llumar)', price: formatBudgetFork(ppfNum) },
+                { label: 'Нанокерамика 9H (2 слоя)', price: formatBudgetFork(cerNum) },
+                { label: 'Восстановительная полировка', price: formatBudgetFork(polNum) },
+                { label: 'Полная химчистка салона', price: formatBudgetFork(cleanNum) },
+                { label: 'Осмотр ЛКП при свете в боксе', price: 'Бесплатно', isGift: true }
+              ],
+              footerNote: 'Что сейчас беспокоит больше — сколы по трассе, царапины на лаке или салон? Можем пригласить на бесплатный осмотр.'
+            }
+          };
+        }
 
         return {
           text: `${dateIntro}${cModel} (${cClass}). ${expertNote || 'Подготовили актуальный прайс под класс вашего кузова.'}`,
@@ -2594,10 +2812,10 @@
             headerLabel: 'Прайс по кузову',
             metaLabel: `${cModel} · ${cClass}`,
             rows: [
-              { label: 'Оклейка зон риска PPF (200 мкм)', price: ppfPrice },
-              { label: 'Нанокерамика 9H (2 слоя)', price: cerPrice },
-              { label: 'Восстановительная полировка', price: polPrice },
-              { label: 'Полная химчистка салона', price: cleanPrice },
+              { label: 'Оклейка зон риска PPF (200 мкм)', price: `${ppfNum.toLocaleString('ru-RU')} ₽` },
+              { label: 'Нанокерамика 9H (2 слоя)', price: `${cerNum.toLocaleString('ru-RU')} ₽` },
+              { label: 'Восстановительная полировка', price: `${polNum.toLocaleString('ru-RU')} ₽` },
+              { label: 'Полная химчистка салона', price: `${cleanNum.toLocaleString('ru-RU')} ₽` },
               { label: 'Антидождь передней полусферы', price: 'В подарок', isGift: true }
             ],
             footerNote: 'Что для вас сейчас актуальнее?'
@@ -2610,6 +2828,23 @@
       norm.includes('список услуг') || norm.includes('весь прайс') || norm.includes('что вы делаете') || norm.includes('чем занимаетесь');
 
     if (isServiceInquiry) {
+      if (isConsultant) {
+        return {
+          text: `Работаем бережно по состоянию кузова и салона — перед началом всегда бесплатно проверяем толщину лака в боксе «${STUDIO_CONFIG.company_name}».`,
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: 'Ориентир бюджета',
+            rows: [
+              { label: 'Оклейка зон риска PPF (200 мкм)', price: 'от 60 тыс. ₽' },
+              { label: 'Нанокерамика 9H (защита лака)', price: 'от 23 тыс. ₽' },
+              { label: 'Полировка кузова (по состоянию ЛКП)', price: 'от 16 тыс. ₽' },
+              { label: 'Комплексная химчистка салона', price: 'от 14 тыс. ₽' },
+              { label: 'Осмотр ЛКП и консультация мастера', price: 'Бесплатно', isGift: true }
+            ],
+            footerNote: 'Назовите модель авто — дам ориентир вилкой или подберу окно на бесплатный осмотр.'
+          }
+        };
+      }
       return {
         text: `Выполняем защитную оклейку, полировку, нанесение керамики и химчистку в стерильных боксах «${STUDIO_CONFIG.company_name}».`,
         breakdown: {
@@ -2647,6 +2882,22 @@
     if (norm.includes('химчист') || norm.includes('химчиск') || norm.includes('салон') || norm.includes('почистит') || norm.includes('сиден')) {
       activeOrderState.serviceCategory = 'clean';
       activeOrderState.serviceName = 'Полная химчистка салона';
+      if (isConsultant) {
+        return {
+          text: 'Подбираем деликатные составы отдельно под кожу, алькантару и текстиль, чтобы не пересушить отделку. Освежаем салон за 1 рабочий день.',
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: 'Химчистка · по кузову',
+            rows: [
+              { label: 'Седан и купе', price: '14–17 тыс. ₽' },
+              { label: 'Кроссовер и внедорожник', price: '16–20 тыс. ₽' },
+              { label: 'Озонирование и защита кожи', price: 'по состоянию', tag: 'По желанию', isHighlight: true },
+              { label: 'Осмотр салона перед началом работ', price: 'Бесплатно', isGift: true }
+            ],
+            footerNote: 'Какой у вас автомобиль? Подскажу ориентир и свободное окно на осмотр.'
+          }
+        };
+      }
       return {
         text: 'Выполняем глубокую деликатную очистку кожи и текстиля, пола, потолка и багажника с антибактериальным озонированием за 1 рабочий день.',
         breakdown: {
@@ -2666,6 +2917,23 @@
     if (norm.includes('полировк') || norm.includes('палировк') || norm.includes('царапин') || norm.includes('глянец')) {
       activeOrderState.serviceCategory = 'polishing';
       activeOrderState.serviceName = 'Восстановительная полировка кузова';
+      if (isConsultant) {
+        return {
+          text: 'Сначала замеряем толщину заводского лака, затем подбираем мягкую или восстановительную связку паст — без лишнего съёма ЛКП.',
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: 'Полировка · ориентир',
+            rows: [
+              { label: 'Седан и купе', price: '16–20 тыс. ₽' },
+              { label: 'Кроссовер', price: '20–25 тыс. ₽' },
+              { label: 'Внедорожник', price: '23–28 тыс. ₽' },
+              { label: 'Защита керамикой 9H (по состоянию)', price: 'от 23 тыс. ₽', tag: 'По желанию', isHighlight: true },
+              { label: 'Замер ЛКП при свете в боксе', price: 'Бесплатно', isGift: true }
+            ],
+            footerNote: 'Назовите модель авто — сориентирую по вилке и приглашу на 10-минутный осмотр ЛКП.'
+          }
+        };
+      }
       return {
         text: 'Убираем до 95% мелкой сетки царапин без истончения лака и возвращаем заводскую глубину глянца за 1 рабочий день.',
         breakdown: {
@@ -2686,6 +2954,22 @@
     if (norm.includes('ppf') || norm.includes('ппф') || norm.includes('пленк') || norm.includes('плёнк') || norm.includes('оклейк') || norm.includes('оклеить') || norm.includes('заклеит') || norm.includes('затянут') || norm.includes('закатат') || norm.includes('брон')) {
       activeOrderState.serviceCategory = 'ppf';
       activeOrderState.serviceName = 'Оклейка зон риска пленкой PPF';
+      if (isConsultant) {
+        return {
+          text: 'Подбираем прозрачный полиуретан 200 мкм (Stek / Llumar) с учётом геометрии бампера и крыльев: закрываем капот, оптику, стойки и зоны риска подворотом без стыков.',
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: 'PPF 200 мкм · ориентир',
+            rows: [
+              { label: 'Седан и купе', price: '60–70 тыс. ₽' },
+              { label: 'Кроссовер и внедорожник', price: '70–82 тыс. ₽' },
+              { label: 'Минивэн и микроавтобус', price: '80–92 тыс. ₽' },
+              { label: 'Осмотр кузова и пример плёнки в боксе', price: 'Бесплатно', isGift: true }
+            ],
+            footerNote: 'Назовите модель авто — покажу ориентир и удобные окна на осмотр или созвон с мастером.'
+          }
+        };
+      }
       return {
         text: 'Защищаем капот, бампер, крылья, фары, зеркала и стойки оптическим полиуретаном 200 мкм (Stek / Llumar) с самозатягивающимся слоем.',
         breakdown: {
@@ -2706,6 +2990,22 @@
     if (norm.includes('керамик') || norm.includes('9h') || norm.includes('жидкое стекло')) {
       activeOrderState.serviceCategory = 'ceramic';
       activeOrderState.serviceName = 'Нанокерамика 9H (2 слоя)';
+      if (isConsultant) {
+        return {
+          text: 'Керамику 9H наносим на подготовленный лак в два слоя: состав добавляет глубину цвета и облегчает мойку без жёстких кислот до 18 месяцев.',
+          breakdown: {
+            headerLabel: 'Предварительная рекомендация',
+            metaLabel: 'Керамика 9H · ориентир',
+            rows: [
+              { label: 'Седан и купе', price: '23–28 тыс. ₽' },
+              { label: 'Кроссовер и внедорожник', price: '28–34 тыс. ₽' },
+              { label: 'Подготовительная полировка', price: 'по состоянию ЛКП', tag: 'По осмотру', isHighlight: true },
+              { label: 'Диагностика лака при свете в боксе', price: 'Бесплатно', isGift: true }
+            ],
+            footerNote: 'Какой у вас автомобиль? Подскажу, нужна ли подготовка лака или можно ограничиться лёгким очищением.'
+          }
+        };
+      }
       return {
         text: 'Двухслойный состав 9H усиливает глубину цвета, упрощает мойку и защищает лак от реагентов и ультрафиолета до 18 месяцев.',
         breakdown: {
@@ -2764,11 +3064,23 @@
       };
     }
 
+    if (norm.includes('осмотр') || norm.includes('созвон') || norm.includes('консультац')) {
+      const timePref = extractTimePreference(text);
+      if (timePref) activeOrderState.slot = timePref;
+      return {
+        text: timePref
+          ? `Отлично, запланируем короткий бесплатный осмотр ЛКП (${timePref}) или созвон с мастером. Оставьте телефон или Telegram, чтобы мы подтвердили удобное время.`
+          : 'Проводим бесплатный 10-минутный осмотр ЛКП при студийном свете — смотрим состояние лака толщиномером и подбираем состав без переплат. Подсказать удобное время для заезда или созвона?'
+      };
+    }
+
     if (norm.includes('воскресень') || norm.includes('понедельник') || norm.includes('вторник') || norm.includes('сред') || norm.includes('четверг') || norm.includes('пятниц') || norm.includes('будн') || norm.includes('другой день') || norm.includes('другое время') || norm.includes('утром') || norm.includes('вечером')) {
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: `Принято, примем вас ${timePref || 'в удобное время'}. Подскажите имя и контакт (телефон или Telegram), чтобы закрепить слот в расписании.`
+        text: isConsultant
+          ? `Хорошо, ориентируемся на ${timePref || 'удобное время'}. Подскажите имя и контакт (телефон или Telegram) — мастер подтвердит окно на осмотр или короткий созвон.`
+          : `Принято, примем вас ${timePref || 'в удобное время'}. Подскажите имя и контакт (телефон или Telegram), чтобы закрепить слот в расписании.`
       };
     }
 
@@ -2776,7 +3088,9 @@
       const timePref = extractTimePreference(text);
       if (timePref) activeOrderState.slot = timePref;
       return {
-        text: 'Подскажите, какой у вас автомобиль и какая услуга интересует (полировка, плёнка PPF или химчистка) — проверю расписание и рассчитаю точную стоимость.'
+        text: isConsultant
+          ? 'С удовольствием подберём окно на бесплатный осмотр ЛКП или сразу в работу. Подскажите модель авто и что актуальнее — полировка, керамика, плёнка PPF или салон?'
+          : 'Подскажите, какой у вас автомобиль и какая услуга интересует (полировка, плёнка PPF или химчистка) — проверю расписание и рассчитаю точную стоимость.'
       };
     }
 
@@ -2785,11 +3099,15 @@
         const car = activeOrderState.carModel;
         const expertNote = getCarExpertDetail(car, activeOrderState.carClass, activeOrderState.brand);
         return {
-          text: `Подберём оптимальный комплекс для ${car}. ${expertNote}\nКакая задача важнее сейчас: защита кузова от сколов (PPF), глубокий глянец (полировка + керамика) или обновление салона?`
+          text: isConsultant
+            ? `Подберём бережный уход именно под состояние вашего ${car}. ${expertNote}\nПодскажите, что важнее сейчас: защита от сколов (PPF), глубокий блеск (полировка и керамика) или освежить салон? При желании можно заехать на бесплатный осмотр ЛКП.`
+            : `Подберём оптимальный комплекс для ${car}. ${expertNote}\nКакая задача важнее сейчас: защита кузова от сколов (PPF), глубокий глянец (полировка + керамика) или обновление салона?`
         };
       }
       return {
-        text: 'Помогу выбрать подходящий комплекс. Напишите модель автомобиля и главную задачу: защита от сколов по трассе (PPF), восстановление блеска (полировка + керамика) или химчистка салона.'
+        text: isConsultant
+          ? 'Помогу разобраться без лишних опций. Напишите модель авто и задачу: защита от сколов по трассе (PPF), уход за лаком (полировка / керамика) или химчистка салона — подскажу вилку бюджета и формат осмотра.'
+          : 'Помогу выбрать подходящий комплекс. Напишите модель автомобиля и главную задачу: защита от сколов по трассе (PPF), восстановление блеска (полировка + керамика) или химчистка салона.'
       };
     }
 
@@ -2802,22 +3120,30 @@
     if (['привет', 'здравствуйте', 'добрый день', 'добрый вечер', 'ку', 'салют'].includes(norm)) {
       if (activeOrderState.carModel) {
         return {
-          text: `Здравствуйте. Расчёт для ${activeOrderState.carModel} актуален. В какой день удобнее запланировать визит?`
+          text: isConsultant
+            ? `Здравствуйте. Рекомендации для ${activeOrderState.carModel} открыты. Подсказать свободное окно на бесплатный осмотр ЛКП или ответить по материалам?`
+            : `Здравствуйте. Расчёт для ${activeOrderState.carModel} актуален. В какой день удобнее запланировать визит?`
         };
       }
       return {
-        text: 'Здравствуйте. Укажите марку и модель автомобиля — рассчитаю стоимость по прайсу и подберу свободное окно.'
+        text: isConsultant
+          ? 'Здравствуйте. Подскажите марку и модель автомобиля — сориентирую по материалам, вилке бюджета и приглашу на бесплатный осмотр.'
+          : 'Здравствуйте. Укажите марку и модель автомобиля — рассчитаю стоимость по прайсу и подберу свободное окно.'
       };
     }
 
     if (activeOrderState.carModel) {
       return {
-        text: `По ${activeOrderState.carModel} (${activeOrderState.carClass || 'Внедорожник'}) смету держим в работе. Подскажите удобный день для визита или уточните детали по материалам.`
+        text: isConsultant
+          ? `По ${activeOrderState.carModel} (${activeOrderState.carClass || 'Внедорожник'}) держим ориентир. Подсказать детали по материалам или подобрать время на бесплатный осмотр в боксе?`
+          : `По ${activeOrderState.carModel} (${activeOrderState.carClass || 'Внедорожник'}) смету держим в работе. Подскажите удобный день для визита или уточните детали по материалам.`
       };
     }
 
     return {
-      text: 'Напишите марку и модель автомобиля и какая услуга интересует — рассчитаю смету по кузову и подскажу ближайшие свободные окна.'
+      text: isConsultant
+        ? 'Напишите марку и модель автомобиля или что хочется улучшить по кузову и салону — дам ориентир по бюджету и предложу удобное время для бесплатного осмотра ЛКП.'
+        : 'Напишите марку и модель автомобиля и какая услуга интересует — рассчитаю смету по кузову и подскажу ближайшие свободные окна.'
     };
   }
 
@@ -2995,6 +3321,7 @@
           body: JSON.stringify({
             studio_id: STUDIO_CONFIG.studio_id || 'default',
             session_id: SESSION_KEY,
+            mode: activeMode,
             message: promptText
           }),
           signal: ctrl.signal
@@ -3244,6 +3571,7 @@
           role: 'bot',
           isEstimate: true,
           isFinalConfirmed: true,
+          isRecommendation: activeMode === 'consultant',
           carModel: estModel,
           carClass: estClass,
           serviceName: estService,
@@ -3273,7 +3601,7 @@
           client: clientDisplayName,
           car: `${estModel} (${estClass})`,
           service: `${estService}${estUpsellPrice > 0 ? ' + ' + estUpsellName : ''}`,
-          price: `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
+          price: activeMode === 'consultant' ? formatBudgetFork(estBasePrice) : `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
           slot: estSlot,
           phone: contactInfo.phone || contactInfo.display,
           tg_username: contactInfo.telegram || (contactInfo.type === 'telegram' ? contactInfo.value : ''),
@@ -3287,9 +3615,9 @@
               contact: contactInfo.display,
               car: `${estModel} (${estClass})`,
               service: `${estService}${estUpsellPrice > 0 ? ' + ' + estUpsellName : ''}`,
-              cost: `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
+              cost: activeMode === 'consultant' ? formatBudgetFork(estBasePrice) : `${Number(estTotalPrice).toLocaleString('ru-RU')} ₽`,
               source: 'Виджет на сайте',
-              status: 'Бронь подтверждена'
+              status: activeMode === 'consultant' ? 'Запись на осмотр' : 'Бронь подтверждена'
             }
           }));
         } catch (e) {}
@@ -3305,12 +3633,12 @@
           window.dispatchEvent(new CustomEvent('ecm-lead-created', {
             detail: {
               client: 'Онлайн-посетитель',
-              contact: 'Расчёт сметы в диалоге',
+              contact: activeMode === 'consultant' ? 'Подбор и осмотр в диалоге' : 'Расчёт сметы в диалоге',
               car: `${curCar} (${curClass})`.trim(),
               service: curService + (curUpsell > 0 ? ` + ${activeOrderState.upsellName || 'керамика 9H'}` : ''),
-              cost: `${Number(curCost).toLocaleString('ru-RU')} ₽`,
+              cost: activeMode === 'consultant' ? formatBudgetFork(curBase) : `${Number(curCost).toLocaleString('ru-RU')} ₽`,
               source: 'Виджет на сайте',
-              status: 'Расчёт сметы'
+              status: activeMode === 'consultant' ? 'Консультация' : 'Расчёт сметы'
             }
           }));
         } catch (e) {}
@@ -3374,13 +3702,42 @@
       spawnedCards.push(cardNode);
     });
 
-    // Плавно обновляем «Итого» при появлении второй позиции
-    setTimeout(() => {
-      if (myRunId !== streamRunId) return;
-      spawnedCards.forEach(cardNode => {
-        animateTotalCounter(cardNode, sampleEstimate.basePrice, sampleEstimate.totalPrice, 460);
-      });
-    }, 220);
+    // Плавно обновляем «Итого» при появлении второй позиции (только в режиме калькулятора)
+    if (activeMode === 'calculator') {
+      setTimeout(() => {
+        if (myRunId !== streamRunId) return;
+        spawnedCards.forEach(cardNode => {
+          animateTotalCounter(cardNode, sampleEstimate.basePrice, sampleEstimate.totalPrice, 460);
+        });
+      }, 220);
+    }
+  }
+
+  async function switchWidgetMode(modeName) {
+    const targetMode = modeName === 'calculator' ? 'calculator' : 'consultant';
+    activeMode = targetMode;
+
+    const subText = getModeSubtitle(targetMode);
+    [floatingChatWindow, inlineStream && inlineStream.parentNode].forEach(win => {
+      if (!win) return;
+      win.querySelectorAll('.ecm-sub span').forEach(el => { el.textContent = subText; });
+    });
+    const skeletonSub = document.querySelector('#ecm-demo .widget-skeleton-sub');
+    if (skeletonSub) skeletonSub.textContent = subText;
+    host.setAttribute('data-mode', targetMode);
+
+    cancelActiveAnimations();
+    isSending = false;
+    setControlsState(false);
+
+    const activeStreams = [inlineStream, isFloatingOpen ? floatingStream : null].filter(Boolean);
+    if (!prefersReduced && activeStreams.length) {
+      activeStreams.forEach(s => s.classList.add('is-fading'));
+      await new Promise(r => setTimeout(r, 150));
+      activeStreams.forEach(s => s.classList.remove('is-fading'));
+    }
+
+    return runAutoplay();
   }
 
   function resetConversation() {
@@ -3407,6 +3764,8 @@
     setActiveOrderState: function (s) { activeOrderState = Object.assign({}, activeOrderState, s); },
     resetActiveOrderState: resetActiveOrderState,
     getMessages: function () { return messages; },
+    getMode: function () { return activeMode; },
+    setMode: function (modeName) { return switchWidgetMode(modeName); },
 
     setTheme: function (themeNameOrTokens) {
       if (typeof themeNameOrTokens === 'string') {
